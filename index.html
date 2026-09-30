@@ -145,15 +145,16 @@ h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;margin:
     <input class="term-input" id="term-input" name="command" inputmode="text" autocapitalize="none" autocomplete="off" spellcheck="false" aria-label="Terminal command" autofocus>
   </form>
 </div>
-<div class="termhint">try <code>help</code> · ↑/↓ history · Ctrl+L clears</div></section>
+<div class="termhint">try <code>conspiracy</code> or ask a normal question · first AI query downloads a small local model · ↑/↓ history · Ctrl+L clears</div></section>
 
 <section class="section"><div class="card pro-card"><p class="quote">“You only notice the branch point later.”</p><p class="smallcopy">Some choices feel enormous in the moment. Others look like a random email, a move, a job, a person you keep talking to, or one ordinary Tuesday where you choose differently.</p></div></section>
 
 <footer>main is protected · force push disabled · built with HTML/CSS and questionable 5 AM lore</footer>
 </main>
 
-<script>
-(() => {
+
+<script type="module">
+(async () => {
   const output = document.getElementById('term-output');
   const form = document.getElementById('term-form');
   const input = document.getElementById('term-input');
@@ -162,13 +163,45 @@ h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;margin:
 
   const history = [];
   let historyIndex = 0;
-  const branches = ['main', 'msft-2020', 'twilio-2023', 'dublin-2025', 'india-2018', 'remotes/origin/who-the-fuck-knows'];
+  let engine = null;
+  let enginePromise = null;
+  let aiBusy = false;
+
+  const MODEL_F16 = 'SmolLM2-360M-Instruct-q4f16_1-MLC';
+  const MODEL_F32 = 'SmolLM2-360M-Instruct-q4f32_1-MLC';
+
+  const branches = [
+    'main',
+    'msft-2020',
+    'twilio-2023',
+    'dublin-2025',
+    'india-2018',
+    'remotes/origin/who-the-fuck-knows'
+  ];
+
+  const conspiracyLore = `THE GMAIL BRANCHING HYPOTHESIS 👽
+
+Working theory: Nishad's inbox is not merely documenting his timeline. It keeps presenting branch points.
+
+2015 → a FutureMe note supplies the root prompt: "fly high, dream big."
+2016–2018 → grad-school rejection, retry, then CMU. Failed build; repository survives.
+2019–2020 → Microsoft offer accepted, then the Twitter branch wins.
+2021 → Tesla and Cruise probes appear; Nishad declines them. The system learns novelty is optional.
+2023 → Moveworks, Twilio, Graphite, geography and bureaucracy collide. Entropy spike.
+2024 → Microsoft respawns as a reachable node under new conditions.
+2025 → Dublin/eBay opens a Europe branch, then closes.
+2026 → main becomes stable enough to feel suspicious, so boredom itself starts looking like a branch-generator signal.
+
+In this joke-model, replying to a recruiter is basically:
+git checkout -b possible-new-life
+
+Reality check: this is deliberately playful lore built from Nishad's own career history — not a claim that Gmail, recruiters, or the universe are secretly controlling anything.`;
 
   const files = {
-    'README.md': 'nishad://multiverse\nOne life. Many branches.\nBuilt with HTML/CSS/JS and questionable early-morning lore.',
-    'about.txt': 'Nishad Dawkhar — software engineer, AI/NLP grad, distributed systems + cloud + edge, professional branch collector.',
+    'README.md': 'nishad://multiverse\nOne life. Many branches.\nBuilt with HTML/CSS/JS, WebGPU, and questionable early-morning lore.',
+    'about.txt': 'Nishad Dawkhar — software engineer, MS in AI/NLP from Carnegie Mellon, previously at Twitter, currently at Microsoft in Bengaluru.',
     'branches.txt': branches.join('\n'),
-    'status.txt': 'stability: high-ish\nvigour: ???\nbranching factor: non-zero\nforce push: disabled'
+    'status.txt': 'stability: high-ish\nvigour: ???\nbranching factor: non-zero\nforce push: disabled\nai: local browser model, lazy-loaded'
   };
 
   const links = {
@@ -180,35 +213,157 @@ h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;margin:
     recruiter: '#recruiter'
   };
 
-  function print(text = '', cls = '') {
+  const systemPrompt = `You are the tiny local AI living inside nishad://multiverse, Nishad Dawkhar's nerdy personal website.
+
+Style:
+- concise, conversational, witty, a little terminal-ish
+- answer normal general questions too
+- when the question is about Nishad, use only the facts below and say when something is unknown
+- do not invent private facts or claim access to Gmail, ChatGPT memory, files, or the internet
+- do not pretend you are actually ChatGPT; you are a small local browser model demo
+
+Public Nishad context:
+- Nishad Dawkhar is a software engineer.
+- He has an MS in AI/NLP from Carnegie Mellon University.
+- He previously worked at Twitter and currently works at Microsoft in Bengaluru.
+- His site frames life choices as git branches / alternate timelines.
+- Notable playful branch labels: msft-2020, twilio-2023, dublin-2025, india-2018.
+- The "Gmail Branching Hypothesis" is a joke: recruiter and career emails seem to appear near life branch points.
+- Site motto: one life, many branches.
+- main is protected; force push disabled.
+`;
+
+  function addLine(text = '', cls = '') {
     const line = document.createElement('div');
     line.className = 'termline' + (cls ? ' ' + cls : '');
     line.textContent = text;
     output.appendChild(line);
     output.scrollTop = output.scrollHeight;
+    return line;
   }
 
   function promptLine(command) {
-    print('guest@nishad.ai:~$ ' + command, 'cmd');
+    addLine('guest@nishad.ai:~$ ' + command, 'cmd');
   }
 
   function openTarget(name) {
     const target = links[name];
     if (!target) {
-      print('open: unknown target: ' + name, 'pink');
-      print('available: ' + Object.keys(links).join(', '), 'dim');
+      addLine('open: unknown target: ' + name, 'pink');
+      addLine('available: ' + Object.keys(links).join(', '), 'dim');
       return;
     }
     if (target.startsWith('#')) {
       document.querySelector(target)?.scrollIntoView({behavior:'smooth'});
-      print('opened ' + name, 'yellow');
+      addLine('opened ' + name, 'yellow');
     } else {
       window.open(target, '_blank', 'noopener,noreferrer');
-      print('opening ' + name + ' ↗', 'yellow');
+      addLine('opening ' + name + ' ↗', 'yellow');
     }
   }
 
-  function run(raw) {
+  async function ensureEngine() {
+    if (engine) return engine;
+    if (enginePromise) return enginePromise;
+
+    enginePromise = (async () => {
+      if (!('gpu' in navigator)) {
+        throw new Error('WebGPU is unavailable in this browser. Try current Chrome or Edge on your MacBook.');
+      }
+
+      const status = addLine('ai: loading WebLLM runtime…', 'yellow');
+
+      let webllm;
+      try {
+        webllm = await import('https://esm.run/@mlc-ai/web-llm');
+      } catch (err) {
+        throw new Error('Could not load the WebLLM runtime from the CDN.');
+      }
+
+      const progress = (report) => {
+        const msg = (report && report.text) ? report.text : 'loading model…';
+        status.textContent = 'ai: ' + msg;
+        output.scrollTop = output.scrollHeight;
+      };
+
+      try {
+        status.textContent = 'ai: booting local model (first run downloads model weights)…';
+        engine = await webllm.CreateMLCEngine(MODEL_F16, {
+          initProgressCallback: progress,
+          logLevel: 'WARN'
+        }, {
+          context_window_size: 2048
+        });
+      } catch (firstErr) {
+        status.textContent = 'ai: f16 model unsupported here; trying compatibility build…';
+        engine = await webllm.CreateMLCEngine(MODEL_F32, {
+          initProgressCallback: progress,
+          logLevel: 'WARN'
+        }, {
+          context_window_size: 2048
+        });
+      }
+
+      status.textContent = 'ai: local model ready ✓';
+      return engine;
+    })();
+
+    try {
+      return await enginePromise;
+    } catch (err) {
+      enginePromise = null;
+      engine = null;
+      throw err;
+    }
+  }
+
+  async function askAI(query) {
+    if (aiBusy) {
+      addLine('ai: one universe at a time — current response still generating.', 'pink');
+      return;
+    }
+    aiBusy = true;
+    input.disabled = true;
+
+    try {
+      const e = await ensureEngine();
+      const answerLine = addLine('nishad.ai> ', 'yellow');
+      let accumulated = '';
+
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: query }
+      ];
+
+      const stream = await e.chat.completions.create({
+        messages,
+        temperature: 0.7,
+        max_tokens: 220,
+        stream: true
+      });
+
+      for await (const chunk of stream) {
+        const delta = chunk?.choices?.[0]?.delta?.content || '';
+        if (!delta) continue;
+        accumulated += delta;
+        answerLine.textContent = 'nishad.ai> ' + accumulated;
+        output.scrollTop = output.scrollHeight;
+      }
+
+      if (!accumulated.trim()) {
+        answerLine.textContent = 'nishad.ai> [model returned an empty response — try again]';
+      }
+    } catch (err) {
+      addLine('ai error: ' + (err?.message || String(err)), 'pink');
+      addLine('Tip: this prototype works best in current Chrome/Edge on a Mac with WebGPU enabled.', 'dim');
+    } finally {
+      aiBusy = false;
+      input.disabled = false;
+      input.focus();
+    }
+  }
+
+  async function run(raw) {
     const command = raw.trim();
     if (!command) return;
     const parts = command.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
@@ -217,130 +372,147 @@ h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;margin:
 
     switch (cmd) {
       case 'help':
-        print('available commands:', 'yellow');
-        print('  help                 show this help');
-        print('  whoami               identify current process');
-        print('  pwd                   print working universe');
-        print('  ls                    list local lore');
-        print('  cat <file>            read README.md, about.txt, branches.txt, status.txt');
-        print('  git status            inspect current timeline');
-        print('  git branch --all      list alternate branches');
-        print('  git log               selected life commits');
-        print('  conspiracy           jump to Gmail Branching Hypothesis');
-        print('  timeline | branches  jump around the site');
-        print('  recruiter            jump to recruiter mode');
-        print('  linkedin | github    open external profile');
-        print('  open <target>         same thing, explicit syntax');
-        print('  echo <text>           echo into the void');
-        print('  date                  browser-local time');
-        print('  history               command history');
-        print('  clear                 clear terminal');
-        print('  sudo <anything>       absolutely critical enterprise feature');
+        addLine('commands:', 'yellow');
+        addLine('  conspiracy            print the Gmail Branching Hypothesis');
+        addLine('  whoami | pwd | ls     basic shell-ish stuff');
+        addLine('  cat <file>            README.md | about.txt | branches.txt | status.txt');
+        addLine('  git status            inspect current timeline');
+        addLine('  git branch --all      list alternate branches');
+        addLine('  git log               selected life commits');
+        addLine('  timeline | branches   jump around the site');
+        addLine('  recruiter             jump to recruiter mode');
+        addLine('  linkedin | github     open profile');
+        addLine('  clear | history       terminal housekeeping');
+        addLine('');
+        addLine('Anything else is sent to the LOCAL browser LLM.', 'yellow');
+        addLine('Example: why did Microsoft respawn?', 'dim');
+        addLine('Example: explain transformers like I am rusty', 'dim');
         break;
+
+      case 'conspiracy':
+      case 'gmail':
+        addLine(conspiracyLore, 'yellow');
+        break;
+
       case 'whoami':
-        print('guest');
-        print('(you are currently poking around Nishad\'s multiverse)', 'dim');
+        addLine('guest');
+        addLine("(you are currently poking around Nishad's multiverse)", 'dim');
         break;
+
       case 'pwd':
-        print('/home/nishad/multiverse/main');
+        addLine('/home/nishad/multiverse/main');
         break;
+
       case 'ls':
-        print('README.md   about.txt   branches.txt   status.txt');
+        addLine('README.md   about.txt   branches.txt   status.txt');
         break;
+
       case 'cat': {
         const name = args[0];
-        if (!name) return print('cat: missing file operand', 'pink');
-        if (!(name in files)) return print('cat: ' + name + ': No such file or timeline', 'pink');
-        print(files[name]);
+        if (!name) return addLine('cat: missing file operand', 'pink');
+        if (!(name in files)) return addLine('cat: ' + name + ': No such file or timeline', 'pink');
+        addLine(files[name]);
         break;
       }
+
       case 'git': {
         const sub = (args[0] || '').toLowerCase();
         if (sub === 'status') {
-          print('On branch main');
-          print("Your life is ahead of 'origin/main' by ??? commits.");
-          print('nothing to commit, several things to overthink');
+          addLine('On branch main');
+          addLine("Your life is ahead of 'origin/main' by ??? commits.");
+          addLine('nothing to commit, several things to overthink');
         } else if (sub === 'branch') {
-          print(branches.map((b,i) => (i===0 ? '* ' : '  ') + b).join('\n'));
+          addLine(branches.map((b,i) => (i===0 ? '* ' : '  ') + b).join('\n'));
         } else if (sub === 'log') {
-          print('2026  main: stable, suspiciously quiet');
-          print('2025  feat: Dublin portal appears');
-          print('2024  rebase: Microsoft node respawns');
-          print('2023  merge: branch collision event');
-          print('2020  checkout: Twitter');
-          print('2018  merge: CMU');
-          print('2015  init: fly high, dream big');
+          addLine('2026  main: stable, suspiciously quiet');
+          addLine('2025  feat: Dublin portal appears');
+          addLine('2024  rebase: Microsoft node respawns');
+          addLine('2023  merge: branch collision event');
+          addLine('2020  checkout: Twitter');
+          addLine('2018  merge: CMU');
+          addLine('2015  init: fly high, dream big');
         } else {
-          print('git: try status, branch --all, or log', 'pink');
+          addLine('git: try status, branch --all, or log', 'pink');
         }
         break;
       }
-      case 'conspiracy':
-      case 'gmail':
+
       case 'timeline':
       case 'branches':
       case 'recruiter':
       case 'linkedin':
       case 'github':
-        openTarget(cmd === 'gmail' ? 'conspiracy' : cmd);
+        openTarget(cmd);
         break;
+
       case 'open':
-        if (!args[0]) print('open: missing target', 'pink');
+        if (!args[0]) addLine('open: missing target', 'pink');
         else openTarget(args[0].toLowerCase());
         break;
+
       case 'echo':
-        print(args.join(' '));
+        addLine(args.join(' '));
         break;
+
       case 'date':
-        print(new Date().toString());
+        addLine(new Date().toString());
         break;
+
       case 'history':
-        history.forEach((h, i) => print(String(i + 1).padStart(3, ' ') + '  ' + h));
+        history.forEach((h, i) => addLine(String(i + 1).padStart(3, ' ') + '  ' + h));
         break;
+
       case 'clear':
         output.replaceChildren();
         break;
+
       case 'sudo':
-        print('guest is not in the sudoers file. This incident will be reported to Nishad.', 'pink');
+        addLine('guest is not in the sudoers file. This incident will be reported to Nishad.', 'pink');
         break;
+
       case 'rm':
         if (args.join(' ').includes('-rf') && args.includes('/')) {
-          print('nice try. main is protected and force push is disabled.', 'pink');
+          addLine('nice try. main is protected and force push is disabled.', 'pink');
         } else {
-          print('rm: read-only universe. existential deletions disabled.', 'pink');
+          addLine('rm: read-only universe. existential deletions disabled.', 'pink');
         }
         break;
+
       case 'ssh':
-        print('ssh: connecting to alternate timeline...', 'yellow');
-        setTimeout(() => print('connection refused: branch has diverged too far'), 450);
+        addLine('ssh: connecting to alternate timeline...', 'yellow');
+        setTimeout(() => addLine('connection refused: branch has diverged too far'), 450);
         break;
+
       case 'matrix':
-        print('there is no spoon. there is, however, a recruiter email.', 'yellow');
+        addLine('there is no spoon. there is, however, a recruiter email.', 'yellow');
         break;
+
       case 'exit':
       case 'logout':
-        print('logout: you can check out any time you like, but the branch graph remains.', 'dim');
+        addLine('logout: you can check out any time you like, but the branch graph remains.', 'dim');
         input.blur();
         break;
+
       default:
-        print(cmd + ': command not found. type help', 'pink');
+        await askAI(command);
     }
   }
 
-  print('nishad://multiverse shell v1.0', 'yellow');
-  print('Public sandbox. No actual server shell exists here, obviously 😌', 'dim');
-  print('Type help to see what this universe supports.');
-  print('');
+  addLine('nishad://multiverse shell v2.0', 'yellow');
+  addLine('Local AI prototype: unknown commands become prompts to an in-browser WebGPU model.', 'dim');
+  addLine('No API key. No server. First AI query downloads model weights and may take a while.', 'dim');
+  addLine('Type conspiracy for instant lore, or ask me something.', 'yellow');
+  addLine('');
 
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const command = input.value;
-    if (!command.trim()) return;
+    if (!command.trim() || aiBusy) return;
     promptLine(command);
     history.push(command);
     historyIndex = history.length;
     input.value = '';
-    run(command);
+    await run(command);
   });
 
   input.addEventListener('keydown', (e) => {
