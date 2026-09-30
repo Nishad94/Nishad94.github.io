@@ -214,6 +214,17 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
   let enginePromise = null;
   let aiBusy = false;
 
+  // --- BYOK cheat-code state (easter egg) ---
+  // The key lives ONLY in this browser (localStorage) and is sent directly
+  // to OpenAI from the visitor's browser. Nothing is stored on any server.
+  const CHEAT_WORD = 'multiverse';
+  const HOSTED_MODEL = 'gpt-4o-mini';
+  const HOSTED_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
+  const KEY_STORAGE = 'nishad_hosted_key';
+  let awaitingKey = false;
+  let hostedKey = null;
+  try { hostedKey = localStorage.getItem(KEY_STORAGE); } catch (_) { hostedKey = null; }
+
   const MODEL_F16 = 'SmolLM2-360M-Instruct-q4f16_1-MLC';
   const MODEL_F32 = 'SmolLM2-360M-Instruct-q4f32_1-MLC';
 
@@ -364,6 +375,70 @@ Public Nishad context:
     }
   }
 
+  async function hostedAskAI(query) {
+    const answerLine = addLine('nishad.ai✨> ', 'yellow');
+    let accumulated = '';
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: query }
+    ];
+
+    const resp = await fetch(HOSTED_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + hostedKey
+      },
+      body: JSON.stringify({
+        model: HOSTED_MODEL,
+        messages,
+        temperature: 0.7,
+        max_tokens: 400,
+        stream: true
+      })
+    });
+
+    if (!resp.ok) {
+      let detail = resp.status + ' ' + resp.statusText;
+      try { const j = await resp.json(); if (j?.error?.message) detail = j.error.message; } catch (_) {}
+      if (resp.status === 401) {
+        addLine('ai error: key rejected (401). type lockdown to remove it, then MULTIVERSE to re-enter.', 'pink');
+      } else {
+        addLine('ai error: ' + detail, 'pink');
+      }
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const raw of lines) {
+        const line = raw.trim();
+        if (!line.startsWith('data:')) continue;
+        const data = line.slice(5).trim();
+        if (data === '[DONE]') continue;
+        try {
+          const json = JSON.parse(data);
+          const delta = json?.choices?.[0]?.delta?.content || '';
+          if (!delta) continue;
+          accumulated += delta;
+          answerLine.textContent = 'nishad.ai✨> ' + accumulated;
+          output.scrollTop = output.scrollHeight;
+        } catch (_) { /* ignore keepalive/partial */ }
+      }
+    }
+
+    if (!accumulated.trim()) {
+      answerLine.textContent = 'nishad.ai✨> [model returned an empty response — try again]';
+    }
+  }
+
   async function askAI(query) {
     if (aiBusy) {
       addLine('ai: one universe at a time — current response still generating.', 'pink');
@@ -371,6 +446,20 @@ Public Nishad context:
     }
     aiBusy = true;
     input.disabled = true;
+
+    // Hosted (BYOK) path — unlocked via the MULTIVERSE cheat code.
+    if (hostedKey) {
+      try {
+        await hostedAskAI(query);
+      } catch (err) {
+        addLine('ai error: ' + (err?.message || String(err)), 'pink');
+      } finally {
+        aiBusy = false;
+        input.disabled = false;
+        input.focus();
+      }
+      return;
+    }
 
     try {
       const e = await ensureEngine();
@@ -563,7 +652,29 @@ Public Nishad context:
         input.blur();
         break;
 
+      case 'lockdown':
+      case 'clearkey':
+        if (hostedKey) {
+          hostedKey = null;
+          try { localStorage.removeItem(KEY_STORAGE); } catch (_) {}
+          addLine('🔒 hosted mode OFF. key wiped from this browser. back to the local model.', 'yellow');
+        } else {
+          addLine('already on the local model. nothing to lock down.', 'dim');
+        }
+        break;
+
       default:
+        // Cheat code: unlock hosted BYOK mode.
+        if (cmd === CHEAT_WORD) {
+          if (hostedKey) {
+            addLine('✨ hosted mode already active. type lockdown to exit.', 'yellow');
+          } else {
+            awaitingKey = true;
+            addLine('✨ CHEAT ACTIVATED: MULTIVERSE — hosted mode unlocked.', 'yellow');
+            addLine('paste your OpenAI API key and press enter (or type cancel):', 'yellow');
+          }
+          break;
+        }
         await askAI(command);
     }
   }
@@ -574,10 +685,37 @@ Public Nishad context:
   addLine('Type conspiracy for instant lore, or ask me something.', 'yellow');
   addLine('');
 
+  function activateKey(rawKey) {
+    const key = rawKey.trim();
+    awaitingKey = false;
+    if (!key || key.toLowerCase() === 'cancel') {
+      addLine('cancelled. staying on the local model.', 'dim');
+      return;
+    }
+    if (!/^sk-/.test(key)) {
+      addLine('that does not look like an OpenAI key (expected sk-...). type MULTIVERSE to retry.', 'pink');
+      return;
+    }
+    hostedKey = key;
+    try { localStorage.setItem(KEY_STORAGE, key); } catch (_) {}
+    addLine('🔓 hosted mode ON (' + HOSTED_MODEL + '). your key stays in this browser only,', 'yellow');
+    addLine('   and is sent directly to OpenAI. type lockdown to exit. ask me anything ✨', 'yellow');
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const command = input.value;
-    if (!command.trim() || aiBusy) return;
+    if (aiBusy) return;
+
+    // Capturing an API key (do not echo it or store in history).
+    if (awaitingKey) {
+      input.value = '';
+      addLine('guest@nishad.ai:~$ ' + '•'.repeat(Math.min(command.trim().length, 12)), 'cmd');
+      activateKey(command);
+      return;
+    }
+
+    if (!command.trim()) return;
     promptLine(command);
     history.push(command);
     historyIndex = history.length;
