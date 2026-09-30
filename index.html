@@ -226,7 +226,11 @@ h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;margin:
         print('  git status            inspect current timeline');
         print('  git branch --all      list alternate branches');
         print('  git log               selected life commits');
-        print('  open <target>         linkedin | github | timeline | conspiracy | branches | recruiter');
+        print('  conspiracy           jump to Gmail Branching Hypothesis');
+        print('  timeline | branches  jump around the site');
+        print('  recruiter            jump to recruiter mode');
+        print('  linkedin | github    open external profile');
+        print('  open <target>         same thing, explicit syntax');
         print('  echo <text>           echo into the void');
         print('  date                  browser-local time');
         print('  history               command history');
@@ -271,6 +275,15 @@ h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;margin:
         }
         break;
       }
+      case 'conspiracy':
+      case 'gmail':
+      case 'timeline':
+      case 'branches':
+      case 'recruiter':
+      case 'linkedin':
+      case 'github':
+        openTarget(cmd === 'gmail' ? 'conspiracy' : cmd);
+        break;
       case 'open':
         if (!args[0]) print('open: missing target', 'pink');
         else openTarget(args[0].toLowerCase());
