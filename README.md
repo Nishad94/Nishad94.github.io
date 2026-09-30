@@ -10,7 +10,7 @@ Branching Hypothesis," an interactive shell, and an in-browser LLM you can talk 
 
 ## Tech stack
 
-- **Static site**: a single `index.html` (HTML + CSS + vanilla JS, no build step).
+- **Static site**: `index.html` + `ontology.js` (HTML + CSS + vanilla JS, no build step).
 - **Hosting**: GitHub Pages (`Nishad94/Nishad94.github.io`), served over HTTPS.
 - **Custom domain**: `nishad.ai`, DNS managed at GoDaddy (apex `A` records → GitHub Pages,
   `www` `CNAME` → `nishad94.github.io`). The `CNAME` file in this repo pins the domain.
@@ -52,12 +52,27 @@ The first time you ask a question, the site lazy-loads
 No API key, no server, nothing leaves your machine. Works best in current Chrome/Edge on
 hardware with WebGPU.
 
+The AI's knowledge (Nishad's career, projects, skills, lore, persona) lives in
+**`ontology.js`** — a single, heavily-commented source of truth. `buildSystemPrompt()`
+assembles it into the system prompt used by both the local and hosted models. To change
+what the AI knows, edit `ontology.js`, not `index.html`.
+
+### AI-powered fun modes
+Beyond free-form questions, the terminal has playful modes that steer the model:
+
+| command | does |
+| --- | --- |
+| `interview` | an eccentric recruiter interviews Nishad using his real history |
+| `branch <topic>` | invents a detailed **fictional** alternate-timeline story |
+| `roast` | an affectionate roast of the career choices |
+| `hype` | over-the-top hype-man introduction |
+
 ### 🕹️ MULTIVERSE cheat code (bring-your-own-key)
 A hidden GTA-style cheat upgrades the terminal to a hosted model:
 
 1. Type **`MULTIVERSE`** in the terminal.
 2. When prompted, paste your own **OpenAI API key** (`sk-...`).
-3. The terminal switches to **`gpt-4o-mini`** via the OpenAI API, streaming responses
+3. The terminal switches to **`gpt-4o`** via the OpenAI API, streaming responses
    (prompt prefix becomes `nishad.ai✨>`).
 4. Type **`lockdown`** (or `clearkey`) to wipe the key and revert to the local model.
 
@@ -75,7 +90,7 @@ When hosted mode is active, a neon badge appears in the terminal's title bar:
 
 **How it's computed:** the OpenAI stream is requested with
 `stream_options.include_usage`, so the final chunk carries exact `prompt_tokens` /
-`completion_tokens`. Cost = input × \$0.15/1M + output × \$0.60/1M (gpt-4o-mini pricing).
+`completion_tokens`. Cost = input × \$2.50/1M + output × \$10/1M (gpt-4o pricing).
 
 **Caveats (read these):**
 - It's an **estimate** based on returned token counts and current public prices.
@@ -91,14 +106,20 @@ When hosted mode is active, a neon badge appears in the terminal's title bar:
 - In BYOK mode, your API key stays in `localStorage` and is sent only to OpenAI.
 - Never commit API keys to this (public) repo.
 
+## For contributors & AI agents
+
+See **`AGENTS.md`** for a full guide: file map, how the two AI backends work, how to
+update the ontology, the spend-HUD internals, and the deploy flow.
+
 ## Run locally
 
 ```bash
 git clone https://github.com/Nishad94/Nishad94.github.io.git
 cd Nishad94.github.io
-open index.html      # or: python3 -m http.server 8000  → http://localhost:8000
+python3 -m http.server 8000   # → http://localhost:8000
 ```
 
+Serve over `http://` (not `file://`) so the `ontology.js` ES-module import resolves.
 WebGPU features need a Chromium-based browser with WebGPU enabled.
 
 ## Deploy

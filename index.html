@@ -202,6 +202,7 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
 
 
 <script type="module">
+import { buildSystemPrompt, PROFILE } from './ontology.js';
 (async () => {
   const output = document.getElementById('term-output');
   const form = document.getElementById('term-form');
@@ -219,13 +220,13 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
   // The key lives ONLY in this browser (localStorage) and is sent directly
   // to OpenAI from the visitor's browser. Nothing is stored on any server.
   const CHEAT_WORD = 'multiverse';
-  const HOSTED_MODEL = 'gpt-4o-mini';
+  const HOSTED_MODEL = 'gpt-4o';
   const HOSTED_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
   const KEY_STORAGE = 'nishad_hosted_key';
   const SPEND_STORAGE = 'nishad_hosted_spend';
-  // gpt-4o-mini public pricing (USD per token).
-  const PRICE_IN = 0.15 / 1e6;
-  const PRICE_OUT = 0.60 / 1e6;
+  // gpt-4o public pricing (USD per token).
+  const PRICE_IN = 2.50 / 1e6;
+  const PRICE_OUT = 10.0 / 1e6;
   const SPEND_CAP = 0.50; // soft per-browser cap in USD
   let awaitingKey = false;
   let hostedKey = null;
@@ -305,25 +306,9 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     recruiter: '#recruiter'
   };
 
-  const systemPrompt = `You are the tiny local AI living inside nishad://multiverse, Nishad Dawkhar's nerdy personal website.
-
-Style:
-- concise, conversational, witty, a little terminal-ish
-- answer normal general questions too
-- when the question is about Nishad, use only the facts below and say when something is unknown
-- do not invent private facts or claim access to Gmail, ChatGPT memory, files, or the internet
-- do not pretend you are actually ChatGPT; you are a small local browser model demo
-
-Public Nishad context:
-- Nishad Dawkhar is a software engineer.
-- He has an MS in AI/NLP from Carnegie Mellon University.
-- He previously worked at Twitter and currently works at Microsoft in Bengaluru.
-- His site frames life choices as git branches / alternate timelines.
-- Notable playful branch labels: msft-2020, twilio-2023, dublin-2025, india-2018.
-- The "Gmail Branching Hypothesis" is a joke: recruiter and career emails seem to appear near life branch points.
-- Site motto: one life, many branches.
-- main is protected; force push disabled.
-`;
+  // The system prompt (persona + full ontology) is built from ontology.js,
+  // the single source of truth about Nishad. Edit facts there, not here.
+  const systemPrompt = buildSystemPrompt();
 
   function addLine(text = '', cls = '') {
     const line = document.createElement('div');
@@ -409,11 +394,11 @@ Public Nishad context:
     }
   }
 
-  async function hostedAskAI(query) {
+  async function hostedAskAI(query, extra) {
     const answerLine = addLine('nishad.ai✨> ', 'yellow');
     let accumulated = '';
     const messages = [
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: extra ? systemPrompt + '\n\n=== MODE ===\n' + extra : systemPrompt },
       { role: 'user', content: query }
     ];
 
@@ -426,8 +411,8 @@ Public Nishad context:
       body: JSON.stringify({
         model: HOSTED_MODEL,
         messages,
-        temperature: 0.7,
-        max_tokens: 400,
+        temperature: 0.85,
+        max_tokens: 800,
         stream: true,
         stream_options: { include_usage: true }
       })
@@ -482,7 +467,9 @@ Public Nishad context:
     addLine('[usage] +' + (inTok + outTok) + ' tok · ' + fmtUSD(cost) + ' · session ' + fmtUSD(spendTotal) + ' / ' + fmtUSD(SPEND_CAP), 'dim');
   }
 
-  async function askAI(query) {
+  // askAI(query, extra?) — `extra` is an optional mode instruction appended to
+  // the system prompt, used by the fun commands (interview/branch/roast/hype).
+  async function askAI(query, extra) {
     if (aiBusy) {
       addLine('ai: one universe at a time — current response still generating.', 'pink');
       return;
@@ -500,7 +487,7 @@ Public Nishad context:
         return;
       }
       try {
-        await hostedAskAI(query);
+        await hostedAskAI(query, extra);
       } catch (err) {
         addLine('ai error: ' + (err?.message || String(err)), 'pink');
       } finally {
@@ -517,14 +504,14 @@ Public Nishad context:
       let accumulated = '';
 
       const messages = [
-        { role: 'system', content: systemPrompt },
+        { role: 'system', content: extra ? systemPrompt + '\n\n=== MODE ===\n' + extra : systemPrompt },
         { role: 'user', content: query }
       ];
 
       const stream = await e.chat.completions.create({
         messages,
-        temperature: 0.7,
-        max_tokens: 220,
+        temperature: 0.8,
+        max_tokens: 512,
         stream: true
       });
 
@@ -574,8 +561,14 @@ Public Nishad context:
         addLine('  toffee                summon site reliability cat');
         addLine('  palette               open command palette');
         addLine('');
-        addLine('Anything else is sent to the LOCAL browser LLM.', 'yellow');
-        addLine('Example: why did Microsoft respawn?', 'dim');
+        addLine('AI-powered fun modes (use the model):', 'yellow');
+        addLine('  interview             a quirky recruiter interviews Nishad');
+        addLine('  branch <topic>        invent a detailed alternate-timeline story');
+        addLine('  roast                 a playful roast of Nishad\'s career');
+        addLine('  hype                  over-the-top hype-man mode');
+        addLine('');
+        addLine('Anything else is sent to the AI (local WebGPU model, or hosted via MULTIVERSE).', 'yellow');
+        addLine('Example: what did Nishad build at Twitter?', 'dim');
         addLine('Example: explain transformers like I am rusty', 'dim');
         break;
 
@@ -694,6 +687,39 @@ Public Nishad context:
 
       case 'matrix':
         addLine('there is no spoon. there is, however, a recruiter email.', 'yellow');
+        break;
+
+      case 'interview':
+        addLine('interview: rolling a quirky recruiter…', 'dim');
+        await askAI(
+          'Conduct a short, fun mock interview of Nishad. Ask 2-3 pointed questions and answer them in-character using his real career facts.',
+          'MODE: INTERVIEW. Role-play as an eccentric but sharp tech recruiter interviewing Nishad. Be witty and specific, cite real roles/projects (Kafka Observer, rate limiting, Azure Edge, Symantec Storm ETL, etc.). Format as a short back-and-forth transcript (Recruiter: / Nishad:).'
+        );
+        break;
+
+      case 'branch':
+        if (!args.length) { addLine('branch: give me a topic, e.g. `branch startup founder`', 'pink'); break; }
+        addLine('branch: forking an alternate timeline…', 'dim');
+        await askAI(
+          'Invent a detailed, vivid alternate-timeline story for Nishad about: ' + args.join(' '),
+          'MODE: BRANCH. Write an imaginative but grounded "what-if" alternate timeline clearly labeled as fiction. Anchor it to Nishad\'s real skills/history and use git/multiverse metaphors. 2-3 rich paragraphs.'
+        );
+        break;
+
+      case 'roast':
+        addLine('roast: sharpening…', 'dim');
+        await askAI(
+          'Give a playful, affectionate roast of Nishad based on his real career and the site\'s lore.',
+          'MODE: ROAST. Be funny and cheeky but kind — tease his job-hopping across Autodesk→Symantec→CMU→Twitter→Cisco→Microsoft, the Gmail conspiracy, buying nishad.ai at odd hours, etc. Keep it good-natured, a few punchy lines.'
+        );
+        break;
+
+      case 'hype':
+        addLine('hype: cranking the amp to 11…', 'dim');
+        await askAI(
+          'Give an over-the-top hype-man introduction of Nishad using his real achievements.',
+          'MODE: HYPE. Be an ecstatic hype-man. Celebrate real accomplishments (CMU MIIS, Twitter Kafka infra, Azure Edge, ACM ICPC) with big energy and emoji, while staying truthful. A few electric sentences.'
+        );
         break;
 
       case 'exit':
