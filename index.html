@@ -216,9 +216,10 @@ import { buildSystemPrompt, PROFILE } from './ontology.js';
   let enginePromise = null;
   let aiBusy = false;
 
-  // --- BYOK cheat-code state (easter egg) ---
-  // The key lives ONLY in this browser (localStorage) and is sent directly
-  // to OpenAI from the visitor's browser. Nothing is stored on any server.
+  // --- BYOK (bring-your-own-key) state ---
+  // Hosted gpt-4o mode is offered up-front. The key lives ONLY in this browser
+  // (localStorage) and is sent directly to OpenAI. Nothing is stored on a server.
+  // `multiverse` still works as a fun alias to start the key flow.
   const CHEAT_WORD = 'multiverse';
   const HOSTED_MODEL = 'gpt-4o';
   const HOSTED_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
@@ -567,7 +568,11 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
         addLine('  roast                 a playful roast of Nishad\'s career');
         addLine('  hype                  over-the-top hype-man mode');
         addLine('');
-        addLine('Anything else is sent to the AI (local WebGPU model, or hosted via MULTIVERSE).', 'yellow');
+        addLine('AI backend:', 'yellow');
+        addLine('  key | login           unlock hosted gpt-4o with your own OpenAI key');
+        addLine('  lockdown              wipe your key + go back to the local model');
+        addLine('');
+        addLine('Anything else is sent to the AI (hosted gpt-4o if unlocked, else local WebGPU model).', 'yellow');
         addLine('Example: what did Nishad build at Twitter?', 'dim');
         addLine('Example: explain transformers like I am rusty', 'dim');
         break;
@@ -728,6 +733,17 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
         input.blur();
         break;
 
+      case 'key':
+      case 'login':
+      case 'usekey':
+        if (hostedKey) {
+          addLine('✨ hosted gpt-4o mode is already ON. type lockdown to switch back to the local model.', 'yellow');
+        } else {
+          awaitingKey = true;
+          addLine('paste your OpenAI API key (sk-...) and press enter to unlock gpt-4o (or type cancel):', 'yellow');
+        }
+        break;
+
       case 'lockdown':
       case 'clearkey':
         if (hostedKey) {
@@ -743,14 +759,13 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
         break;
 
       default:
-        // Cheat code: unlock hosted BYOK mode.
+        // `multiverse` is a fun alias for the key flow.
         if (cmd === CHEAT_WORD) {
           if (hostedKey) {
-            addLine('✨ hosted mode already active. type lockdown to exit.', 'yellow');
+            addLine('✨ hosted gpt-4o mode already active. type lockdown to exit.', 'yellow');
           } else {
             awaitingKey = true;
-            addLine('✨ CHEAT ACTIVATED: MULTIVERSE — hosted mode unlocked.', 'yellow');
-            addLine('paste your OpenAI API key and press enter (or type cancel):', 'yellow');
+            addLine('✨ paste your OpenAI API key (sk-...) and press enter to unlock gpt-4o (or type cancel):', 'yellow');
           }
           break;
         }
@@ -758,10 +773,17 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     }
   }
 
-  addLine('nishad://multiverse shell v2.0', 'yellow');
-  addLine('Local AI prototype: unknown commands become prompts to an in-browser WebGPU model.', 'dim');
-  addLine('No API key. No server. First AI query downloads model weights and may take a while.', 'dim');
-  addLine('Type conspiracy for instant lore, or ask me something.', 'yellow');
+  addLine('nishad://multiverse shell v2.1', 'yellow');
+  if (hostedKey) {
+    addLine('✨ hosted gpt-4o mode is ON (your key, this browser only). ask me anything.', 'yellow');
+    addLine('type lockdown to switch back to the local model.', 'dim');
+  } else {
+    addLine('For the FULL experience, unlock hosted gpt-4o: type  key  and paste your', 'yellow');
+    addLine('OpenAI API key (sk-...). It stays in THIS browser only and goes straight to OpenAI.', 'dim');
+    addLine('No key? No problem — just ask a question and a small local WebGPU model answers', 'dim');
+    addLine('(first query downloads model weights and may take a while).', 'dim');
+  }
+  addLine('Type help for commands, or conspiracy for instant lore.', 'yellow');
   addLine('');
 
   function activateKey(rawKey) {
