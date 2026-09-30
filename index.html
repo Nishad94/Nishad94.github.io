@@ -31,7 +31,7 @@ h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;margin:
 .branches{display:grid;gap:12px}details.branch{border:1px solid #303350;background:#17192d;border-radius:15px;overflow:hidden;scroll-margin-top:95px}details.branch[open]{border-color:#555a83;background:#1b1e36}details.branch summary{cursor:pointer;list-style:none;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:12px;font-weight:800}details.branch summary::-webkit-details-marker{display:none}.branch-state{color:var(--muted);font-weight:400;font-size:10px}.branch-body{padding:0 16px 16px;color:#c9c5e5;font-size:12px;line-height:1.7;border-top:1px dashed #333651}
 .conspiracy{padding:25px}.conspiracy h3{margin:0 0 8px;font-size:16px}.conspiracy p{color:#cbc7e8;font-size:12px;line-height:1.75}.conspiracy ol{margin:16px 0 0;padding-left:22px;color:#cbc7e8;font-size:12px;line-height:1.75}.conspiracy code{color:var(--mint);background:#111425;border:1px solid #30334d;border-radius:7px;padding:2px 5px}.disclaimer{margin-top:17px;border-left:3px solid var(--pink);padding:10px 13px;background:#15172b;border-radius:0 10px 10px 0;color:#bdb9d8;font-size:10px;line-height:1.6}
 .professional{display:grid;grid-template-columns:1fr 1fr;gap:18px}.pro-card{padding:22px}.pro-card h3{margin:0 0 11px;font-size:15px}.pro-card p{margin:0;color:#c9c5e5;font-size:12px;line-height:1.7}.stack{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}.stack span{border:1px solid #343754;background:#20233d;border-radius:999px;padding:6px 9px;font-size:10px;color:#d7d3ed}
-.terminal{padding:20px;background:#0b0d18;border:1px solid #292c46;border-radius:18px}.termline{color:#a9ffd0;font-size:12px;line-height:1.82;white-space:pre-wrap}.cursor{display:inline-block;width:8px;height:14px;background:var(--mint);vertical-align:-2px;animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
+.terminal{padding:0;background:#0b0d18;border:1px solid #292c46;border-radius:18px;overflow:hidden}.termbar{display:flex;align-items:center;gap:7px;padding:11px 14px;background:#111322;border-bottom:1px solid #292c46}.termdot{width:10px;height:10px;border-radius:50%;background:#555a76}.termbar-title{margin-left:7px;color:#8589a8;font-size:10px}.term-output{min-height:290px;max-height:440px;overflow:auto;padding:17px 18px 8px;scroll-behavior:smooth}.termline{color:#a9ffd0;font-size:12px;line-height:1.72;white-space:pre-wrap;overflow-wrap:anywhere}.termline.dim{color:#8589a8}.termline.pink{color:var(--pink)}.termline.yellow{color:var(--yellow)}.termline.cmd{color:#f7f4ff}.term-input-row{display:flex;align-items:center;gap:8px;padding:7px 18px 17px;color:var(--mint);font-size:12px}.term-prompt{white-space:nowrap}.term-input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#f7f4ff;font:inherit;font-size:12px;caret-color:var(--mint);padding:6px 0}.terminal:focus-within{border-color:#4f547a;box-shadow:0 0 0 3px rgba(159,255,210,.05)}.termhint{color:#8589a8;font-size:10px;margin-top:8px;text-align:right}
 .quote{font-size:clamp(18px,3vw,28px);line-height:1.45;letter-spacing:-.035em;margin:0}.callout{padding:18px;border-radius:16px;border:1px solid #3b3f61;background:#16182d;font-size:12px;line-height:1.65;color:#d0cce8}footer{margin-top:30px;padding:25px 0 4px;text-align:center;color:var(--muted);font-size:10px}
 .cat{position:fixed;left:-80px;bottom:12px;font-size:29px;filter:drop-shadow(0 5px 8px rgba(0,0,0,.35));animation:walk 26s linear infinite;pointer-events:none;z-index:20}@keyframes walk{0%{left:-80px;transform:scaleX(1)}48%{left:calc(100vw + 30px);transform:scaleX(1)}50%{left:calc(100vw + 30px);transform:scaleX(-1)}98%{left:-80px;transform:scaleX(-1)}100%{left:-80px;transform:scaleX(1)}}
 @media(max-width:900px){.hero,.professional{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.commit{grid-template-columns:65px 30px 1fr}.commit:before{left:78px}.year{text-align:left}.navlinks .desktop-link{display:none}}
@@ -136,28 +136,219 @@ h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;margin:
 <div class="callout" style="margin-top:18px">Recruiter disclaimer: yes, this is intentionally nerdy. No, I do not normally describe career decisions as branch collisions. Probably.</div>
 </section>
 
-<section class="section"><div class="section-head"><div><h2>terminal</h2><p>do not sudo your personality</p></div></div>
-<div class="terminal"><div class="termline">$ whoami
-nishad
-
-$ git status
-On branch main
-Your life is ahead of 'origin/main' by ??? commits.
-
-$ git branch --all
-* main
-  msft-2020
-  twilio-2023
-  dublin-2025
-  remotes/origin/who-the-fuck-knows
-
-$ echo "main is protected"
-main is protected
-
-$ <span class="cursor"></span></div></div></section>
+<section class="section" id="shell"><div class="section-head"><div><h2>terminal</h2><p>yes, it actually takes commands now</p></div><span class="chip">interactive shell</span></div>
+<div class="terminal" id="terminal" role="application" aria-label="Interactive Nishad multiverse terminal">
+  <div class="termbar"><span class="termdot"></span><span class="termdot"></span><span class="termdot"></span><span class="termbar-title">guest@nishad.ai — zsh-ish</span></div>
+  <div class="term-output" id="term-output" aria-live="polite"></div>
+  <form class="term-input-row" id="term-form" autocomplete="off">
+    <span class="term-prompt">guest@nishad.ai:~$</span>
+    <input class="term-input" id="term-input" name="command" inputmode="text" autocapitalize="none" autocomplete="off" spellcheck="false" aria-label="Terminal command" autofocus>
+  </form>
+</div>
+<div class="termhint">try <code>help</code> · ↑/↓ history · Ctrl+L clears</div></section>
 
 <section class="section"><div class="card pro-card"><p class="quote">“You only notice the branch point later.”</p><p class="smallcopy">Some choices feel enormous in the moment. Others look like a random email, a move, a job, a person you keep talking to, or one ordinary Tuesday where you choose differently.</p></div></section>
 
 <footer>main is protected · force push disabled · built with HTML/CSS and questionable 5 AM lore</footer>
 </main>
+
+<script>
+(() => {
+  const output = document.getElementById('term-output');
+  const form = document.getElementById('term-form');
+  const input = document.getElementById('term-input');
+  const terminal = document.getElementById('terminal');
+  if (!output || !form || !input || !terminal) return;
+
+  const history = [];
+  let historyIndex = 0;
+  const branches = ['main', 'msft-2020', 'twilio-2023', 'dublin-2025', 'india-2018', 'remotes/origin/who-the-fuck-knows'];
+
+  const files = {
+    'README.md': 'nishad://multiverse\nOne life. Many branches.\nBuilt with HTML/CSS/JS and questionable early-morning lore.',
+    'about.txt': 'Nishad Dawkhar — software engineer, AI/NLP grad, distributed systems + cloud + edge, professional branch collector.',
+    'branches.txt': branches.join('\n'),
+    'status.txt': 'stability: high-ish\nvigour: ???\nbranching factor: non-zero\nforce push: disabled'
+  };
+
+  const links = {
+    linkedin: 'https://www.linkedin.com/in/nishaddawkhar',
+    github: 'https://github.com/Nishad94',
+    timeline: '#timeline',
+    conspiracy: '#conspiracy',
+    branches: '#branches',
+    recruiter: '#recruiter'
+  };
+
+  function print(text = '', cls = '') {
+    const line = document.createElement('div');
+    line.className = 'termline' + (cls ? ' ' + cls : '');
+    line.textContent = text;
+    output.appendChild(line);
+    output.scrollTop = output.scrollHeight;
+  }
+
+  function promptLine(command) {
+    print('guest@nishad.ai:~$ ' + command, 'cmd');
+  }
+
+  function openTarget(name) {
+    const target = links[name];
+    if (!target) {
+      print('open: unknown target: ' + name, 'pink');
+      print('available: ' + Object.keys(links).join(', '), 'dim');
+      return;
+    }
+    if (target.startsWith('#')) {
+      document.querySelector(target)?.scrollIntoView({behavior:'smooth'});
+      print('opened ' + name, 'yellow');
+    } else {
+      window.open(target, '_blank', 'noopener,noreferrer');
+      print('opening ' + name + ' ↗', 'yellow');
+    }
+  }
+
+  function run(raw) {
+    const command = raw.trim();
+    if (!command) return;
+    const parts = command.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
+    const cmd = (parts.shift() || '').toLowerCase();
+    const args = parts.map(x => x.replace(/^"|"$/g, ''));
+
+    switch (cmd) {
+      case 'help':
+        print('available commands:', 'yellow');
+        print('  help                 show this help');
+        print('  whoami               identify current process');
+        print('  pwd                   print working universe');
+        print('  ls                    list local lore');
+        print('  cat <file>            read README.md, about.txt, branches.txt, status.txt');
+        print('  git status            inspect current timeline');
+        print('  git branch --all      list alternate branches');
+        print('  git log               selected life commits');
+        print('  open <target>         linkedin | github | timeline | conspiracy | branches | recruiter');
+        print('  echo <text>           echo into the void');
+        print('  date                  browser-local time');
+        print('  history               command history');
+        print('  clear                 clear terminal');
+        print('  sudo <anything>       absolutely critical enterprise feature');
+        break;
+      case 'whoami':
+        print('guest');
+        print('(you are currently poking around Nishad\'s multiverse)', 'dim');
+        break;
+      case 'pwd':
+        print('/home/nishad/multiverse/main');
+        break;
+      case 'ls':
+        print('README.md   about.txt   branches.txt   status.txt');
+        break;
+      case 'cat': {
+        const name = args[0];
+        if (!name) return print('cat: missing file operand', 'pink');
+        if (!(name in files)) return print('cat: ' + name + ': No such file or timeline', 'pink');
+        print(files[name]);
+        break;
+      }
+      case 'git': {
+        const sub = (args[0] || '').toLowerCase();
+        if (sub === 'status') {
+          print('On branch main');
+          print("Your life is ahead of 'origin/main' by ??? commits.");
+          print('nothing to commit, several things to overthink');
+        } else if (sub === 'branch') {
+          print(branches.map((b,i) => (i===0 ? '* ' : '  ') + b).join('\n'));
+        } else if (sub === 'log') {
+          print('2026  main: stable, suspiciously quiet');
+          print('2025  feat: Dublin portal appears');
+          print('2024  rebase: Microsoft node respawns');
+          print('2023  merge: branch collision event');
+          print('2020  checkout: Twitter');
+          print('2018  merge: CMU');
+          print('2015  init: fly high, dream big');
+        } else {
+          print('git: try status, branch --all, or log', 'pink');
+        }
+        break;
+      }
+      case 'open':
+        if (!args[0]) print('open: missing target', 'pink');
+        else openTarget(args[0].toLowerCase());
+        break;
+      case 'echo':
+        print(args.join(' '));
+        break;
+      case 'date':
+        print(new Date().toString());
+        break;
+      case 'history':
+        history.forEach((h, i) => print(String(i + 1).padStart(3, ' ') + '  ' + h));
+        break;
+      case 'clear':
+        output.replaceChildren();
+        break;
+      case 'sudo':
+        print('guest is not in the sudoers file. This incident will be reported to Nishad.', 'pink');
+        break;
+      case 'rm':
+        if (args.join(' ').includes('-rf') && args.includes('/')) {
+          print('nice try. main is protected and force push is disabled.', 'pink');
+        } else {
+          print('rm: read-only universe. existential deletions disabled.', 'pink');
+        }
+        break;
+      case 'ssh':
+        print('ssh: connecting to alternate timeline...', 'yellow');
+        setTimeout(() => print('connection refused: branch has diverged too far'), 450);
+        break;
+      case 'matrix':
+        print('there is no spoon. there is, however, a recruiter email.', 'yellow');
+        break;
+      case 'exit':
+      case 'logout':
+        print('logout: you can check out any time you like, but the branch graph remains.', 'dim');
+        input.blur();
+        break;
+      default:
+        print(cmd + ': command not found. type help', 'pink');
+    }
+  }
+
+  print('nishad://multiverse shell v1.0', 'yellow');
+  print('Public sandbox. No actual server shell exists here, obviously 😌', 'dim');
+  print('Type help to see what this universe supports.');
+  print('');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const command = input.value;
+    if (!command.trim()) return;
+    promptLine(command);
+    history.push(command);
+    historyIndex = history.length;
+    input.value = '';
+    run(command);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (!history.length) return;
+      historyIndex = Math.max(0, historyIndex - 1);
+      input.value = history[historyIndex] || '';
+      queueMicrotask(() => input.setSelectionRange(input.value.length, input.value.length));
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (!history.length) return;
+      historyIndex = Math.min(history.length, historyIndex + 1);
+      input.value = historyIndex === history.length ? '' : history[historyIndex];
+    } else if (e.key.toLowerCase() === 'l' && e.ctrlKey) {
+      e.preventDefault();
+      output.replaceChildren();
+    }
+  });
+
+  terminal.addEventListener('click', () => input.focus());
+})();
+</script>
 </body></html>
