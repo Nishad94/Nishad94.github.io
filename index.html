@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0f1020">
+<meta name="description" content="nishad://multiverse — one life, many branches. A nerdy personal timeline by Nishad Dawkhar.">
+<meta property="og:title" content="nishad://multiverse">
+<meta property="og:description" content="One life. Many branches. A personal git log with alternate timelines, career forks, and one extremely suspicious inbox.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<title>nishad://multiverse</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230f1020'/%3E%3Ccircle cx='18' cy='20' r='6' fill='%23b9a4ff'/%3E%3Cpath d='M18 26v17' stroke='%23b9a4ff' stroke-width='5' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='47' r='6' fill='%239fffd2'/%3E%3Cpath d='M24 20h13c8 0 10 5 10 10v1' fill='none' stroke='%23ff9bd6' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M46 29l-7-7m7 7l-7 7' fill='none' stroke='%23ffe9a6' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+:root{--bg:#0d0f1b;--bg2:#121427;--panel:#17192d;--ink:#f7f4ff;--muted:#aba8c8;--line:#343754;--pink:#ff9bd6;--purple:#b9a4ff;--mint:#9fffd2;--yellow:#ffe9a6;--shadow:0 24px 80px rgba(0,0,0,.38);--radius:22px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;min-height:100vh;color:var(--ink);overflow-x:hidden;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;background:radial-gradient(circle at 15% 4%,rgba(185,164,255,.13),transparent 30%),radial-gradient(circle at 89% 10%,rgba(255,155,214,.11),transparent 25%),radial-gradient(circle at 70% 72%,rgba(159,255,210,.05),transparent 23%),linear-gradient(180deg,var(--bg),var(--bg2))}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.12;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:28px 28px;mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.7) 60%,transparent 98%)}
+a{color:inherit}a:focus-visible,summary:focus-visible,button:focus-visible{outline:3px solid var(--mint);outline-offset:3px}.wrap{max-width:1180px;margin:0 auto;padding-inline:22px}
+header{position:sticky;top:0;z-index:50;background:rgba(13,15,27,.8);backdrop-filter:blur(16px);border-bottom:1px solid rgba(52,55,84,.7)}
+.nav{min-height:70px;display:flex;align-items:center;justify-content:space-between;gap:18px}.brand{display:flex;align-items:center;gap:11px;font-weight:900;text-decoration:none;letter-spacing:-.035em}.orb{width:13px;height:13px;border-radius:50%;background:var(--mint);box-shadow:0 0 19px var(--mint)}
+.navlinks{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}.navlinks a,.chip,.btn{border:1px solid var(--line);background:#17192d;color:var(--ink);border-radius:12px;padding:9px 12px;font:inherit;font-size:12px;text-decoration:none;transition:.18s ease}.navlinks a:hover,.btn:hover{transform:translateY(-1px);border-color:#686c95;background:#20233e}.btn.primary{border:none;background:linear-gradient(90deg,#8974ff,#c269ff);box-shadow:0 9px 24px rgba(137,116,255,.2)}
+main{padding:34px 0 80px}.card{background:linear-gradient(180deg,rgba(27,29,52,.97),rgba(18,20,38,.97));border:1px solid #2f3250;border-radius:var(--radius);box-shadow:var(--shadow)}
+.hero{display:grid;grid-template-columns:1.4fr .86fr;gap:18px}.hero-main{padding:34px}.eyebrow,.tiny{font-size:11px;color:var(--muted);letter-spacing:.055em;text-transform:uppercase}
+h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;margin:13px 0 18px}.gradient{background:linear-gradient(90deg,var(--pink),var(--purple),var(--mint));-webkit-background-clip:text;background-clip:text;color:transparent}.lede{max-width:740px;color:#cfcae8;font-size:15px;line-height:1.75;margin:0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:25px}
+.hero-status{padding:22px}.hero-status h3{margin:7px 0 16px;font-size:17px}.kv{display:grid;grid-template-columns:1fr auto;gap:12px;padding:10px 0;border-bottom:1px dashed #31344e;font-size:12px}.kv span:first-child{color:var(--muted)}.mint{color:var(--mint)}.pink{color:var(--pink)}.yellow{color:var(--yellow)}
+.section{margin-top:25px;scroll-margin-top:92px}.section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin:0 2px 10px}.section-head h2{font-size:18px;margin:0}.section-head p{font-size:11px;color:var(--muted);margin:3px 0 0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat{padding:17px}.stat b{font-size:24px;display:block;letter-spacing:-.05em}.stat span{font-size:11px;color:var(--muted);line-height:1.45}
+.timeline{padding:22px;overflow:hidden}.commit{position:relative;display:grid;grid-template-columns:125px 38px 1fr;gap:12px;min-height:104px}.commit:before{content:"";position:absolute;left:142px;top:0;bottom:-1px;width:2px;background:#464a6a}.commit:last-child:before{bottom:57px}.year{font-size:11px;color:var(--muted);text-align:right;padding-top:6px}.node{position:relative;z-index:2;margin:2px 0 0 4px;width:16px;height:16px;border-radius:50%;background:var(--purple);box-shadow:0 0 0 6px #1a1c33,0 0 18px rgba(184,161,255,.6)}.node.pink-node{background:var(--pink)}.node.mint-node{background:var(--mint)}.node.yellow-node{background:var(--yellow)}
+.commit-box{padding:14px 16px;border-radius:16px;border:1px solid #30334f;background:#181a30;transition:.18s ease}.commit-box:hover{border-color:#53577d;transform:translateY(-1px)}.commit-title{font-weight:850;margin-bottom:7px;letter-spacing:-.02em}.commit-meta{color:var(--muted);font-size:12px;line-height:1.6}.tag{display:inline-block;margin-top:10px;padding:4px 8px;border-radius:999px;background:#242742;color:#cfcae8;font-size:10px}.branch-link{display:inline-flex;align-items:center;gap:5px;margin-top:10px;color:#ffd9ef;font-size:11px;text-underline-offset:3px;text-decoration-style:dotted}.branch-link:hover{color:#fff}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.mini{padding:20px;min-height:185px}.mini h3{margin:0 0 14px;font-size:14px}.meter{height:13px;border-radius:999px;overflow:hidden;background:#242741;border:1px solid #363957}.meter-fill{height:100%;width:68%;background:linear-gradient(90deg,var(--mint),var(--yellow),var(--pink))}.meter-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin-top:8px}.smallcopy{font-size:11px;color:var(--muted);line-height:1.6;margin-top:17px}.event{padding:10px 11px;border:1px solid #2e3150;background:#15172b;border-radius:11px;margin-bottom:8px;font-size:11px;line-height:1.45}.event strong{color:var(--mint)}
+.branches{display:grid;gap:12px}details.branch{border:1px solid #303350;background:#17192d;border-radius:15px;overflow:hidden;scroll-margin-top:95px}details.branch[open]{border-color:#555a83;background:#1b1e36}details.branch summary{cursor:pointer;list-style:none;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:12px;font-weight:800}details.branch summary::-webkit-details-marker{display:none}.branch-state{color:var(--muted);font-weight:400;font-size:10px}.branch-body{padding:0 16px 16px;color:#c9c5e5;font-size:12px;line-height:1.7;border-top:1px dashed #333651}
+.conspiracy{padding:25px}.conspiracy h3{margin:0 0 8px;font-size:16px}.conspiracy p{color:#cbc7e8;font-size:12px;line-height:1.75}.conspiracy ol{margin:16px 0 0;padding-left:22px;color:#cbc7e8;font-size:12px;line-height:1.75}.conspiracy code{color:var(--mint);background:#111425;border:1px solid #30334d;border-radius:7px;padding:2px 5px}.disclaimer{margin-top:17px;border-left:3px solid var(--pink);padding:10px 13px;background:#15172b;border-radius:0 10px 10px 0;color:#bdb9d8;font-size:10px;line-height:1.6}
+.professional{display:grid;grid-template-columns:1fr 1fr;gap:18px}.pro-card{padding:22px}.pro-card h3{margin:0 0 11px;font-size:15px}.pro-card p{margin:0;color:#c9c5e5;font-size:12px;line-height:1.7}.stack{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}.stack span{border:1px solid #343754;background:#20233d;border-radius:999px;padding:6px 9px;font-size:10px;color:#d7d3ed}
+.terminal{padding:20px;background:#0b0d18;border:1px solid #292c46;border-radius:18px}.termline{color:#a9ffd0;font-size:12px;line-height:1.82;white-space:pre-wrap}.cursor{display:inline-block;width:8px;height:14px;background:var(--mint);vertical-align:-2px;animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}
+.quote{font-size:clamp(18px,3vw,28px);line-height:1.45;letter-spacing:-.035em;margin:0}.callout{padding:18px;border-radius:16px;border:1px solid #3b3f61;background:#16182d;font-size:12px;line-height:1.65;color:#d0cce8}footer{margin-top:30px;padding:25px 0 4px;text-align:center;color:var(--muted);font-size:10px}
+.cat{position:fixed;left:-80px;bottom:12px;font-size:29px;filter:drop-shadow(0 5px 8px rgba(0,0,0,.35));animation:walk 26s linear infinite;pointer-events:none;z-index:20}@keyframes walk{0%{left:-80px;transform:scaleX(1)}48%{left:calc(100vw + 30px);transform:scaleX(1)}50%{left:calc(100vw + 30px);transform:scaleX(-1)}98%{left:-80px;transform:scaleX(-1)}100%{left:-80px;transform:scaleX(1)}}
+@media(max-width:900px){.hero,.professional{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.commit{grid-template-columns:65px 30px 1fr}.commit:before{left:78px}.year{text-align:left}.navlinks .desktop-link{display:none}}
+@media(max-width:560px){.wrap{padding-inline:15px}main{padding-top:20px}.nav{min-height:62px}.hero-main{padding:24px}h1{font-size:47px}.commit{grid-template-columns:52px 22px 1fr;gap:8px;min-height:120px}.commit:before{left:62px}.node{width:13px;height:13px;margin-left:1px}.timeline{padding:16px 12px}.commit-box{padding:13px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}.cat{display:none}}
+</style>
+</head>
+<body>
+<div class="cat" aria-hidden="true">🐈</div>
+<header><div class="wrap nav">
+<a class="brand" href="#top" aria-label="Back to top"><span class="orb"></span><span>nishad://multiverse</span></a>
+<nav class="navlinks" aria-label="Primary">
+<a class="desktop-link" href="#timeline">timeline</a>
+<a class="desktop-link" href="#conspiracy">gmail conspiracy</a>
+<a class="desktop-link" href="#branches">branches</a>
+<a class="desktop-link" href="#recruiter">recruiter mode</a>
+<a href="https://www.linkedin.com/in/nishaddawkhar" target="_blank" rel="noreferrer">linkedin ↗</a>
+</nav></div></header>
+
+<main id="top" class="wrap">
+<section class="hero" aria-labelledby="hero-title">
+<div class="card hero-main">
+<div class="eyebrow">personal operating system / build 2026.09</div>
+<h1 id="hero-title">one life.<br><span class="gradient">many branches.</span></h1>
+<p class="lede">A nerdy little archive of the timelines that happened, the ones that almost happened, and the suspicious recruiter emails that keep trying to fork the repository.</p>
+<div class="actions">
+<a class="btn primary" href="#timeline">explore commit history</a>
+<a class="btn" href="#conspiracy">read the gmail hypothesis</a>
+<a class="btn" href="#recruiter">recruiter-friendly view</a>
+</div></div>
+
+<aside class="card hero-status" aria-label="Current checkout">
+<div class="tiny">current checkout</div><h3>nishad/main</h3>
+<div class="kv"><span>location</span><span>Bengaluru, IN</span></div>
+<div class="kv"><span>current node</span><span>Microsoft</span></div>
+<div class="kv"><span>stability</span><span class="mint">high-ish</span></div>
+<div class="kv"><span>vigour</span><span class="pink">???</span></div>
+<div class="kv"><span>branching factor</span><span class="yellow">non-zero</span></div>
+<div class="kv"><span>force push</span><span class="mint">disabled</span></div>
+</aside></section>
+
+<section class="section" aria-label="Quick stats"><div class="stats">
+<div class="card stat"><b>2015</b><span>root prompt committed</span></div>
+<div class="card stat"><b>2018</b><span>CMU branch merged</span></div>
+<div class="card stat"><b>2020</b><span>Twitter checkout</span></div>
+<div class="card stat"><b>2026</b><span>main still compiling</span></div>
+</div></section>
+
+<section id="timeline" class="section">
+<div class="section-head"><div><h2>git log --oneline --life</h2><p>selected commits from the canonical timeline</p></div><span class="chip">HEAD → main</span></div>
+<div class="card timeline">
+<article class="commit"><div class="year">2015</div><div class="node pink-node"></div><div class="commit-box"><div class="commit-title">futureme: initialize objective function</div><div class="commit-meta">“Fly high, dream big” enters the repository. No constraints on variance were specified.</div><span class="tag">root prompt</span></div></article>
+<article class="commit"><div class="year">2016</div><div class="node yellow-node"></div><div class="commit-box"><div class="commit-title">grad-school attempt #1 → rejection / retry</div><div class="commit-meta">One path closes. The repository does not archive itself.</div><span class="tag">failed build ≠ abandoned project</span></div></article>
+<article class="commit"><div class="year">2018</div><div class="node mint-node"></div><div class="commit-box"><div class="commit-title">CMU branch merged</div><div class="commit-meta">Pittsburgh unlocked. New map, new network, dramatically larger future-state space.</div><span class="tag">major fork</span><br><a class="branch-link" href="#branch-india-2018">view discarded timeline: stayed in India →</a></div></article>
+<article class="commit"><div class="year">2019 → 2020</div><div class="node"></div><div class="commit-box"><div class="commit-title">Microsoft accepted → Twitter checkout</div><div class="commit-meta">A perfectly valid branch is abandoned for a much stranger one.</div><span class="tag">high-variance commit</span><br><a class="branch-link" href="#branch-msft-2020">simulate Microsoft-2020 Nishad →</a></div></article>
+<article class="commit"><div class="year">2021</div><div class="node mint-node"></div><div class="commit-box"><div class="commit-title">Tesla / Cruise probes ignored</div><div class="commit-meta">Evidence that novelty is not always selected. Current branch judged sufficiently interesting.</div><span class="tag">branch declined</span></div></article>
+<article class="commit"><div class="year">2023</div><div class="node pink-node"></div><div class="commit-box"><div class="commit-title">branch collision event</div><div class="commit-meta">Moveworks. Twilio. Graphite. Geography. Bureaucracy. Several universes briefly overlap.</div><span class="tag">entropy spike</span><br><a class="branch-link" href="#branch-twilio">simulate Twilio-2023 →</a></div></article>
+<article class="commit"><div class="year">2024</div><div class="node"></div><div class="commit-box"><div class="commit-title">Microsoft node respawns</div><div class="commit-meta">Recurring checkpoint detected. Old branch becomes traversable again under new conditions.</div><span class="tag">rebase detected</span></div></article>
+<article class="commit"><div class="year">2025</div><div class="node yellow-node"></div><div class="commit-box"><div class="commit-title">Dublin portal appears</div><div class="commit-meta">eBay creates a Europe branch. Portal later closes. Alternate world remains cached.</div><span class="tag">unmerged branch</span><br><a class="branch-link" href="#branch-dublin">visit Dublin-Nishad →</a></div></article>
+<article class="commit"><div class="year">2026</div><div class="node mint-node"></div><div class="commit-box"><div class="commit-title">main: stable, suspiciously quiet</div><div class="commit-meta">Project nearly shipped. Bonus received. Birthday passed. User reports: “life feels boring and without vigour now.”</div><span class="tag">watch branch generator</span></div></article>
+</div></section>
+
+<section class="section"><div class="section-head"><div><h2>runtime diagnostics</h2><p>highly scientific, absolutely not made up</p></div></div>
+<div class="grid3">
+<div class="card mini"><h3>entropy meter</h3><div class="meter"><div class="meter-fill"></div></div><div class="meter-labels"><span>equilibrium</span><span>68%</span><span>plot development</span></div><p class="smallcopy">Current timeline is stable enough to feel suspicious. Do not confuse peace with a missing feature.</p></div>
+<div class="card mini"><h3>branch generator</h3><div class="event"><strong>NEW_BRANCH_AVAILABLE</strong><br>recruiter_ping()</div><div class="event"><strong>WARNING</strong><br>user reports boredom</div><div class="event"><strong>INFO</strong><br>main remains protected</div></div>
+<div class="card mini"><h3>open branches</h3><div class="event"><a href="#branch-msft-2020">msft-2020 → archived</a></div><div class="event"><a href="#branch-twilio">twilio-2023 → ghost</a></div><div class="event"><a href="#branch-dublin">dublin-2025 → unmerged</a></div></div>
+</div></section>
+
+<section id="conspiracy" class="section">
+<div class="section-head"><div><h2>the Gmail Branching Hypothesis 👽</h2><p>the emails are real; the interpretation is gloriously unserious</p></div></div>
+<div class="card conspiracy">
+<h3>Working theory: my inbox is not documenting the timeline. It is testing branches.</h3>
+<p>Whenever life approaches equilibrium, Gmail seems to produce a portal: university decision, recruiter ping, offer letter, immigration form, relocation thread, or bureaucratic side quest. The hypothesis therefore proposes that Gmail is a Monte Carlo simulator for career and geography.</p>
+<ol>
+<li><strong>2015:</strong> FutureMe accidentally supplies the system prompt: fly high, dream big, regain control.</li>
+<li><strong>2016–2018:</strong> rejection → retry → CMU. The simulator learns the agent reopens failed paths.</li>
+<li><strong>2021:</strong> Tesla and Cruise probes are declined. The simulator learns Nishad does not always maximize novelty.</li>
+<li><strong>2023:</strong> multiple career and geography branches collide. Difficulty is increased.</li>
+<li><strong>2024:</strong> Microsoft respawns. Apparently some nodes persist in cache.</li>
+<li><strong>2026:</strong> stability rises; boredom is reported; recruiter density becomes suspicious again.</li>
+</ol>
+<p>In this model, replying “Thanks, interested. Happy to chat.” is functionally equivalent to <code>git checkout -b possible-new-life</code>.</p>
+<div class="disclaimer">Reality check: this is a joke built from my own career history, not a claim that Gmail, recruiters, or the universe are secretly controlling anything. The multiverse is currently unverified by peer review and my sister.</div>
+</div></section>
+
+<section id="branches" class="section">
+<div class="section-head"><div><h2>alternate timelines</h2><p>the paths not taken, rendered with irresponsible confidence</p></div></div>
+<div class="branches">
+<details id="branch-msft-2020" class="branch" open><summary><span>msft-2020 / Redmond branch</span><span class="branch-state">archived</span></summary><div class="branch-body">You keep the original Microsoft offer. The pandemic arrives almost immediately. Your twenties become less “Twitter inside the news” and more “Azure from the edge of it.” By 2026, you might be the six-year Microsoft veteran wondering what would have happened if you had taken that Twitter offer.</div></details>
+<details id="branch-twilio" class="branch"><summary><span>twilio-2023 / communications branch</span><span class="branch-state">ghost</span></summary><div class="branch-body">You take the Twilio branch and stay there. Different coworkers, different city rhythms, different technical problems, different random Friday nights. Eventually the divergence becomes so large that this version of you feels like a cousin with shared childhood memories.</div></details>
+<details id="branch-dublin" class="branch"><summary><span>dublin-2025 / Europe branch</span><span class="branch-state">unmerged</span></summary><div class="branch-body">You move to Dublin. The first weeks are logistics, grey skies, unfamiliar streets and novelty. A year later you have favorite cafés, rent complaints, a new social graph, and absolutely no idea what Bengaluru-Nishad is doing at 5 AM.</div></details>
+<details id="branch-india-2018" class="branch"><summary><span>india-2018 / unopened branch</span><span class="branch-state">lost history</span></summary><div class="branch-body">You do not go to CMU. The US chapter never starts the same way. No Pittsburgh path, no identical professional network, no same sequence of later forks. The tree does not end — it simply grows in a direction you can no longer reconstruct.</div></details>
+</div></section>
+
+<section id="recruiter" class="section">
+<div class="section-head"><div><h2>recruiter mode</h2><p>the part where the joke accidentally becomes a decent portfolio</p></div></div>
+<div class="professional">
+<div class="card pro-card"><h3>software engineer</h3><p>MS in AI/NLP from Carnegie Mellon University. Experience across large-scale consumer systems, cloud infrastructure and edge/platform engineering. Previously at Twitter; currently at Microsoft in Bengaluru.</p><div class="stack"><span>distributed systems</span><span>cloud</span><span>edge</span><span>Kubernetes</span><span>C#</span><span>backend</span><span>AI / NLP</span><span>LLMs</span><span>agents</span></div></div>
+<div class="card pro-card"><h3>career graph</h3><p>Autodesk internship → Symantec → Carnegie Mellon → Twitter → Microsoft India, with several highly plausible alternate branches left behind along the way.</p><div class="actions"><a class="btn primary" href="https://www.linkedin.com/in/nishaddawkhar" target="_blank" rel="noreferrer">view LinkedIn ↗</a><a class="btn" href="https://github.com/Nishad94" target="_blank" rel="noreferrer">view GitHub ↗</a><a class="btn" href="#timeline">see career timeline</a></div></div>
+</div>
+<div class="callout" style="margin-top:18px">Recruiter disclaimer: yes, this is intentionally nerdy. No, I do not normally describe career decisions as branch collisions. Probably.</div>
+</section>
+
+<section class="section"><div class="section-head"><div><h2>terminal</h2><p>do not sudo your personality</p></div></div>
+<div class="terminal"><div class="termline">$ whoami
+nishad
+
+$ git status
+On branch main
+Your life is ahead of 'origin/main' by ??? commits.
+
+$ git branch --all
+* main
+  msft-2020
+  twilio-2023
+  dublin-2025
+  remotes/origin/who-the-fuck-knows
+
+$ echo "main is protected"
+main is protected
+
+$ <span class="cursor"></span></div></div></section>
+
+<section class="section"><div class="card pro-card"><p class="quote">“You only notice the branch point later.”</p><p class="smallcopy">Some choices feel enormous in the moment. Others look like a random email, a move, a job, a person you keep talking to, or one ordinary Tuesday where you choose differently.</p></div></section>
+
+<footer>main is protected · force push disabled · built with HTML/CSS and questionable 5 AM lore</footer>
+</main>
+</body></html>
