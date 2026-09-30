@@ -33,6 +33,15 @@ h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;margin:
 .professional{display:grid;grid-template-columns:1fr 1fr;gap:18px}.pro-card{padding:22px}.pro-card h3{margin:0 0 11px;font-size:15px}.pro-card p{margin:0;color:#c9c5e5;font-size:12px;line-height:1.7}.stack{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}.stack span{border:1px solid #343754;background:#20233d;border-radius:999px;padding:6px 9px;font-size:10px;color:#d7d3ed}
 .terminal{padding:0;background:#0b0d18;border:1px solid #292c46;border-radius:18px;overflow:hidden}.termbar{display:flex;align-items:center;gap:7px;padding:11px 14px;background:#111322;border-bottom:1px solid #292c46}.termdot{width:10px;height:10px;border-radius:50%;background:#555a76}.termbar-title{margin-left:7px;color:#8589a8;font-size:10px}.term-output{min-height:290px;max-height:440px;overflow:auto;padding:17px 18px 8px;scroll-behavior:smooth}.termline{color:#a9ffd0;font-size:12px;line-height:1.72;white-space:pre-wrap;overflow-wrap:anywhere}.termline.dim{color:#8589a8}.termline.pink{color:var(--pink)}.termline.yellow{color:var(--yellow)}.termline.cmd{color:#f7f4ff}.term-input-row{display:flex;align-items:center;gap:8px;padding:7px 18px 17px;color:var(--mint);font-size:12px}.term-prompt{white-space:nowrap}.term-input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:#f7f4ff;font:inherit;font-size:12px;caret-color:var(--mint);padding:6px 0}.terminal:focus-within{border-color:#4f547a;box-shadow:0 0 0 3px rgba(159,255,210,.05)}.termhint{color:#8589a8;font-size:10px;margin-top:8px;text-align:right}
 .quote{font-size:clamp(18px,3vw,28px);line-height:1.45;letter-spacing:-.035em;margin:0}.callout{padding:18px;border-radius:16px;border:1px solid #3b3f61;background:#16182d;font-size:12px;line-height:1.65;color:#d0cce8}footer{margin-top:30px;padding:25px 0 4px;text-align:center;color:var(--muted);font-size:10px}
+.signalbar{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid rgba(52,55,84,.55);background:rgba(10,12,24,.7);color:#8f93b4;font-size:10px}.signalbar b{color:var(--mint);font-weight:700}.signal-dot{width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 10px var(--mint)}
+.control-deck{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.control{padding:18px;min-height:150px;position:relative;overflow:hidden;cursor:pointer;transition:.2s ease}.control:after{content:"";position:absolute;inset:auto -30% -45% auto;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(185,164,255,.18),transparent 65%);pointer-events:none}.control:hover{transform:translateY(-3px);border-color:#555a83}.control h3{margin:8px 0 8px;font-size:14px}.control p{margin:0;color:var(--muted);font-size:11px;line-height:1.55}.control .glyph{font-size:26px}.control kbd{display:inline-block;margin-top:13px;padding:4px 7px;border-radius:7px;border:1px solid #3a3d5a;background:#101223;color:#c9c5e5;font:inherit;font-size:9px}
+.graph-card{padding:20px;overflow:hidden;position:relative}.graph-card svg{width:100%;height:auto;display:block}.graph-edge{stroke:#464a6a;stroke-width:2;opacity:.75}.graph-edge.dashed{stroke-dasharray:7 7;opacity:.5}.graph-node{cursor:pointer;transition:.18s ease;transform-origin:center}.graph-node:hover{filter:drop-shadow(0 0 10px rgba(159,255,210,.8));transform:scale(1.06)}.graph-label{fill:#d7d3ed;font:11px ui-monospace,SFMono-Regular,Menlo,monospace}.graph-sublabel{fill:#7f839f;font:9px ui-monospace,SFMono-Regular,Menlo,monospace}
+.branch-result{margin-top:12px;padding:15px;border:1px solid #373a59;border-radius:14px;background:#111425;min-height:86px;color:#d7d3ed;font-size:11px;line-height:1.65}.branch-result strong{color:var(--mint)}.branch-result .result-title{font-size:13px;color:#fff;margin-bottom:6px}
+body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}body.chaos-mode .gradient{filter:hue-rotate(90deg)}body.chaos-mode .orb{background:var(--pink);box-shadow:0 0 25px var(--pink)}@keyframes chaosPulse{from{transform:translateY(0)}to{transform:translateY(-2px)}}
+.toffee-pop{position:fixed;z-index:999;pointer-events:none;font-size:34px;animation:toffeePop 1.9s ease-out forwards;filter:drop-shadow(0 8px 12px rgba(0,0,0,.3))}@keyframes toffeePop{0%{opacity:0;transform:translateY(18px) scale(.6) rotate(-8deg)}15%{opacity:1}70%{opacity:1;transform:translateY(-80px) scale(1.05) rotate(6deg)}100%{opacity:0;transform:translateY(-125px) scale(.9) rotate(0)}}
+.palette-backdrop{position:fixed;inset:0;z-index:300;background:rgba(6,7,15,.72);backdrop-filter:blur(8px);display:none;align-items:flex-start;justify-content:center;padding-top:12vh}.palette-backdrop.open{display:flex}.palette{width:min(620px,calc(100vw - 28px));background:#121426;border:1px solid #3c4060;border-radius:18px;box-shadow:0 30px 100px rgba(0,0,0,.55);overflow:hidden}.palette input{width:100%;border:0;border-bottom:1px solid #30334f;background:#0f1120;color:#fff;padding:16px 18px;font:inherit;outline:0}.palette-list{padding:8px}.palette-item{display:flex;justify-content:space-between;gap:16px;padding:11px 12px;border-radius:10px;color:#d7d3ed;font-size:11px;cursor:pointer}.palette-item:hover,.palette-item.active{background:#20233d}.palette-item span:last-child{color:#777c9c}
+@media(max-width:900px){.control-deck{grid-template-columns:1fr 1fr}}@media(max-width:560px){.control-deck{grid-template-columns:1fr}.signalbar{justify-content:flex-start;overflow:auto;flex-wrap:nowrap}.graph-label{font-size:9px}.graph-sublabel{display:none}}
+
 .cat{position:fixed;left:-80px;bottom:12px;font-size:29px;filter:drop-shadow(0 5px 8px rgba(0,0,0,.35));animation:walk 26s linear infinite;pointer-events:none;z-index:20}@keyframes walk{0%{left:-80px;transform:scaleX(1)}48%{left:calc(100vw + 30px);transform:scaleX(1)}50%{left:calc(100vw + 30px);transform:scaleX(-1)}98%{left:-80px;transform:scaleX(-1)}100%{left:-80px;transform:scaleX(1)}}
 @media(max-width:900px){.hero,.professional{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.commit{grid-template-columns:65px 30px 1fr}.commit:before{left:78px}.year{text-align:left}.navlinks .desktop-link{display:none}}
 @media(max-width:560px){.wrap{padding-inline:15px}main{padding-top:20px}.nav{min-height:62px}.hero-main{padding:24px}h1{font-size:47px}.commit{grid-template-columns:52px 22px 1fr;gap:8px;min-height:120px}.commit:before{left:62px}.node{width:13px;height:13px;margin-left:1px}.timeline{padding:16px 12px}.commit-box{padding:13px}}
@@ -50,6 +59,7 @@ h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;margin:
 <a class="desktop-link" href="#recruiter">recruiter mode</a>
 <a href="https://www.linkedin.com/in/nishaddawkhar" target="_blank" rel="noreferrer">linkedin ↗</a>
 </nav></div></header>
+<div class="signalbar" aria-label="Live site diagnostics"><span class="signal-dot"></span><span>build <b>2026.09+</b></span><span>·</span><span>HEAD <b>main</b></span><span>·</span><span>local time <b id="live-clock">--:--:--</b></span><span>·</span><span>entropy <b id="live-entropy">68%</b></span><span>·</span><span>⌘K command palette</span></div>
 
 <main id="top" class="wrap">
 <section class="hero" aria-labelledby="hero-title">
@@ -73,12 +83,42 @@ h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;margin:
 <div class="kv"><span>force push</span><span class="mint">disabled</span></div>
 </aside></section>
 
+<section class="section" id="controls">
+<div class="section-head"><div><h2>multiverse controls</h2><p>bad ideas, but with buttons</p></div><span class="chip">interactive</span></div>
+<div class="control-deck">
+  <button class="card control" id="roulette-btn" type="button"><div class="glyph">🎲</div><h3>branch roulette</h3><p>Generate a fake alternate timeline from one of the paths you nearly took.</p><kbd>roulette</kbd></button>
+  <button class="card control" id="chaos-btn" type="button"><div class="glyph">⚡</div><h3>chaos mode</h3><p>Temporarily increase visual entropy. Scientifically inadvisable.</p><kbd>chaos</kbd></button>
+  <button class="card control" id="toffee-btn" type="button"><div class="glyph">🐈</div><h3>summon Toffee</h3><p>Deploy the site's smallest and least qualified site-reliability engineer.</p><kbd>toffee</kbd></button>
+  <button class="card control" id="palette-btn" type="button"><div class="glyph">⌘</div><h3>command palette</h3><p>Jump around the site without pretending this is still just a static page.</p><kbd>⌘ K</kbd></button>
+</div>
+<div class="branch-result" id="branch-result"><strong>roulette idle.</strong> Pick a button. Disturb the timeline.</div>
+</section>
+
 <section class="section" aria-label="Quick stats"><div class="stats">
 <div class="card stat"><b>2015</b><span>root prompt committed</span></div>
 <div class="card stat"><b>2018</b><span>CMU branch merged</span></div>
 <div class="card stat"><b>2020</b><span>Twitter checkout</span></div>
 <div class="card stat"><b>2026</b><span>main still compiling</span></div>
 </div></section>
+
+<section class="section" id="map">
+<div class="section-head"><div><h2>branch topology</h2><p>an extremely serious visualization of causality</p></div><span class="chip">click nodes</span></div>
+<div class="card graph-card">
+<svg viewBox="0 0 1000 310" role="img" aria-label="Interactive map of Nishad's life branches">
+  <line class="graph-edge" x1="85" y1="155" x2="235" y2="155"/><line class="graph-edge" x1="235" y1="155" x2="390" y2="155"/><line class="graph-edge" x1="390" y1="155" x2="545" y2="155"/><line class="graph-edge" x1="545" y1="155" x2="700" y2="155"/><line class="graph-edge" x1="700" y1="155" x2="890" y2="155"/>
+  <line class="graph-edge dashed" x1="390" y1="155" x2="500" y2="58"/><line class="graph-edge dashed" x1="545" y1="155" x2="650" y2="255"/><line class="graph-edge dashed" x1="700" y1="155" x2="820" y2="58"/>
+  <g class="graph-node" data-target="#timeline"><circle cx="85" cy="155" r="15" fill="#ff9bd6"/><text class="graph-label" x="55" y="190">2015 init</text></g>
+  <g class="graph-node" data-target="#timeline"><circle cx="235" cy="155" r="15" fill="#ffe9a6"/><text class="graph-label" x="195" y="190">2018 CMU</text></g>
+  <g class="graph-node" data-target="#branch-msft-2020"><circle cx="390" cy="155" r="16" fill="#b9a4ff"/><text class="graph-label" x="346" y="190">2020 Twitter</text></g>
+  <g class="graph-node" data-target="#branch-msft-2020"><circle cx="500" cy="58" r="12" fill="#6f7394"/><text class="graph-label" x="445" y="35">msft-2020</text><text class="graph-sublabel" x="449" y="84">archived branch</text></g>
+  <g class="graph-node" data-target="#branches"><circle cx="545" cy="155" r="16" fill="#ff9bd6"/><text class="graph-label" x="507" y="190">2023 collision</text></g>
+  <g class="graph-node" data-target="#branch-twilio"><circle cx="650" cy="255" r="12" fill="#6f7394"/><text class="graph-label" x="605" y="286">twilio-2023</text></g>
+  <g class="graph-node" data-target="#timeline"><circle cx="700" cy="155" r="16" fill="#b9a4ff"/><text class="graph-label" x="655" y="190">2024 Microsoft</text></g>
+  <g class="graph-node" data-target="#branch-dublin"><circle cx="820" cy="58" r="12" fill="#ffe9a6"/><text class="graph-label" x="780" y="35">dublin-2025</text><text class="graph-sublabel" x="777" y="84">unmerged branch</text></g>
+  <g class="graph-node" data-target="#shell"><circle cx="890" cy="155" r="17" fill="#9fffd2"/><text class="graph-label" x="852" y="190">2026 HEAD</text></g>
+</svg>
+</div>
+</section>
 
 <section id="timeline" class="section">
 <div class="section-head"><div><h2>git log --oneline --life</h2><p>selected commits from the canonical timeline</p></div><span class="chip">HEAD → main</span></div>
@@ -151,6 +191,13 @@ h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;margin:
 
 <footer>main is protected · force push disabled · built with HTML/CSS and questionable 5 AM lore</footer>
 </main>
+
+<div class="palette-backdrop" id="palette-backdrop" aria-hidden="true">
+  <div class="palette" role="dialog" aria-modal="true" aria-label="Command palette">
+    <input id="palette-input" placeholder="Jump to… timeline, conspiracy, terminal, Toffee…" autocomplete="off">
+    <div class="palette-list" id="palette-list"></div>
+  </div>
+</div>
 
 
 <script type="module">
@@ -383,6 +430,10 @@ Public Nishad context:
         addLine('  recruiter             jump to recruiter mode');
         addLine('  linkedin | github     open profile');
         addLine('  clear | history       terminal housekeeping');
+        addLine('  roulette              generate an alternate timeline');
+        addLine('  chaos                 toggle visual entropy');
+        addLine('  toffee                summon site reliability cat');
+        addLine('  palette               open command palette');
         addLine('');
         addLine('Anything else is sent to the LOCAL browser LLM.', 'yellow');
         addLine('Example: why did Microsoft respawn?', 'dim');
@@ -483,6 +534,25 @@ Public Nishad context:
         setTimeout(() => addLine('connection refused: branch has diverged too far'), 450);
         break;
 
+      case 'roulette':
+        document.getElementById('roulette-btn')?.click();
+        addLine('roulette: branch generated above ↑', 'yellow');
+        break;
+
+      case 'chaos':
+        document.getElementById('chaos-btn')?.click();
+        addLine('chaos mode toggled.', 'yellow');
+        break;
+
+      case 'toffee':
+        document.getElementById('toffee-btn')?.click();
+        addLine('Toffee deployed. uptime no longer guaranteed.', 'yellow');
+        break;
+
+      case 'palette':
+        document.getElementById('palette-btn')?.click();
+        break;
+
       case 'matrix':
         addLine('there is no spoon. there is, however, a recruiter email.', 'yellow');
         break;
@@ -534,6 +604,130 @@ Public Nishad context:
   });
 
   terminal.addEventListener('click', () => input.focus());
+
+  // ---- multiverse extras ----
+  const clockEl = document.getElementById('live-clock');
+  const entropyEl = document.getElementById('live-entropy');
+  const rouletteBtn = document.getElementById('roulette-btn');
+  const chaosBtn = document.getElementById('chaos-btn');
+  const toffeeBtn = document.getElementById('toffee-btn');
+  const paletteBtn = document.getElementById('palette-btn');
+  const branchResult = document.getElementById('branch-result');
+  const paletteBackdrop = document.getElementById('palette-backdrop');
+  const paletteInput = document.getElementById('palette-input');
+  const paletteList = document.getElementById('palette-list');
+
+  setInterval(() => {
+    if (clockEl) clockEl.textContent = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }, 1000);
+
+  const alternateLives = [
+    {title:'msft-2020 / Redmond continuity',body:'You keep the original Microsoft offer. By 2026 you have deep institutional memory, fewer branch collisions, and a recurring suspicion that the Twitter universe was the more interesting bug.'},
+    {title:'twilio-2023 / communications branch',body:'You take Twilio. The technical graph changes, the social graph changes, and eventually Bengaluru-Microsoft Nishad feels like somebody you once saw in a dream.'},
+    {title:'dublin-2025 / Europe branch',body:'You move to Dublin. Six months later you have a favorite café, strong opinions about rent, and absolutely no idea why another version of you bought nishad.ai at 6 AM.'},
+    {title:'india-2018 / unopened history',body:'CMU never happens. The tree still grows — just into a world whose details are now unrecoverable. Same root node, wildly different graph.'},
+    {title:'creator-mode / improbable side quest',body:'You stop optimizing only for career and ship something weird on the internet. It attracts exactly the sort of people who understand why a personal website has git branches and a cat command.'}
+  ];
+
+  const doViewTransition = (fn) => {
+    if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.startViewTransition(fn);
+    else fn();
+  };
+
+  rouletteBtn?.addEventListener('click', () => {
+    const pick = alternateLives[Math.floor(Math.random()*alternateLives.length)];
+    doViewTransition(() => {
+      branchResult.innerHTML = '<div class="result-title">NEW_BRANCH_AVAILABLE → '+pick.title+'</div>'+pick.body+'<br><br><strong>status:</strong> uncommitted · <strong>risk:</strong> vibes-based';
+    });
+    rouletteBtn.animate([{transform:'rotate(0deg)'},{transform:'rotate(2deg)'},{transform:'rotate(-2deg)'},{transform:'rotate(0deg)'}],{duration:420});
+  });
+
+  chaosBtn?.addEventListener('click', () => {
+    document.body.classList.toggle('chaos-mode');
+    const on = document.body.classList.contains('chaos-mode');
+    chaosBtn.querySelector('p').textContent = on ? 'Entropy elevated. The timeline is now mildly haunted.' : 'Temporarily increase visual entropy. Scientifically inadvisable.';
+    if (entropyEl) entropyEl.textContent = on ? '93%' : '68%';
+  });
+
+  function summonToffee(count=7){
+    for(let i=0;i<count;i++){
+      const cat=document.createElement('div');
+      cat.className='toffee-pop';
+      cat.textContent=Math.random()>.72?'🐾':'🐈';
+      cat.style.left=(8+Math.random()*84)+'vw';
+      cat.style.bottom=(2+Math.random()*18)+'vh';
+      cat.style.animationDelay=(Math.random()*.45)+'s';
+      document.body.appendChild(cat);
+      setTimeout(()=>cat.remove(),2500);
+    }
+  }
+  toffeeBtn?.addEventListener('click',()=>summonToffee());
+
+  document.querySelectorAll('.graph-node').forEach(node => node.addEventListener('click', () => {
+    const target=node.getAttribute('data-target');
+    document.querySelector(target)?.scrollIntoView({behavior:'smooth',block:'center'});
+  }));
+
+  const paletteActions = [
+    ['timeline','#timeline'],['gmail conspiracy','#conspiracy'],['alternate branches','#branches'],
+    ['recruiter mode','#recruiter'],['interactive shell','#shell'],['branch topology','#map'],
+    ['multiverse controls','#controls'],['summon Toffee','toffee'],['branch roulette','roulette']
+  ];
+  let paletteFiltered=[...paletteActions], paletteIndex=0;
+
+  function renderPalette(query=''){
+    const q=query.toLowerCase().trim();
+    paletteFiltered=paletteActions.filter(([name])=>name.includes(q));
+    paletteIndex=0;
+    paletteList.replaceChildren();
+    paletteFiltered.forEach(([name,target],i)=>{
+      const row=document.createElement('div');
+      row.className='palette-item'+(i===0?' active':'');
+      row.innerHTML='<span>'+name+'</span><span>'+target+'</span>';
+      row.addEventListener('click',()=>runPalette(target));
+      paletteList.appendChild(row);
+    });
+  }
+  function openPalette(){
+    paletteBackdrop.classList.add('open');
+    paletteBackdrop.setAttribute('aria-hidden','false');
+    renderPalette('');
+    setTimeout(()=>paletteInput.focus(),0);
+  }
+  function closePalette(){
+    paletteBackdrop.classList.remove('open');
+    paletteBackdrop.setAttribute('aria-hidden','true');
+  }
+  function runPalette(target){
+    closePalette();
+    if(target==='toffee') summonToffee();
+    else if(target==='roulette') rouletteBtn?.click();
+    else document.querySelector(target)?.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  paletteBtn?.addEventListener('click',openPalette);
+  paletteBackdrop?.addEventListener('click',e=>{if(e.target===paletteBackdrop)closePalette()});
+  paletteInput?.addEventListener('input',e=>renderPalette(e.target.value));
+  paletteInput?.addEventListener('keydown',e=>{
+    if(e.key==='Escape') return closePalette();
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+      e.preventDefault();
+      paletteIndex=Math.max(0,Math.min(paletteFiltered.length-1,paletteIndex+(e.key==='ArrowDown'?1:-1)));
+      [...paletteList.children].forEach((el,i)=>el.classList.toggle('active',i===paletteIndex));
+    }
+    if(e.key==='Enter'&&paletteFiltered[paletteIndex]){e.preventDefault();runPalette(paletteFiltered[paletteIndex][1]);}
+  });
+  document.addEventListener('keydown',e=>{
+    if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openPalette();}
+    if(e.key==='Escape'&&paletteBackdrop?.classList.contains('open'))closePalette();
+  });
+
+  // Subtle cursor glow on desktop.
+  if (matchMedia('(pointer:fine)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const glow=document.createElement('div');
+    glow.style.cssText='position:fixed;width:220px;height:220px;border-radius:50%;pointer-events:none;z-index:-1;background:radial-gradient(circle,rgba(185,164,255,.08),transparent 68%);transform:translate(-50%,-50%);transition:opacity .2s';
+    document.body.appendChild(glow);
+    addEventListener('pointermove',e=>{glow.style.left=e.clientX+'px';glow.style.top=e.clientY+'px';});
+  }
 })();
 </script>
 </body></html>
