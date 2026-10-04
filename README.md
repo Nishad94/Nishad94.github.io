@@ -248,3 +248,7 @@ Then set `AI_PROXY_DEFAULT` in `index.html` to the Worker URL. While it is empty
 This does not change the Spotify Developer Policy III.13/III.14 position: an owner-run server sending other users' Spotify data to an AI model is a larger contractual exposure than a private BYOK test. Obtain Spotify's permission before enabling it for public visitors.
 
 The Worker is deployed at `https://nishad-ai-proxy.nishad-dawkhar94.workers.dev` and `AI_PROXY_DEFAULT` points at it. On `127.0.0.1`, `localStorage.nishad_ai_proxy = 'off'` forces BYOK (used by tests). `ALLOWED_ORIGINS` in `worker/wrangler.toml` includes `http://127.0.0.1:8000` for local testing; remove it for strict production.
+
+## Layout
+
+The site has six tabs (Home, Story, Lore, Music, Work, Terminal) with a hash router, a mobile bottom bar, a daily branch and a visit streak. Existing `#section` links still work.

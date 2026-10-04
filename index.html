@@ -50,32 +50,65 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
 @media(max-width:900px){.hero,.professional{grid-template-columns:1fr}.grid3{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.commit{grid-template-columns:65px 30px 1fr}.commit:before{left:78px}.year{text-align:left}.navlinks .desktop-link{display:none}}
 @media(max-width:560px){.wrap{padding-inline:15px}main{padding-top:20px}.nav{min-height:62px}.hero-main{padding:24px}h1{font-size:47px}.commit{grid-template-columns:52px 22px 1fr;gap:8px;min-height:120px}.commit:before{left:62px}.node{width:13px;height:13px;margin-left:1px}.timeline{padding:16px 12px}.commit-box{padding:13px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}.cat{display:none}}
+
+/* ---- v2 layout: tabbed views, calmer density ---- */
+.view[hidden],[data-view][hidden]{display:none!important}
+.view{animation:viewIn .22s ease both}@keyframes viewIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.nav{gap:14px}.tabs{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:14px;background:#12142a}
+.tab{display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:10px;font-size:13px;font-weight:700;color:var(--muted);text-decoration:none;transition:.15s}
+.tab i{font-style:normal}.tab:hover{color:var(--ink);background:#1d2040}.tab.active{color:#0d0f1b;background:var(--mint)}
+.nav-tools{display:flex;gap:8px;align-items:center}.nav-tools .btn{padding:8px 11px}
+main{padding:28px 0 90px}.section{margin-top:34px}.section-head{margin-bottom:14px}.section-head h2{font-size:22px;letter-spacing:-.02em}.section-head p{font-size:13px}
+.lede{font-size:16.5px}.smallcopy,.commit-meta,.pro-card p,.conspiracy p,.conspiracy ol,.callout,.branch-result,.mini .event{font-size:13.5px;line-height:1.7}
+.actions .btn{padding:12px 16px;font-size:13.5px}.btn.primary{font-weight:800}.btn.ghost{background:transparent;color:var(--muted)}
+.launcher{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.launch{display:block;padding:20px;text-decoration:none;transition:.18s}.launch:hover{transform:translateY(-3px);border-color:var(--mint)}
+.launch-icon{font-size:26px}.launch h3{margin:10px 0 6px;font-size:16px}.launch p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
+.daily{margin-top:14px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}.daily p{margin:6px 0 0;font-size:14px;line-height:1.55}
+.music-steps{display:grid;gap:12px}.music-step{display:grid;grid-template-columns:34px 1fr;gap:14px;padding:16px;border:1px solid #30334f;border-radius:16px;background:#14162b}
+.step-n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--mint);color:#0d0f1b;font-weight:900;font-size:13px}
+.step-body h3{margin:4px 0 8px;font-size:16px}.step-body .smallcopy{margin:0 0 4px;color:var(--muted)}
+.music-controls{margin:10px 0 0}.seg{display:inline-flex;padding:4px;border:1px solid var(--line);border-radius:12px;background:#101225}.seg .btn{border:0;background:transparent}.seg .btn:hover{background:#20233e;transform:none}
+.lens-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.lens{padding:13px;border:1px dashed #3a3e5f;border-radius:12px}.lens b{display:block;font-size:14px}.lens span{display:block;margin-top:3px;color:var(--muted);font-size:12.5px}
+#music-ai-status{margin:14px 2px 0;color:var(--muted);font-size:12.5px}
+@media(max-width:1000px){.launcher{grid-template-columns:1fr 1fr}.nav-tools .btn:last-child{display:none}.tab span{display:none}.tab{padding:9px 12px}}
+@media(max-width:700px){
+ .launcher,.lens-grid{grid-template-columns:1fr}.daily{flex-direction:column;align-items:flex-start}
+ .nav-tools{display:none}.signalbar{display:none}.cat{display:none}
+ .tabs{position:fixed;left:10px;right:10px;bottom:10px;z-index:60;justify-content:space-between;padding:6px;border-radius:18px;background:rgba(18,20,42,.96);backdrop-filter:blur(14px);box-shadow:0 10px 40px rgba(0,0,0,.5)}
+ .tab{flex:1;flex-direction:column;gap:2px;font-size:10px;padding:7px 4px;text-align:center}.tab span{display:block}.tab i{font-size:18px}
+ .music-step{grid-template-columns:1fr}.step-n{display:none}.seg{display:flex;width:100%}.seg .btn{flex:1;padding-inline:6px}
+ main{padding-bottom:110px}
+}
 </style>
 </head>
 <body>
 <div class="cat" aria-hidden="true">🐈</div>
 <header><div class="wrap nav">
-<a class="brand" href="#top" aria-label="Back to top"><span class="orb"></span><span>nishad://multiverse</span></a>
-<nav class="navlinks" aria-label="Primary">
-<a class="desktop-link" href="#timeline">timeline</a>
-<a class="desktop-link" href="#conspiracy">gmail conspiracy</a>
-<a class="desktop-link" href="#branches">branches</a>
-<a class="desktop-link" href="#recruiter">recruiter mode</a>
-<a href="#music">music vibes</a>
-<a href="https://www.linkedin.com/in/nishaddawkhar" target="_blank" rel="noreferrer">linkedin ↗</a>
-</nav></div></header>
-<div class="signalbar" aria-label="Live site diagnostics"><span class="signal-dot"></span><span>build <b>2026.09+</b></span><span>·</span><span>HEAD <b>main</b></span><span>·</span><span>local time <b id="live-clock">--:--:--</b></span><span>·</span><span>entropy <b id="live-entropy">68%</b></span><span>·</span><span>⌘K command palette</span></div>
+<a class="brand" href="#home" aria-label="Home"><span class="orb"></span><span>nishad://multiverse</span></a>
+<nav class="tabs" aria-label="Primary">
+<a class="tab" data-view="home" href="#home"><i aria-hidden="true">🏠</i><span>Home</span></a>
+<a class="tab" data-view="story" href="#story"><i aria-hidden="true">🧭</i><span>Story</span></a>
+<a class="tab" data-view="lore" href="#lore"><i aria-hidden="true">👽</i><span>Lore</span></a>
+<a class="tab" data-view="music" href="#music"><i aria-hidden="true">🎧</i><span>Music</span></a>
+<a class="tab" data-view="work" href="#recruiter"><i aria-hidden="true">👔</i><span>Work</span></a>
+<a class="tab" data-view="shell" href="#shell"><i aria-hidden="true">⌨️</i><span>Terminal</span></a>
+</nav>
+<div class="nav-tools"><button class="btn" id="nav-palette" type="button" aria-label="Open command palette">⌘K</button><a class="btn" href="https://www.linkedin.com/in/nishaddawkhar" target="_blank" rel="noreferrer">LinkedIn ↗</a></div>
+</div></header>
+<div class="signalbar" aria-label="Live site diagnostics"><span class="signal-dot"></span><span>build <b>2026.09+</b></span><span>·</span><span>HEAD <b>main</b></span><span>·</span><span>local time <b id="live-clock">--:--:--</b></span><span>·</span><span>entropy <b id="live-entropy">68%</b></span><span>·</span><span>visit streak <b id="live-streak">1</b></span><span>·</span><span>⌘K command palette</span></div>
 
 <main id="top" class="wrap">
+<div class="view" data-view="home" id="home">
 <section class="hero" aria-labelledby="hero-title">
 <div class="card hero-main">
 <div class="eyebrow">personal operating system / build 2026.09</div>
 <h1 id="hero-title">one life.<br><span class="gradient">many branches.</span></h1>
 <p class="lede">A nerdy little archive of the timelines that happened, the ones that almost happened, and the suspicious recruiter emails that keep trying to fork the repository.</p>
 <div class="actions">
-<a class="btn primary" href="#timeline">explore commit history</a>
-<a class="btn" href="#conspiracy">read the gmail hypothesis</a>
-<a class="btn" href="#recruiter">recruiter-friendly view</a>
+<a class="btn primary" href="#music">🎧 Decode my music taste</a>
+<a class="btn" href="#shell" id="hero-ask">💬 Ask the AI about Nishad</a>
+<a class="btn" href="#story">🧭 Read the story</a>
 </div></div>
 
 <aside class="card hero-status" aria-label="Current checkout">
@@ -87,6 +120,17 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
 <div class="kv"><span>branching factor</span><span class="yellow">non-zero</span></div>
 <div class="kv"><span>force push</span><span class="mint">disabled</span></div>
 </aside></section>
+
+<section class="section" aria-labelledby="launch-title">
+<div class="section-head"><div><h2 id="launch-title">what brings you here?</h2><p>pick a door — you can always change your mind</p></div></div>
+<div class="launcher">
+<a class="card launch" href="#music"><span class="launch-icon">🎧</span><h3>Decode my music taste</h3><p>Connect Spotify for a fictional personality read, Music MBTI and tarot card.</p></a>
+<a class="card launch" href="#shell"><span class="launch-icon">💬</span><h3>Ask the AI</h3><p>Chat with a Nishad-aware terminal: interview, roast, hype or a made-up timeline.</p></a>
+<a class="card launch" href="#story"><span class="launch-icon">🧭</span><h3>Browse the story</h3><p>The career as a git log, plus the branch map of paths not taken.</p></a>
+<a class="card launch" href="#recruiter"><span class="launch-icon">👔</span><h3>Recruiter mode</h3><p>The serious version: background, skills and where to reach me.</p></a>
+</div>
+<div class="card daily" id="daily"><div><div class="tiny">today’s branch</div><p id="daily-text"></p></div><button class="btn" type="button" id="daily-roll">🎲 roll another</button></div>
+</section>
 
 <section class="section" id="controls">
 <div class="section-head"><div><h2>multiverse controls</h2><p>bad ideas, but with buttons</p></div><span class="chip">interactive</span></div>
@@ -106,6 +150,9 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
 <div class="card stat"><b>2026</b><span>main still compiling</span></div>
 </div></section>
 
+</div>
+
+<div class="view" data-view="story" id="story">
 <section class="section" id="map">
 <div class="section-head"><div><h2>branch topology</h2><p>an extremely serious visualization of causality</p></div><span class="chip">click nodes</span></div>
 <div class="card graph-card">
@@ -146,6 +193,9 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
 <div class="card mini"><h3>open branches</h3><div class="event"><a href="#branch-msft-2020">msft-2020 → archived</a></div><div class="event"><a href="#branch-twilio">twilio-2023 → ghost</a></div><div class="event"><a href="#branch-dublin">dublin-2025 → unmerged</a></div></div>
 </div></section>
 
+</div>
+
+<div class="view" data-view="lore" id="lore">
 <section id="conspiracy" class="section">
 <div class="section-head"><div><h2>the Gmail Branching Hypothesis 👽</h2><p>the emails are real; the interpretation is gloriously unserious</p></div></div>
 <div class="card conspiracy">
@@ -172,7 +222,9 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
 <details id="branch-india-2018" class="branch"><summary><span>india-2018 / unopened branch</span><span class="branch-state">lost history</span></summary><div class="branch-body">You do not go to CMU. The US chapter never starts the same way. No Pittsburgh path, no identical professional network, no same sequence of later forks. The tree does not end — it simply grows in a direction you can no longer reconstruct.</div></details>
 </div></section>
 
-<section id="recruiter" class="section">
+</div>
+
+<section id="recruiter" class="section view" data-view="work">
 <div class="section-head"><div><h2>recruiter mode</h2><p>the part where the joke accidentally becomes a decent portfolio</p></div></div>
 <div class="professional">
 <div class="card pro-card"><h3>software engineer</h3><p>MS in AI/NLP from Carnegie Mellon University. Experience across large-scale consumer systems, cloud infrastructure and edge/platform engineering. Previously at Twitter; currently at Microsoft in Bengaluru.</p><div class="stack"><span>distributed systems</span><span>cloud</span><span>edge</span><span>Kubernetes</span><span>C#</span><span>backend</span><span>AI / NLP</span><span>LLMs</span><span>agents</span></div></div>
@@ -181,25 +233,32 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
 <div class="callout" style="margin-top:18px">Recruiter disclaimer: yes, this is intentionally nerdy. No, I do not normally describe career decisions as branch collisions. Probably.</div>
 </section>
 
-<section class="section" id="music" aria-labelledby="music-title">
-<div class="section-head"><div><h2 id="music-title">music vibes</h2><p>your listening multiverse · experimental Spotify POC</p></div><span class="chip">no commands needed</span></div>
+<section class="section view" id="music" data-view="music" aria-labelledby="music-title">
+<div class="section-head"><div><h2 id="music-title">music vibes</h2><p>connect Spotify → pick a lens → get a fictional read of your taste</p></div><a class="chip" href="./spotify-privacy.html" target="_blank" rel="noreferrer">privacy &amp; data flow ↗</a></div>
 <div class="card music-panel">
-<p class="smallcopy">Start with Connect Spotify, then choose a view. Raw music data needs no AI key. Optional personality, Music MBTI, tarot, and roast reports require your own OpenAI key, separate consent, and resolving Spotify's policy restrictions. <a href="./spotify-privacy.html" target="_blank" rel="noreferrer">Privacy &amp; permission details</a></p>
+<div class="music-steps">
+<div class="music-step"><div class="step-n">1</div><div class="step-body"><h3>Connect</h3>
+<p class="smallcopy">Read-only access to your top artists and tracks. Tokens stay in this tab and vanish when you disconnect.</p>
 <div class="music-controls" aria-label="Spotify connection controls">
 <button class="btn primary" type="button" data-music-command="spotify connect">Connect Spotify</button>
-<button class="btn" type="button" data-music-command="spotify status">Connection status</button>
-<button class="btn" type="button" data-music-command="spotify disconnect">Disconnect Spotify</button>
-</div>
-<div class="music-controls" aria-label="Music views">
+<button class="btn ghost" type="button" data-music-command="spotify status">Connection status</button>
+<button class="btn ghost" type="button" data-music-command="spotify disconnect">Disconnect Spotify</button>
+</div></div></div>
+<div class="music-step"><div class="step-n">2</div><div class="step-body"><h3>Pick a lens</h3>
+<div class="music-controls seg" aria-label="Music views">
 <button class="btn" type="button" data-music-command="vibe short">Last 4 weeks</button>
 <button class="btn" type="button" data-music-command="vibe medium">Last 6 months</button>
 <button class="btn" type="button" data-music-command="vibe long">Last year</button>
-<button class="btn" type="button" data-music-command="vibe timeline">Mood timeline</button>
-<button class="btn" type="button" data-music-command="spotify connect timeline">Enable recent-play access</button>
-<button class="btn" type="button" data-music-command="vibe compare">Past vs now</button>
+</div>
+<div class="lens-grid">
+<div class="lens"><b>Mood timeline</b><span>How your recent plays feel hour by hour.</span><div class="music-controls"><button class="btn" type="button" data-music-command="vibe timeline">Mood timeline</button><button class="btn ghost" type="button" data-music-command="spotify connect timeline">Enable recent-play access</button></div></div>
+<div class="lens"><b>Past vs now</b><span>Compare your long-term taste with today.</span><div class="music-controls"><button class="btn" type="button" data-music-command="vibe compare">Past vs now</button></div></div>
+</div></div></div>
+<div class="music-step"><div class="step-n">3</div><div class="step-body"><h3>Your results</h3>
+<div id="spotify-output" aria-live="polite"><p class="smallcopy">Connect Spotify to start. Raw top lists work without AI; the personality, MBTI, tarot and roast reports ask for consent first.</p></div></div></div>
 </div>
 <p id="music-ai-status" role="status"></p>
-<details class="music-key"><summary>Add or remove your OpenAI key</summary>
+<details class="music-key" id="music-key-block"><summary>Add or remove your OpenAI key</summary>
 <p>Your key stays in this browser's localStorage and is sent directly to OpenAI. Reports share the terminal's spend counter. Nothing goes to AI until you confirm a report. Never enter someone else's key.</p>
 <form id="music-key-form" autocomplete="off">
 <label for="music-key-input">OpenAI API key</label>
@@ -208,11 +267,10 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
 <button class="btn" id="music-key-remove" type="button">Remove AI key</button>
 </form>
 </details>
-<div id="spotify-output" aria-live="polite"><p class="smallcopy">Connect Spotify to start. Existing terminal and AI features below still work independently.</p></div>
 </div>
 </section>
 
-<section class="section" id="shell"><div class="section-head"><div><h2>terminal</h2><p>yes, it actually takes commands now</p></div><span class="chip">interactive shell</span></div>
+<section class="section view" id="shell" data-view="shell"><div class="section-head"><div><h2>terminal</h2><p>yes, it actually takes commands now</p></div><span class="chip">interactive shell</span></div>
 <div class="terminal" id="terminal" role="application" aria-label="Interactive Nishad multiverse terminal">
   <div class="termbar"><span class="termdot"></span><span class="termdot"></span><span class="termdot"></span><span class="termbar-title">guest@nishad.ai — zsh-ish</span><div class="spend-hud" id="spend-hud" title="estimated OpenAI spend this session"><span class="hud-dot"></span><span>✨ multiverse</span><span class="hud-amount" id="hud-amount">$0.0000</span><span class="hud-bar"><span class="hud-bar-fill" id="hud-bar-fill"></span></span></div></div>
   <div class="term-output" id="term-output" aria-live="polite"></div>
@@ -223,7 +281,7 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
 </div>
 <div class="termhint">try <code>spotify</code>, <code>vibe</code>, or <code>conspiracy</code> · first AI query downloads a local model · ↑/↓ history · Ctrl+L clears</div></section>
 
-<section class="section"><div class="card pro-card"><p class="quote">“You only notice the branch point later.”</p><p class="smallcopy">Some choices feel enormous in the moment. Others look like a random email, a move, a job, a person you keep talking to, or one ordinary Tuesday where you choose differently.</p></div></section>
+<section class="section view" data-view="shell"><div class="card pro-card"><p class="quote">“You only notice the branch point later.”</p><p class="smallcopy">Some choices feel enormous in the moment. Others look like a random email, a move, a job, a person you keep talking to, or one ordinary Tuesday where you choose differently.</p></div></section>
 
 <footer>main is protected · force push disabled · built with HTML/CSS and questionable 5 AM lore</footer>
 </main>
@@ -471,7 +529,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
   });
 
   function runSpotify(cmd, args) {
-    document.getElementById('music').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    reveal('#music');
     return spotifyRunner(cmd, args);
   }
   document.querySelectorAll('[data-music-command]').forEach(button => {
@@ -505,7 +563,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       return;
     }
     if (target.startsWith('#')) {
-      document.querySelector(target)?.scrollIntoView({behavior:'smooth'});
+      reveal(target);
       addLine('opened ' + name, 'yellow');
     } else {
       window.open(target, '_blank', 'noopener,noreferrer');
@@ -967,6 +1025,76 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
   addLine('Type help for commands, or conspiracy for instant lore.', 'yellow');
   addLine('Type spotify for optional music login, or vibe for music reports (separate AI consent required).', 'dim');
   addLine('');
+
+  // ---- view router: one focused view at a time, hash-addressable ----
+  const viewEls = [...document.querySelectorAll('.view[data-view]')];
+  const tabEls = [...document.querySelectorAll('.tab[data-view]')];
+  function showView(name) {
+    viewEls.forEach(v => { v.hidden = v.dataset.view !== name; });
+    tabEls.forEach(t => {
+      const on = t.dataset.view === name;
+      t.classList.toggle('active', on);
+      if (on) t.setAttribute('aria-current', 'page'); else t.removeAttribute('aria-current');
+    });
+    document.body.dataset.view = name;
+  }
+  function reveal(target, options = {}) {
+    const el = typeof target === 'string' ? document.querySelector(target) : target;
+    if (!el) return;
+    const view = el.closest('[data-view]')?.dataset.view;
+    if (view) showView(view);
+    if (el.matches('.view') || el.id === 'home') window.scrollTo({ top: 0 });
+    else el.scrollIntoView({ behavior: 'smooth', block: options.block || 'start' });
+    if (view === 'shell' && options.focus !== false) input.focus({ preventScroll: true });
+  }
+  function routeFromHash() {
+    const hash = decodeURIComponent(location.hash.slice(1));
+    const el = hash && document.getElementById(hash);
+    if (el) reveal(el, { focus: false });
+    else if (/^(music|shell)-/.test(hash)) showView(hash.startsWith('music') ? 'music' : 'shell');
+    else showView('home');
+  }
+  window.addEventListener('hashchange', routeFromHash);
+  document.addEventListener('click', event => {
+    const link = event.target.closest?.('a[href^="#"]');
+    const hash = link?.getAttribute('href');
+    if (!hash || hash.length < 2 || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey) return;
+    const el = document.getElementById(decodeURIComponent(hash.slice(1)));
+    if (!el) return;
+    event.preventDefault();
+    if (location.hash !== hash) window.history.pushState(null, '', hash);
+    reveal(el);
+  });
+  document.getElementById('nav-palette')?.addEventListener('click', openPalette);
+  document.getElementById('hero-ask')?.addEventListener('click', () => setTimeout(() => input.focus({ preventScroll: true }), 50));
+  routeFromHash();
+
+  // ---- daily branch + visit streak ----
+  const dailyLines = [
+    'In this timeline you replied "Thanks, interested. Happy to chat." to the right email.',
+    'A recruiter in Dublin finally got the bagel order right. Nothing else changed.',
+    'You kept the Twitter offer and also learned to say no to a fifth meeting.',
+    'The local model finished downloading. Nobody noticed. Great timeline.',
+    'Toffee deployed to production at 5 AM. Uptime: suspiciously perfect.',
+    'You shipped the side project instead of tweaking the colour palette again.',
+    'A Gmail notification arrived. It was just a newsletter. Branch pruned.'
+  ];
+  const dayNumber = Math.floor(Date.now() / 86400000);
+  const dailyText = document.getElementById('daily-text');
+  if (dailyText) dailyText.textContent = dailyLines[dayNumber % dailyLines.length];
+  document.getElementById('daily-roll')?.addEventListener('click', () => {
+    dailyText.textContent = dailyLines[Math.floor(Math.random() * dailyLines.length)];
+  });
+  try {
+    const visit = JSON.parse(localStorage.getItem('nishad_visit') || '{}');
+    let streak = Number(visit.streak) || 0;
+    if (visit.day !== dayNumber) streak = visit.day === dayNumber - 1 ? streak + 1 : 1;
+    localStorage.setItem('nishad_visit', JSON.stringify({ day: dayNumber, streak }));
+    const streakEl = document.getElementById('live-streak');
+    if (streakEl) streakEl.textContent = streak + (streak === 1 ? ' day' : ' days');
+  } catch (_) {}
+  if (AI_PROXY_URL) document.getElementById('music-key-block')?.setAttribute('hidden', '');
+
   const spotifyReturn = location.hash.match(/^#(?:music|shell)-vibe-(short|medium|long|timeline|compare)$/);
   if (spotifyReturn) {
     window.history.replaceState(null, '', location.pathname + '#music');
@@ -1095,7 +1223,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
 
   document.querySelectorAll('.graph-node').forEach(node => node.addEventListener('click', () => {
     const target=node.getAttribute('data-target');
-    document.querySelector(target)?.scrollIntoView({behavior:'smooth',block:'center'});
+    reveal(target, { block: 'center' });
   }));
 
   const paletteActions = [
@@ -1135,11 +1263,10 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     if(target==='toffee') summonToffee();
     else if(target==='roulette') rouletteBtn?.click();
     else if(target==='spotify'||target.startsWith('vibe')||target==='spotify disconnect'){
-      document.getElementById('shell')?.scrollIntoView({behavior:'smooth'});
-      input.focus();
+      reveal('#shell');
       run(target);
     }
-    else document.querySelector(target)?.scrollIntoView({behavior:'smooth',block:'start'});
+    else reveal(target);
   }
   paletteBtn?.addEventListener('click',openPalette);
   paletteBackdrop?.addEventListener('click',e=>{if(e.target===paletteBackdrop)closePalette()});

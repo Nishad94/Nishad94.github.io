@@ -11,6 +11,12 @@ built so that AI agents and human contributors can work on it safely and quickly
 - To change **UI/behavior**, edit the inline `<script type="module">` in `index.html`.
 - Deploy = commit + push to `master`. Pages rebuilds automatically.
 
+## Layout
+
+`index.html` is tabbed: Home, Story, Lore, Music, Work, Terminal (`.view[data-view]`, `.tab[data-view]`).
+A hash router shows one view at a time; old anchors (`#music`, `#shell`, `#timeline`, ...) still resolve.
+Use `window.history` (a local `history` variable shadows the global). Tests must reveal the right view first.
+
 ## File map
 
 | file | purpose |

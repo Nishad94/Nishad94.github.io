@@ -12,12 +12,13 @@ const profile = {
 };
 
 async function command(page, value) {
+  if (!(await page.locator('#term-input').isVisible())) await page.locator('.tab[data-view="shell"]').click();
   await page.locator('#term-input').fill(value);
   await page.locator('#term-input').press('Enter');
 }
 
 async function seed(page, options = {}) {
-  await page.goto('/');
+  await page.goto('/#music');
   await page.evaluate(options => {
     sessionStorage.setItem('nishad_spotify_auth', JSON.stringify({
       accessToken: 'synthetic-access', refreshToken: 'synthetic-refresh',
@@ -217,7 +218,7 @@ test('disconnect cancels a pending AI report and leaves no music data behind', a
 });
 
 test('blocked session storage reports failure without breaking the site', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/#music');
   await page.evaluate(() => {
     Object.defineProperty(window, 'sessionStorage', { get() { throw new DOMException('Blocked', 'SecurityError'); } });
   });
