@@ -699,6 +699,33 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     addLine('[usage] +' + (inTok + outTok) + ' tok · ' + fmtUSD(cost) + ' · session ' + fmtUSD(spendTotal) + ' / ' + fmtUSD(SPEND_CAP), 'dim');
   }
 
+  async function proxyAskAI(query, extra) {
+    const answerLine = addLine('nishad.ai✨> ', 'yellow');
+    answerLine.textContent = 'nishad.ai✨> thinking…';
+    const messages = [
+      { role: 'system', content: extra ? systemPrompt + '\n\n=== MODE ===\n' + extra : systemPrompt },
+      { role: 'user', content: query }
+    ];
+    let response;
+    try {
+      response = await fetch(AI_PROXY_URL, {
+        method: 'POST', signal: AbortSignal.timeout(45000), credentials: 'omit', cache: 'no-store',
+        referrerPolicy: 'no-referrer', redirect: 'error',
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'chat', messages })
+      });
+    } catch { answerLine.textContent = 'nishad.ai✨> [AI service unreachable — try again]'; return; }
+    if (!response.ok) {
+      const code = await response.json().then(j => j?.error, () => '');
+      answerLine.textContent = 'nishad.ai✨> ' + (code === 'visitor_limit' || code === 'global_limit'
+        ? '[today’s free AI chats are used up — try tomorrow, or type MULTIVERSE to use your own OpenAI key]'
+        : '[AI service error ' + response.status + ']');
+      return;
+    }
+    const json = await response.json();
+    answerLine.textContent = 'nishad.ai✨> ' + (json?.content?.trim() || '[empty response — try again]');
+    output.scrollTop = output.scrollHeight;
+  }
+
   // askAI(query, extra?) — `extra` is an optional mode instruction appended to
   // the system prompt, used by the fun commands (interview/branch/roast/hype).
   async function askAI(query, extra) {
@@ -727,6 +754,13 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
         input.disabled = false;
         input.focus();
       }
+      return;
+    }
+
+    if (AI_PROXY_URL) {
+      try { await proxyAskAI(query, extra); }
+      catch (err) { addLine('ai error: ' + (err?.message || String(err)), 'pink'); }
+      finally { aiBusy = false; input.disabled = false; input.focus(); }
       return;
     }
 

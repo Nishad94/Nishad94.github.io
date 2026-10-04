@@ -4,7 +4,7 @@
 const MODEL = 'gpt-4o';
 const MAX_TOKENS = 2600;
 const MAX_BODY = 32 * 1024;
-const DEFAULTS = { ALLOWED_ORIGINS: 'https://nishad.ai', PER_IP_DAILY: '5', GLOBAL_DAILY: '200' };
+const DEFAULTS = { ALLOWED_ORIGINS: 'https://nishad.ai', PER_IP_DAILY: '5', GLOBAL_DAILY: '200', CHAT_PER_IP_DAILY: '40', CHAT_GLOBAL_DAILY: '1000' };
 const memory = new Map();
 
 function cors(origin) {
@@ -56,15 +56,17 @@ export async function handle(request, env, upstream = fetch) {
   if (!validMessages(body?.messages)) return reply(400, { error: 'invalid_messages' }, okOrigin);
 
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  if (!(await bump(env, 'ip:' + ip, Number(cfg.PER_IP_DAILY)))) return reply(429, { error: 'visitor_limit' }, okOrigin, { 'Retry-After': '86400' });
-  if (!(await bump(env, 'global', Number(cfg.GLOBAL_DAILY)))) return reply(429, { error: 'global_limit' }, okOrigin, { 'Retry-After': '3600' });
+  const chat = body.mode === 'chat';
+  const pre = chat ? 'chat:' : '';
+  if (!(await bump(env, pre + 'ip:' + ip, Number(chat ? cfg.CHAT_PER_IP_DAILY : cfg.PER_IP_DAILY)))) return reply(429, { error: 'visitor_limit' }, okOrigin, { 'Retry-After': '86400' });
+  if (!(await bump(env, pre + 'global', Number(chat ? cfg.CHAT_GLOBAL_DAILY : cfg.GLOBAL_DAILY)))) return reply(429, { error: 'global_limit' }, okOrigin, { 'Retry-After': '3600' });
 
   let res;
   try {
     res = await upstream('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + env.OPENAI_API_KEY },
-      body: JSON.stringify({ model: MODEL, messages: body.messages, temperature: 0.8, max_tokens: MAX_TOKENS, response_format: { type: 'json_object' } })
+      body: JSON.stringify({ model: MODEL, messages: body.messages, temperature: 0.85, max_tokens: chat ? 700 : MAX_TOKENS, ...(chat ? {} : { response_format: { type: 'json_object' } }) })
     });
   } catch { return reply(502, { error: 'upstream_unreachable' }, okOrigin); }
   if (!res.ok) return reply(502, { error: 'upstream_error', status: res.status }, okOrigin);
