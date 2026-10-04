@@ -455,8 +455,8 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       if (!response.ok) {
         const code = await response.json().then(j => j?.error, () => '');
         const reasons = {
-          visitor_limit: 'You have used today’s free AI reports. Try again tomorrow, or add your own OpenAI key.',
-          global_limit: 'The site’s free AI budget for today is used up. Try again later, or add your own OpenAI key.',
+          visitor_limit: 'You have used today’s free AI reports. Try again tomorrow.',
+          global_limit: 'The site’s free AI budget for today is used up. Try again later.',
           ai_not_configured: 'The site’s AI service is not configured yet.',
           origin_not_allowed: 'The AI service does not accept requests from this origin.'
         };
@@ -717,7 +717,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     if (!response.ok) {
       const code = await response.json().then(j => j?.error, () => '');
       answerLine.textContent = 'nishad.ai✨> ' + (code === 'visitor_limit' || code === 'global_limit'
-        ? '[today’s free AI chats are used up — try tomorrow, or type MULTIVERSE to use your own OpenAI key]'
+        ? '[today’s free AI chats are used up — try again tomorrow]'
         : '[AI service error ' + response.status + ']');
       return;
     }
@@ -841,11 +841,13 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
         addLine('  roast                 a playful roast of Nishad\'s career');
         addLine('  hype                  over-the-top hype-man mode');
         addLine('');
-        addLine('AI backend:', 'yellow');
-        addLine('  key | login           unlock hosted gpt-4o with your own OpenAI key');
-        addLine('  lockdown              wipe your key + go back to the local model');
-        addLine('');
-        addLine('Anything else is sent to the AI (hosted gpt-4o if unlocked, else local WebGPU model).', 'yellow');
+        if (!AI_PROXY_URL) {
+          addLine('AI backend:', 'yellow');
+          addLine('  key | login           unlock hosted gpt-4o with your own OpenAI key');
+          addLine('  lockdown              wipe your key + go back to the local model');
+          addLine('');
+        }
+        addLine(AI_PROXY_URL ? 'Anything else is sent to GPT-4o.' : 'Anything else is sent to the AI (hosted gpt-4o if unlocked, else local WebGPU model).', 'yellow');
         addLine('Example: what did Nishad build at Twitter?', 'dim');
         addLine('Example: explain transformers like I am rusty', 'dim');
         break;
@@ -1050,6 +1052,8 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
   if (hostedKey) {
     addLine('✨ hosted gpt-4o mode is ON (your key, this browser only). ask me anything.', 'yellow');
     addLine('type lockdown to switch back to the local model.', 'dim');
+  } else if (AI_PROXY_URL) {
+    addLine('✨ GPT-4o is on, no key needed. Ask me anything.', 'yellow');
   } else {
     addLine('For the FULL experience, unlock hosted gpt-4o: type  key  and paste your', 'yellow');
     addLine('OpenAI API key (sk-...). It stays in THIS browser only and goes straight to OpenAI.', 'dim');
