@@ -20,6 +20,12 @@ built so that AI agents and human contributors can work on it safely and quickly
 | `README.md` | Human-facing overview and feature docs. |
 | `AGENTS.md` | This file. |
 | `CNAME` | Pins the custom domain `nishad.ai` for GitHub Pages. |
+| `spotify.js` | Browser-only PKCE, tab-scoped tokens/refresh, top items/recent plays, safe Spotify links. |
+| `spotify-ui.js` | Spotify terminal views, explicit AI consent, strict report validation, music reports. |
+| `spotify-callback.html` | Same-origin one-shot OAuth callback; cleans URL before importing code. |
+| `spotify-privacy.html` | User-facing data flow, storage, disconnect, and policy prerequisites. |
+| `assets/spotify-logo-white.svg` | Unmodified official Spotify attribution logo. |
+| `tests/`, `playwright.config.js`, `package.json` | Test-only tooling; not a runtime build requirement. |
 
 ## How the AI works
 
@@ -78,6 +84,30 @@ AI-powered "fun modes" (call `askAI` with a mode instruction):
 
 Anything else typed is sent to the AI as a free-form prompt.
 
+## Spotify POC
+
+`spotify [connect|status|disconnect]`, `spotify connect timeline`, and
+`vibe [short|medium|long|timeline|compare]` live in separate modules. The shared
+BYOK adapter in `index.html` uses the existing gpt-4o pricing/spend HUD; it never
+mixes Spotify metadata into the ontology or existing general-chat prompts.
+Each music AI request requires an explicit data-flow/permission confirmation;
+no local-model fallback or automatic AI processing. No client secret or owner
+OpenAI key. Default scope is `user-top-read`; only timeline asks for
+`user-read-recently-played`. Do not add audio-features/genre-enrichment probes.
+
+**Deployment prerequisite:** Spotify Developer Policy III.13/14 prohibits
+content analysis/user profiles and AI ingestion. This requested experimental
+POC port is not asserted compliant. Resolve Spotify permission before compliant
+live analysis/AI use or deployment; consent alone is not an exemption. Tests
+must use synthetic fixtures, not real Spotify-to-AI calls. Keep these notices
+in both UI and docs. All personality/MBTI/tarot/scores/mood labels are entertainment,
+not real psychology or measured popularity. See README for dashboard setup.
+
+Run `npm run test:syntax` and `npm test` after changes (test-only Playwright).
+For local OAuth use `python3 tests/serve.py 8000`; it logs no query strings.
+Register `http://127.0.0.1:8000/spotify-callback.html`, not localhost. Production
+uses `https://nishad.ai/spotify-callback.html`; registration is manual.
+
 ## Spend HUD & cost safety (hosted mode)
 
 - Pricing constants: `PRICE_IN` / `PRICE_OUT` (gpt-4o) and `SPEND_CAP` (USD).
@@ -110,3 +140,6 @@ GitHub Pages auto-rebuilds on push. Verify live with a cache-busting fetch, e.g.
   `node --check ontology.js` and extract+check the inline script.
 - Match the existing neon/terminal aesthetic (CSS custom props: `--mint`,
   `--yellow`, `--pink`, `--purple`).
+## AI proxy
+
+`worker/ai-proxy.js` (Cloudflare Worker) is an optional owner-funded gpt-4o proxy; `AI_PROXY_DEFAULT` in `index.html` enables it (empty = BYOK). Never put the OpenAI key in client code; it is a Worker secret. Keep the message/size validation and limits when editing. Tests: `npm test`.

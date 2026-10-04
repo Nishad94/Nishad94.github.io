@@ -1,0 +1,12 @@
+{
+  "name": "nishad-multiverse",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/ai-proxy.test.mjs && playwright test",
+    "test:syntax": "node tests/check-syntax.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  }
+}

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="data:,">
+<title>Spotify privacy at nishad.ai</title>
+<style>
+body{max-width:760px;margin:5vh auto;padding:24px;background:#0d0f1b;color:#f7f4ff;font:15px/1.8 ui-monospace,monospace}a{color:#9fffd2}h1,h2{color:#ffe9a6}h2{font-size:20px}
+</style>
+</head>
+<body>
+<h1>Spotify connection &amp; privacy</h1>
+<p>Last updated: 4 October 2026. This optional integration is operated by Nishad Dawkhar on nishad.ai, not endorsed by Spotify. Contact: <a href="mailto:nishad.dawkhar94@gmail.com">nishad.dawkhar94@gmail.com</a>.</p>
+<h2>Before you connect</h2>
+<p>Choosing "Agree &amp; continue to Spotify" takes you to Spotify to approve read-only access to your top tracks and artists (the <code>user-top-read</code> scope). The optional timeline adds <code>user-read-recently-played</code> through <code>spotify connect timeline</code>. We do not request your email, profile, playlists, playback control, or permission to change your account. This integration is not intended for children.</p>
+<h2>Where data goes</h2>
+<p>Your browser talks directly to accounts.spotify.com for authorization and refresh, and api.spotify.com for top items/recent plays. Spotify receives these requests under its <a href="https://www.spotify.com/legal/privacy-policy/" rel="noreferrer">privacy policy</a>. Selecting a music link opens Spotify. Nothing goes to AI automatically. There is no nishad.ai backend.</p>
+<p>Optional AI reports require your own OpenAI key and a separate confirmation before every request. The exact data preview shows the artist/track names, available artist genres, and range labels that will go directly to OpenAI gpt-4o. Spotify tokens, IDs, play timestamps, and your OpenAI key are excluded from the prompt. OpenAI receives your key as API authorization and may retain/process requests under its <a href="https://platform.openai.com/docs/guides/your-data" rel="noreferrer">API data policies</a>. Consent does not override Spotify's restrictions below. Requests already sent cannot be recalled by disconnecting.</p>
+<p>The existing BYOK key remains in localStorage until <code>lockdown</code>; Spotify disconnect does not delete that separately supplied key. Reports use the existing spend HUD and $0.50 best-effort cap. Set an account-level OpenAI budget. The small local WebLLM model is not used for music reports because its context and structured-output reliability are insufficient; missing keys or failed responses never produce fake results.</p>
+<p>GitHub Pages serves the static site and the OAuth callback. Like any OAuth redirect, the initial callback request contains a temporary authorization code and state and may appear in hosting/browser network records. The callback immediately removes query parameters from the address bar before loading its module; it sends no referrer. This site does not log those values, store them in terminal history, or put them in share links. Never share a callback URL before it has been cleaned.</p>
+<h2>Storage &amp; retention</h2>
+<p>PKCE verifier and state stay in this tab's sessionStorage for one login attempt (valid for 10 minutes). They are removed when the callback is consumed or you disconnect. Access and refresh tokens also stay in sessionStorage so reload works; never in localStorage. Access expiry triggers one refresh attempt on your next request, not background polling. Top-item results stay only in page memory until replaced, cleared, reloaded, or disconnected. We do not cache responses or store listening history on a server.</p>
+<p>Session storage normally ends when the tab closes, but browser tab restoration or duplication can preserve/copy it. Scripts on this origin can access it. Use disconnect on shared devices; do not rely on closing a tab as revocation.</p>
+<h2>Disconnect or revoke</h2>
+<p>Type <code>spotify disconnect</code> or choose Spotify disconnect in the command palette. This cancels in-flight Spotify requests, clears this tab's tokens and pending login, and removes displayed Spotify results. Disconnect any other open/copied tabs separately. To revoke access for all tabs, <a href="https://www.spotify.com/account/apps/" rel="noreferrer">remove this app in your Spotify account's Apps settings</a>. The site cannot revoke the account-level grant through the Web API.</p>
+<h2>Experimental POC and Spotify permission prerequisite</h2>
+<p>Spotify's <a href="https://developer.spotify.com/policy" rel="noreferrer">Developer Policy sections III.13 and III.14</a> prohibit content analysis/user profiling and ingestion into AI models, including local models. The experimental personality, inferred genres, Music MBTI, tarot, shuffle roast, mood timeline, and comparison features carry this contractual/deployment risk, just as the standalone POC does. Resolve permission with Spotify before compliant live use or deployment. The checkbox records your confirmation of that prerequisite (or synthetic test use), not a Spotify exemption or a claim that consent makes the processing compliant.</p>
+<p>All generated personality labels, genre guesses, scores, tarot, and moods are explicitly fictional entertainment: not real psychology, standard MBTI, mental-health inference, measured audio features, or Spotify popularity. Timeline labels guess the song's vibe, never your emotional state. Past-vs-now compares overlapping limited top-item samples, not all-time history or proof that you stopped listening to an artist. No audio-features or enrichment endpoint is called.</p>
+<p><a href="/#shell">Return to the terminal</a></p>
+</body>
+</html>

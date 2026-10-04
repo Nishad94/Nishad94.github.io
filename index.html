@@ -41,6 +41,9 @@ h1{font-size:clamp(42px,7vw,82px);line-height:.94;letter-spacing:-.065em;margin:
 body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}body.chaos-mode .gradient{filter:hue-rotate(90deg)}body.chaos-mode .orb{background:var(--pink);box-shadow:0 0 25px var(--pink)}@keyframes chaosPulse{from{transform:translateY(0)}to{transform:translateY(-2px)}}
 .toffee-pop{position:fixed;z-index:999;pointer-events:none;font-size:34px;animation:toffeePop 1.9s ease-out forwards;filter:drop-shadow(0 8px 12px rgba(0,0,0,.3))}@keyframes toffeePop{0%{opacity:0;transform:translateY(18px) scale(.6) rotate(-8deg)}15%{opacity:1}70%{opacity:1;transform:translateY(-80px) scale(1.05) rotate(6deg)}100%{opacity:0;transform:translateY(-125px) scale(.9) rotate(0)}}
 .palette-backdrop{position:fixed;inset:0;z-index:300;background:rgba(6,7,15,.72);backdrop-filter:blur(8px);display:none;align-items:flex-start;justify-content:center;padding-top:12vh}.palette-backdrop.open{display:flex}.palette{width:min(620px,calc(100vw - 28px));background:#121426;border:1px solid #3c4060;border-radius:18px;box-shadow:0 30px 100px rgba(0,0,0,.55);overflow:hidden}.palette input{width:100%;border:0;border-bottom:1px solid #30334f;background:#0f1120;color:#fff;padding:16px 18px;font:inherit;outline:0}.palette-list{padding:8px}.palette-item{display:flex;justify-content:space-between;gap:16px;padding:11px 12px;border-radius:10px;color:#d7d3ed;font-size:11px;cursor:pointer}.palette-item:hover,.palette-item.active{background:#20233d}.palette-item span:last-child{color:#777c9c}
+.spotify-data{margin:12px 0;padding:14px;border:1px solid var(--line);border-radius:12px;white-space:normal}.spotify-data h3{font-size:13px;color:var(--yellow)}.spotify-data ol{padding-left:24px}.spotify-data li{margin:8px 0}.spotify-brand{display:inline-block;padding:16px}.spotify-brand img{display:block;width:100px;height:auto}.spotify-data a{color:var(--mint);text-underline-offset:3px}.spotify-data .btn{margin:6px 8px 6px 0;cursor:pointer}.spotify-data p{margin:8px 0}
+.vibe-consent,.vibe-report{border-top:1px dashed var(--line);margin-top:18px;padding-top:12px}.vibe-consent pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:220px;overflow:auto}.vibe-consent label{display:block;margin:12px 0}.vibe-report meter{width:100%;height:16px}.vibe-type{font-size:24px;color:var(--purple);letter-spacing:4px}.vibe-tarot{padding:18px;max-width:340px;border:1px solid var(--purple);border-radius:16px;background:#171329}.vibe-report input[type=range]{vertical-align:middle;max-width:100%}
+.music-panel{padding:22px}.music-controls{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.music-controls button{cursor:pointer}.music-key{margin:16px 0;color:var(--muted);font-size:12px}.music-key input{padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit;max-width:100%;width:300px}.music-key form{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}#spotify-output{overflow-wrap:anywhere}#spotify-output .spotify-data{margin-bottom:0}#music-ai-status{font-size:12px;color:var(--yellow)}
 @media(max-width:900px){.control-deck{grid-template-columns:1fr 1fr}}@media(max-width:560px){.control-deck{grid-template-columns:1fr}.signalbar{justify-content:flex-start;overflow:auto;flex-wrap:nowrap}.graph-label{font-size:9px}.graph-sublabel{display:none}}
 
 .cat{position:fixed;left:-80px;bottom:12px;font-size:29px;filter:drop-shadow(0 5px 8px rgba(0,0,0,.35));animation:walk 26s linear infinite;pointer-events:none;z-index:20}@keyframes walk{0%{left:-80px;transform:scaleX(1)}48%{left:calc(100vw + 30px);transform:scaleX(1)}50%{left:calc(100vw + 30px);transform:scaleX(-1)}98%{left:-80px;transform:scaleX(-1)}100%{left:-80px;transform:scaleX(1)}}
@@ -58,6 +61,7 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
 <a class="desktop-link" href="#conspiracy">gmail conspiracy</a>
 <a class="desktop-link" href="#branches">branches</a>
 <a class="desktop-link" href="#recruiter">recruiter mode</a>
+<a href="#music">music vibes</a>
 <a href="https://www.linkedin.com/in/nishaddawkhar" target="_blank" rel="noreferrer">linkedin ↗</a>
 </nav></div></header>
 <div class="signalbar" aria-label="Live site diagnostics"><span class="signal-dot"></span><span>build <b>2026.09+</b></span><span>·</span><span>HEAD <b>main</b></span><span>·</span><span>local time <b id="live-clock">--:--:--</b></span><span>·</span><span>entropy <b id="live-entropy">68%</b></span><span>·</span><span>⌘K command palette</span></div>
@@ -177,6 +181,37 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
 <div class="callout" style="margin-top:18px">Recruiter disclaimer: yes, this is intentionally nerdy. No, I do not normally describe career decisions as branch collisions. Probably.</div>
 </section>
 
+<section class="section" id="music" aria-labelledby="music-title">
+<div class="section-head"><div><h2 id="music-title">music vibes</h2><p>your listening multiverse · experimental Spotify POC</p></div><span class="chip">no commands needed</span></div>
+<div class="card music-panel">
+<p class="smallcopy">Start with Connect Spotify, then choose a view. Raw music data needs no AI key. Optional personality, Music MBTI, tarot, and roast reports require your own OpenAI key, separate consent, and resolving Spotify's policy restrictions. <a href="./spotify-privacy.html" target="_blank" rel="noreferrer">Privacy &amp; permission details</a></p>
+<div class="music-controls" aria-label="Spotify connection controls">
+<button class="btn primary" type="button" data-music-command="spotify connect">Connect Spotify</button>
+<button class="btn" type="button" data-music-command="spotify status">Connection status</button>
+<button class="btn" type="button" data-music-command="spotify disconnect">Disconnect Spotify</button>
+</div>
+<div class="music-controls" aria-label="Music views">
+<button class="btn" type="button" data-music-command="vibe short">Last 4 weeks</button>
+<button class="btn" type="button" data-music-command="vibe medium">Last 6 months</button>
+<button class="btn" type="button" data-music-command="vibe long">Last year</button>
+<button class="btn" type="button" data-music-command="vibe timeline">Mood timeline</button>
+<button class="btn" type="button" data-music-command="spotify connect timeline">Enable recent-play access</button>
+<button class="btn" type="button" data-music-command="vibe compare">Past vs now</button>
+</div>
+<p id="music-ai-status" role="status"></p>
+<details class="music-key"><summary>Add or remove your OpenAI key</summary>
+<p>Your key stays in this browser's localStorage and is sent directly to OpenAI. Reports share the terminal's spend counter. Nothing goes to AI until you confirm a report. Never enter someone else's key.</p>
+<form id="music-key-form" autocomplete="off">
+<label for="music-key-input">OpenAI API key</label>
+<input id="music-key-input" type="password" autocomplete="off" spellcheck="false" placeholder="sk-..." required>
+<button class="btn" type="submit">Save my key</button>
+<button class="btn" id="music-key-remove" type="button">Remove AI key</button>
+</form>
+</details>
+<div id="spotify-output" aria-live="polite"><p class="smallcopy">Connect Spotify to start. Existing terminal and AI features below still work independently.</p></div>
+</div>
+</section>
+
 <section class="section" id="shell"><div class="section-head"><div><h2>terminal</h2><p>yes, it actually takes commands now</p></div><span class="chip">interactive shell</span></div>
 <div class="terminal" id="terminal" role="application" aria-label="Interactive Nishad multiverse terminal">
   <div class="termbar"><span class="termdot"></span><span class="termdot"></span><span class="termdot"></span><span class="termbar-title">guest@nishad.ai — zsh-ish</span><div class="spend-hud" id="spend-hud" title="estimated OpenAI spend this session"><span class="hud-dot"></span><span>✨ multiverse</span><span class="hud-amount" id="hud-amount">$0.0000</span><span class="hud-bar"><span class="hud-bar-fill" id="hud-bar-fill"></span></span></div></div>
@@ -186,7 +221,7 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
     <input class="term-input" id="term-input" name="command" inputmode="text" autocapitalize="none" autocomplete="off" spellcheck="false" aria-label="Terminal command" autofocus>
   </form>
 </div>
-<div class="termhint">try <code>conspiracy</code> or ask a normal question · first AI query downloads a small local model · ↑/↓ history · Ctrl+L clears</div></section>
+<div class="termhint">try <code>spotify</code>, <code>vibe</code>, or <code>conspiracy</code> · first AI query downloads a local model · ↑/↓ history · Ctrl+L clears</div></section>
 
 <section class="section"><div class="card pro-card"><p class="quote">“You only notice the branch point later.”</p><p class="smallcopy">Some choices feel enormous in the moment. Others look like a random email, a move, a job, a person you keep talking to, or one ordinary Tuesday where you choose differently.</p></div></section>
 
@@ -203,6 +238,7 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
 
 <script type="module">
 import { buildSystemPrompt, PROFILE } from './ontology.js';
+import { createSpotifyTerminal } from './spotify-ui.js';
 (async () => {
   const output = document.getElementById('term-output');
   const form = document.getElementById('term-form');
@@ -223,6 +259,17 @@ import { buildSystemPrompt, PROFILE } from './ontology.js';
   const CHEAT_WORD = 'multiverse';
   const HOSTED_MODEL = 'gpt-4o';
   const HOSTED_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
+  // Owner-funded AI proxy (worker/ai-proxy.js). Empty = visitors bring their own key.
+  const AI_PROXY_DEFAULT = 'https://nishad-ai-proxy.nishad-dawkhar94.workers.dev';
+  const AI_PROXY_URL = (() => {
+    const loopback = ['127.0.0.1', '[::1]'].includes(location.hostname);
+    try {
+      const dev = loopback && localStorage.getItem('nishad_ai_proxy');
+      if (dev === 'off') return '';
+      if (dev && /^https?:\/\//.test(dev)) return dev;
+    } catch (_) {}
+    return AI_PROXY_DEFAULT;
+  })();
   const KEY_STORAGE = 'nishad_hosted_key';
   const SPEND_STORAGE = 'nishad_hosted_spend';
   // gpt-4o public pricing (USD per token).
@@ -243,6 +290,12 @@ import { buildSystemPrompt, PROFILE } from './ontology.js';
     return '$' + v.toFixed(v < 1 ? 4 : 2);
   }
   function updateHUD() {
+    const musicStatus = document.getElementById('music-ai-status');
+    if (musicStatus) musicStatus.textContent = AI_PROXY_URL
+      ? 'Site AI service enabled · no key needed · daily limits apply'
+      : hostedKey
+      ? 'OpenAI key ready · shared spend ' + fmtUSD(spendTotal) + ' / ' + fmtUSD(SPEND_CAP) + ' soft cap'
+      : 'No OpenAI key · raw music views work without AI';
     if (!hudEl) return;
     if (hostedKey) hudEl.classList.add('on'); else hudEl.classList.remove('on');
     if (hudAmountEl) hudAmountEl.textContent = fmtUSD(spendTotal);
@@ -323,6 +376,126 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
   function promptLine(command) {
     addLine('guest@nishad.ai:~$ ' + command, 'cmd');
   }
+
+  const musicOutput = document.getElementById('spotify-output');
+  function addMusicLine(text = '', cls = '') {
+    const line = document.createElement('div');
+    line.className = 'termline' + (cls ? ' ' + cls : '');
+    line.textContent = text;
+    musicOutput.appendChild(line);
+    return line;
+  }
+  async function proxyReport(messages, signal) {
+    if (aiBusy) throw new Error('An AI response is already running. Try again when it finishes.');
+    aiBusy = true;
+    try {
+      const response = await fetch(AI_PROXY_URL, {
+        method: 'POST', signal: AbortSignal.any([signal, AbortSignal.timeout(60000)]),
+        credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', redirect: 'error',
+        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages })
+      });
+      if (!response.ok) {
+        const code = await response.json().then(j => j?.error, () => '');
+        const reasons = {
+          visitor_limit: 'You have used today’s free AI reports. Try again tomorrow, or add your own OpenAI key.',
+          global_limit: 'The site’s free AI budget for today is used up. Try again later, or add your own OpenAI key.',
+          ai_not_configured: 'The site’s AI service is not configured yet.',
+          origin_not_allowed: 'The AI service does not accept requests from this origin.'
+        };
+        throw new Error(reasons[code] || 'The AI service failed (HTTP ' + response.status + '). No automatic retry.');
+      }
+      const json = await response.json();
+      if (json?.finish_reason !== 'stop' || typeof json?.content !== 'string') {
+        throw new Error('AI report was refused, truncated, or empty. No result was invented.');
+      }
+      try { return JSON.parse(json.content); }
+      catch { throw new Error('AI returned invalid JSON; no result was invented. Retry manually.'); }
+    } catch (error) {
+      if (signal.aborted) throw new Error('AI report cancelled.');
+      if (error instanceof TypeError || error.name === 'TimeoutError' || error.name === 'AbortError') {
+        throw new Error('The AI service is unreachable or timed out. No result was invented.');
+      }
+      throw error;
+    } finally {
+      aiBusy = false;
+    }
+  }
+  const spotifyRunner = createSpotifyTerminal({
+    output: musicOutput, addLine: addMusicLine,
+    aiAvailable: () => Boolean(AI_PROXY_URL || hostedKey),
+    aiProvider: () => (AI_PROXY_URL ? 'proxy' : 'byok'),
+    generateAI: async (messages, signal) => {
+      if (AI_PROXY_URL) return proxyReport(messages, signal);
+      if (!hostedKey) throw new Error('Use “Add or remove your OpenAI key” above, then retry. The small local model is not used for these structured reports.');
+      if (aiBusy) throw new Error('An AI response is already running. Try again when it finishes.');
+      const maxTokens = 2600;
+      const inputEstimate = Math.ceil(JSON.stringify(messages).length / 3);
+      if (spendTotal + inputEstimate * PRICE_IN + maxTokens * PRICE_OUT > SPEND_CAP) {
+        throw new Error('This report could exceed the hosted spend cap. No request sent. Use lockdown to reset or keep the raw Spotify view.');
+      }
+      aiBusy = true;
+      try {
+        const response = await fetch(HOSTED_ENDPOINT, {
+          method: 'POST', signal: AbortSignal.any([signal, AbortSignal.timeout(60000)]),
+          credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', redirect: 'error',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + hostedKey },
+          body: JSON.stringify({ model: HOSTED_MODEL, messages, temperature: 0.8, max_tokens: maxTokens, response_format: { type: 'json_object' } })
+        });
+        if (!response.ok) {
+          throw new Error(response.status === 401
+            ? 'OpenAI rejected your key (401). Use lockdown, then key to replace it.'
+            : 'OpenAI report request failed (HTTP ' + response.status + '). No automatic retry.');
+        }
+        const json = await response.json();
+        const content = json?.choices?.[0]?.message?.content;
+        const usage = json?.usage;
+        const exact = Number.isFinite(usage?.prompt_tokens) && usage.prompt_tokens >= 0 &&
+          Number.isFinite(usage?.completion_tokens) && usage.completion_tokens >= 0;
+        const cost = recordSpend(exact ? usage.prompt_tokens : inputEstimate, exact ? usage.completion_tokens : maxTokens);
+        addLine('[usage] vibe ' + (exact ? '' : 'conservative estimate ') + fmtUSD(cost) + ' · session ' + fmtUSD(spendTotal) + ' / ' + fmtUSD(SPEND_CAP), 'dim');
+        if (json?.choices?.[0]?.finish_reason !== 'stop' || typeof content !== 'string') {
+          throw new Error('AI report was refused, truncated, or empty. Usage was still recorded. No result was invented.');
+        }
+        try { return JSON.parse(content); }
+        catch { throw new Error('AI returned invalid JSON. Usage was recorded; no result was invented. Retry manually.'); }
+      } catch (error) {
+        if (signal.aborted) throw new Error('AI report cancelled. OpenAI may still charge for work already started.');
+        if (error instanceof TypeError || error.name === 'TimeoutError' || error.name === 'AbortError' || error instanceof SyntaxError) {
+          throw new Error('OpenAI network/timeout or unreadable-response error. Usage may be unreported; check your OpenAI dashboard before retrying.');
+        }
+        throw error;
+      } finally {
+        aiBusy = false;
+      }
+    }
+  });
+
+  function runSpotify(cmd, args) {
+    document.getElementById('music').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return spotifyRunner(cmd, args);
+  }
+  document.querySelectorAll('[data-music-command]').forEach(button => {
+    button.addEventListener('click', () => {
+      const [cmd, ...args] = button.dataset.musicCommand.split(' ');
+      runSpotify(cmd, args);
+    });
+  });
+  document.getElementById('music-key-form').addEventListener('submit', event => {
+    event.preventDefault();
+    if (aiBusy) return addMusicLine('Wait for the current AI request before changing keys.', 'pink');
+    const keyInput = document.getElementById('music-key-input');
+    const value = keyInput.value.trim();
+    keyInput.value = '';
+    if (!value.startsWith('sk-')) return addMusicLine('Expected an OpenAI key beginning sk-. No key was saved.', 'pink');
+    activateKey(value);
+    addMusicLine('Your OpenAI key is ready. Review a music report’s data and consent before generating.', 'yellow');
+  });
+  document.getElementById('music-key-remove').addEventListener('click', () => {
+    if (aiBusy) return addMusicLine('Wait for the current AI request or disconnect Spotify to cancel it before removing the key.', 'pink');
+    document.getElementById('music-key-input').value = '';
+    run('lockdown');
+    addMusicLine('OpenAI key removed. Raw music views remain available.', 'yellow');
+  });
 
   function openTarget(name) {
     const target = links[name];
@@ -545,6 +718,11 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     const args = parts.map(x => x.replace(/^"|"$/g, ''));
 
     switch (cmd) {
+      case 'spotify':
+      case 'vibe':
+        await runSpotify(cmd, args);
+        break;
+
       case 'help':
         addLine('commands:', 'yellow');
         addLine('  conspiracy            print the Gmail Branching Hypothesis');
@@ -561,6 +739,9 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
         addLine('  chaos                 toggle visual entropy');
         addLine('  toffee                summon site reliability cat');
         addLine('  palette               open command palette');
+        addLine('  spotify               consent, connection status, and disconnect');
+        addLine('  vibe [short|medium|long]  music profile, Music MBTI, tarot, shuffle roast');
+        addLine('  vibe timeline | compare  recent-play moods or past-vs-now (optional BYOK)');
         addLine('');
         addLine('AI-powered fun modes (use the model):', 'yellow');
         addLine('  interview             a quirky recruiter interviews Nishad');
@@ -784,7 +965,13 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     addLine('(first query downloads model weights and may take a while).', 'dim');
   }
   addLine('Type help for commands, or conspiracy for instant lore.', 'yellow');
+  addLine('Type spotify for optional music login, or vibe for music reports (separate AI consent required).', 'dim');
   addLine('');
+  const spotifyReturn = location.hash.match(/^#(?:music|shell)-vibe-(short|medium|long|timeline|compare)$/);
+  if (spotifyReturn) {
+    window.history.replaceState(null, '', location.pathname + '#music');
+    runSpotify('vibe', [spotifyReturn[1]]);
+  }
 
   function activateKey(rawKey) {
     const key = rawKey.trim();
@@ -808,7 +995,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const command = input.value;
-    if (aiBusy) return;
+    if (aiBusy && !/^spotify\s+(disconnect|logout)\s*$/i.test(command)) return;
 
     // Capturing an API key (do not echo it or store in history).
     if (awaitingKey) {
@@ -844,7 +1031,9 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     }
   });
 
-  terminal.addEventListener('click', () => input.focus());
+  terminal.addEventListener('click', (event) => {
+    if (!event.target.closest('a, button')) input.focus();
+  });
 
   // ---- multiverse extras ----
   const clockEl = document.getElementById('live-clock');
@@ -912,13 +1101,15 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
   const paletteActions = [
     ['timeline','#timeline'],['gmail conspiracy','#conspiracy'],['alternate branches','#branches'],
     ['recruiter mode','#recruiter'],['interactive shell','#shell'],['branch topology','#map'],
-    ['multiverse controls','#controls'],['summon Toffee','toffee'],['branch roulette','roulette']
+    ['multiverse controls','#controls'],['summon Toffee','toffee'],['branch roulette','roulette'],
+    ['Spotify connect / status','spotify'],['Spotify vibe report','vibe'],['Spotify mood timeline','vibe timeline'],
+    ['Spotify past vs now','vibe compare'],['Spotify disconnect','spotify disconnect']
   ];
   let paletteFiltered=[...paletteActions], paletteIndex=0;
 
   function renderPalette(query=''){
     const q=query.toLowerCase().trim();
-    paletteFiltered=paletteActions.filter(([name])=>name.includes(q));
+    paletteFiltered=paletteActions.filter(([name])=>name.toLowerCase().includes(q));
     paletteIndex=0;
     paletteList.replaceChildren();
     paletteFiltered.forEach(([name,target],i)=>{
@@ -943,6 +1134,11 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     closePalette();
     if(target==='toffee') summonToffee();
     else if(target==='roulette') rouletteBtn?.click();
+    else if(target==='spotify'||target.startsWith('vibe')||target==='spotify disconnect'){
+      document.getElementById('shell')?.scrollIntoView({behavior:'smooth'});
+      input.focus();
+      run(target);
+    }
     else document.querySelector(target)?.scrollIntoView({behavior:'smooth',block:'start'});
   }
   paletteBtn?.addEventListener('click',openPalette);

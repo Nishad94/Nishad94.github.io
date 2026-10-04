@@ -1,0 +1,13 @@
+name = "nishad-ai-proxy"
+main = "ai-proxy.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://nishad.ai,http://127.0.0.1:8000"
+PER_IP_DAILY = "5"
+GLOBAL_DAILY = "200"
+
+# Optional shared counters: wrangler kv namespace create RATE, then uncomment.
+# [[kv_namespaces]]
+# binding = "RATE"
+# id = "<namespace id>"
