@@ -14,34 +14,17 @@ I wanted pageviews, estimated unique visitors, referrers, countries, and popular
 
 For the static foundation, start with [how I built nishad.ai](/blog/building-nishad-ai-from-scratch/). Here: **keep the public website static, and give private reporting a server-side boundary.**
 
+![Original neon illustration: a consented public browser sends minimal events toward a PostgreSQL store, while a shield and lock protect a separate owner-only reporting window. A 24-hour dial represents rotating browser identifiers; decorative bars are not measured traffic.](/assets/blog/private-observatory.svg)
+
+*❤️ An observatory, not a dossier. Original conceptual artwork: the public collection path and private report access are different doors. Decorative charts are not production data.*
+
 ## Static pages are not an authentication system
 
 The homepage and generated blog are served by GitHub Pages. Pages can publish a dashboard launcher; it cannot validate a server session before releasing private report data.
 
 So `/dashboard_metrics` on the public site is just a constant redirect. The canonical owner entry is [private.nishad.ai/dashboard_metrics](https://private.nishad.ai/dashboard_metrics). Knowing that address grants nothing.
 
-The architecture has two deliberately different doors:
-
-```text
-Public browser
-  |
-  +--> nishad.ai / GitHub Pages
-  |      homepage + generated /blog/ articles
-  |      tracker off until explicit consent
-  |
-  +--> metrics.nishad.ai/collect
-  |      nginx HTTPS --> loopback Go collector
-  |                         |
-  |                         v
-  |                     PostgreSQL
-  |                     daily aggregates
-  |                         ^
-  |                         |
-  +--> private.nishad.ai/dashboard_metrics
-         nginx HTTPS --> Go reporting service
-                           GitHub owner authorization
-                           server session required
-```
+The architecture has two deliberately different doors. The public browser reads the homepage and generated blog from Pages. Only after explicit consent does it send approved events to `metrics.nishad.ai/collect`, where nginx HTTPS fronts a loopback Go collector writing daily PostgreSQL aggregates. Separately, nginx fronts the Go report service at the private origin; GitHub owner authorization and a server session protect access to reports.
 
 The collector must receive public requests. The reporting service must not return public reports. Separate origins, service accounts, and database roles make that distinction concrete rather than decorative.
 
@@ -51,7 +34,7 @@ The collector must receive public requests. The reporting service must not retur
 
 The scope also got smaller. An earlier idea included an OpenClaw memory browser. I removed that from the deployed product: no files, memories, connectors, replay, or AI processing. This dashboard is metrics-only.
 
-## Define the measurement before drawing the chart
+## 🧠 Define the measurement before drawing the chart
 
 The visitor estimate means **estimated daily unique browsers**, not people. After consent, the browser generates a cryptographically random first-party identifier. It rotates at UTC day boundaries and is never reused beyond 24 hours. There is no IP-plus-User-Agent fingerprint.
 
@@ -69,7 +52,7 @@ If browser storage is unavailable, the system can count the consented pageview w
 
 I considered stock Umami, but the tagged implementation I examined derived session identifiers from IP and User-Agent. That did not fit this particular requirement. It is not a claim about every version or every analytics tool; it is why I chose a narrow custom collector. "Cookie-free" alone does not answer "how is identity inferred?"
 
-## Collect less, and make exclusions executable
+## ❤️ Collect less, and make exclusions executable
 
 The tracker runs only on the public homepage and published blog pages. A build-generated page catalog supplies the allowed canonical paths.
 
@@ -119,7 +102,7 @@ Every report request checks authorization. Mutating POSTs require exact Origin a
 
 Runtime identity settings and secrets stay outside the public repository and Pages artifact. The OAuth secret was entered through a hidden-input helper in a trusted terminal, not chat, command arguments, or Azure Run Command.
 
-## The dashboard, and the latency number it actually measures
+## ⚡ The dashboard, and the latency number it actually measures
 
 The UI has colored KPI cards, a traffic chart, ranked pages and referrers, country shares, and an interactive world map bundled locally. There are no external map tiles or tracking calls. Gray means no reportable data, not proof that nobody visited.
 
@@ -131,7 +114,7 @@ This is **not browser page-load telemetry, RUM, or Core Web Vitals**. It says so
 
 Percentiles use nearest rank: sort the `n` durations and select the one-based position `ceil(p * n)`, with `p = 0.95` for p95 or `0.99` for p99. With small samples those positions can coincide; always read the sample count beside the impressive-looking number.
 
-## Deployment: the boring parts were the interesting parts
+## 🚀 Deployment: the boring parts were the interesting parts
 
 I reused the existing VM instead of provisioning another server. PostgreSQL stays private, with data on persistent storage. Nginx terminates HTTPS, certificate renewal is automated, and isolated systemd services receive configuration through credential mounts.
 

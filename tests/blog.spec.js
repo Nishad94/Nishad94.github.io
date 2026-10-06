@@ -69,8 +69,8 @@ test('copy preserves exact code text and announces clipboard failures', async ({
 
 test('site and metrics articles preserve content, cross-links, and responsive diagrams', async ({ page, request }) => {
   const articles = [
-    { slug: 'building-nishad-ai-from-scratch', diagrams: 1, other: 'private-analytics-github-pages' },
-    { slug: 'private-analytics-github-pages', diagrams: 3, other: 'building-nishad-ai-from-scratch' }
+    { slug: 'building-nishad-ai-from-scratch', diagrams: 2, other: 'private-analytics-github-pages' },
+    { slug: 'private-analytics-github-pages', diagrams: 4, other: 'building-nishad-ai-from-scratch' }
   ];
   const sitemap = await (await request.get('/sitemap.xml')).text();
   const catalog = await (await request.get('/analytics-pages.json')).json();

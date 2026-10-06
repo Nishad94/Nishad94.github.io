@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="700" viewBox="0 0 640 700" role="img" aria-labelledby="title desc">
+  <title id="title">Launching a small personal multiverse</title>
+  <desc id="desc">Original editorial illustration of a neon rocket rising from a terminal browser, with an orbiting public-persona brain, Markdown notebook, and hosting cloud. The website combines a vanilla HTML, CSS and JavaScript shell, ontology.js for public facts, generated blog articles, and GitHub Pages hosting. Optional AI backends and private services remain separate. This is conceptual artwork, not a screenshot.</desc>
+  <defs>
+    <linearGradient id="night" x2="1" y2="1"><stop stop-color="#24203e"/><stop offset=".55" stop-color="#0d0f1b"/><stop offset="1" stop-color="#17243b"/></linearGradient>
+    <radialGradient id="nebula"><stop stop-color="#b9a4ff" stop-opacity=".25"/><stop offset="1" stop-color="#b9a4ff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="glass" x2=".8" y2="1"><stop stop-color="#383556"/><stop offset="1" stop-color="#101525"/></linearGradient>
+    <linearGradient id="hull" x2="1" y2="1"><stop stop-color="#f7f4ff"/><stop offset=".5" stop-color="#b9a4ff"/><stop offset="1" stop-color="#665e9b"/></linearGradient>
+    <linearGradient id="flame" y2="1" x2="0"><stop stop-color="#f7f4ff"/><stop offset=".3" stop-color="#9fffd2"/><stop offset="1" stop-color="#9fffd2" stop-opacity="0"/></linearGradient>
+    <linearGradient id="ribbon"><stop stop-color="#9fffd2"/><stop offset="1" stop-color="#ff9bd6"/></linearGradient>
+    <filter id="glow" x="-.8" y="-.8" width="2.6" height="2.6"><feGaussianBlur stdDeviation="7"/></filter>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#b9a4ff" stroke-opacity=".06"/></pattern>
+  </defs>
+  <rect width="640" height="700" rx="24" fill="url(#night)"/>
+  <rect width="640" height="700" rx="24" fill="url(#grid)"/>
+  <ellipse cx="320" cy="250" rx="330" ry="300" fill="url(#nebula)"/>
+  <g fill="#f7f4ff">
+    <circle cx="64" cy="130" r="2"/><circle cx="206" cy="98" r="2"/><circle cx="560" cy="148" r="2"/>
+    <circle cx="396" cy="142" r="1.5"/><circle cx="94" cy="288" r="1.5"/><circle cx="582" cy="385" r="2"/>
+    <path d="M546 83v16m-8-8h16M212 328v12m-6-6h12" fill="none" stroke="#9fffd2" stroke-width="2"/>
+  </g>
+  <g font-family="ui-monospace,monospace">
+    <text x="32" y="43" fill="#9fffd2" font-size="20" letter-spacing="2">FIELD NOTES / 01</text>
+    <text x="32" y="81" fill="#f7f4ff" font-size="32" font-weight="bold">A tiny personal multiverse</text>
+  </g>
+  <ellipse cx="320" cy="277" rx="253" ry="111" transform="rotate(-16 320 277)" fill="none" stroke="url(#ribbon)" stroke-opacity=".45" stroke-dasharray="5 9"/>
+  <path d="M145 310C190 375 238 349 284 390M483 251C465 307 439 333 398 386" fill="none" stroke="#9fffd2" stroke-opacity=".6" stroke-width="2"/>
+  <g transform="translate(60 170) rotate(-9 72 60)">
+    <rect x="-5" y="-5" width="154" height="123" rx="22" fill="#b9a4ff" opacity=".13" filter="url(#glow)"/>
+    <rect width="144" height="113" rx="20" fill="url(#glass)" stroke="#b9a4ff"/>
+    <path d="M72 31c-5-19-31-17-32 1-16 0-22 20-9 29-9 17 4 33 20 28 9 13 21 6 21-4m0-54c5-19 31-17 32 1 16 0 22 20 9 29 9 17-4 33-20 28-9 13-21 6-21-4V31m-21 9c13-2 12 12 5 16m37-16c-13-2-12 12-5 16M39 69c15-9 21 1 17 13m49-13c-15-9-21 1-17 13" fill="none" stroke="#ff9bd6" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <g font-family="ui-monospace,monospace" text-anchor="middle" fill="#cfcae8" font-size="22">
+    <text x="130" y="315">ontology.js</text>
+  </g>
+  <g transform="translate(455 164)">
+    <path d="M12 51c-1-24 29-35 44-19 5-33 52-40 68-9 30-9 55 25 35 49H22C2 72-5 57 12 51Z" fill="#17192d" stroke="#9fffd2" stroke-width="2"/>
+    <path d="M36 82h102m-86 10h66" stroke="#9fffd2" stroke-opacity=".3"/>
+    <text x="82" y="122" text-anchor="middle" font-family="ui-monospace,monospace" fill="#cfcae8" font-size="22">Pages / HTTPS</text>
+  </g>
+  <g transform="translate(462 320) rotate(10 60 50)">
+    <path d="M10 0H102l18 18v108H10Z" fill="url(#glass)" stroke="#b9a4ff" stroke-width="2"/>
+    <path d="M102 0v18h18M27 74h70M27 90h54M27 105h62" fill="none" stroke="#aba8c8" stroke-width="3"/>
+    <text x="29" y="51" fill="#9fffd2" font-family="ui-monospace,monospace" font-size="25"># .md</text>
+  </g>
+  <g transform="translate(246 128) rotate(12 70 120)">
+    <path d="M57 187C10 271 68 366 73 395c2-69 69-158 30-208Z" fill="url(#flame)" opacity=".5" filter="url(#glow)"/>
+    <path d="M64 186c-16 42 5 80 16 105 12-31 31-69 14-105Z" fill="url(#flame)"/>
+    <path d="M42 108C15 122 4 162 14 185l41-23m60-54c27 14 38 54 28 77l-41-23" fill="#ff9bd6" stroke="#e08abc" stroke-width="2"/>
+    <path d="M80 5C32 48 29 117 50 177h60C132 116 128 48 80 5Z" fill="url(#hull)" stroke="#f7f4ff" stroke-opacity=".7" stroke-width="2"/>
+    <path d="M80 5C59 24 47 48 43 66h74C111 45 99 21 80 5Z" fill="#9fffd2"/>
+    <circle cx="80" cy="98" r="24" fill="#0d0f1b" stroke="#f7f4ff" stroke-width="5"/>
+    <circle cx="80" cy="98" r="15" fill="#192e3c"/>
+    <path d="m69 100 9-9m-1 17 12-12" stroke="#9fffd2" stroke-width="3" stroke-linecap="round"/>
+    <path d="M55 177h50v13H55Z" fill="#37345c"/>
+  </g>
+  <g transform="translate(45 417)">
+    <rect x="0" y="10" width="555" height="211" rx="18" fill="#9fffd2" opacity=".09" filter="url(#glow)"/>
+    <rect width="550" height="210" rx="17" fill="url(#glass)" stroke="#7c769e"/>
+    <path d="M0 39H550" stroke="#7c769e"/>
+    <circle cx="22" cy="20" r="5" fill="#ff9bd6"/><circle cx="41" cy="20" r="5" fill="#ffe9a6"/><circle cx="60" cy="20" r="5" fill="#9fffd2"/>
+    <text x="89" y="26" fill="#aba8c8" font-family="ui-monospace,monospace" font-size="19">nishad.ai</text>
+    <g font-family="ui-monospace,monospace">
+      <text x="25" y="83" fill="#f7f4ff" font-size="27">guest@multiverse:~$</text>
+      <text x="25" y="124" fill="#9fffd2" font-size="24">&gt; build something personal</text>
+      <text x="25" y="164" fill="#b9a4ff" font-size="22">HTML + CSS + JavaScript</text>
+      <rect x="494" y="107" width="12" height="23" fill="#9fffd2"/>
+    </g>
+  </g>
+  <path d="M64 654H576" stroke="url(#ribbon)" stroke-opacity=".6"/>
+  <text x="320" y="681" text-anchor="middle" font-family="ui-monospace,monospace" fill="#aba8c8" font-size="20">Public shell. Shared persona. Static blog.</text>
+</svg>

@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="740" viewBox="0 0 640 740" role="img" aria-labelledby="title desc">
+  <title id="title">A private observatory beside the public website</title>
+  <desc id="desc">Original conceptual illustration: a public browser sends a minimal event only after consent through a narrow mint gateway to a private PostgreSQL store. A luminous shield and lock surround an owner-only report window, with a separate read-only connection from the store. A daily dial symbolizes rotating browser IDs. Decorative bars are not measured traffic, and the illustration is not a production screenshot. The public collector does not authorize access to reports.</desc>
+  <defs>
+    <linearGradient id="night" x2="1" y2="1"><stop stop-color="#162631"/><stop offset=".5" stop-color="#0d0f1b"/><stop offset="1" stop-color="#2a1c3b"/></linearGradient>
+    <linearGradient id="glass" x2=".7" y2="1"><stop stop-color="#333953"/><stop offset="1" stop-color="#121626"/></linearGradient>
+    <linearGradient id="shield" x2="1" y2="1"><stop stop-color="#9fffd2" stop-opacity=".2"/><stop offset=".55" stop-color="#b9a4ff" stop-opacity=".12"/><stop offset="1" stop-color="#ff9bd6" stop-opacity=".2"/></linearGradient>
+    <linearGradient id="edge" x2="1" y2="1"><stop stop-color="#9fffd2"/><stop offset=".5" stop-color="#b9a4ff"/><stop offset="1" stop-color="#ff9bd6"/></linearGradient>
+    <linearGradient id="metal" x2="1"><stop stop-color="#25293f"/><stop offset=".5" stop-color="#484a71"/><stop offset="1" stop-color="#1b2034"/></linearGradient>
+    <radialGradient id="halo"><stop stop-color="#b9a4ff" stop-opacity=".23"/><stop offset="1" stop-color="#b9a4ff" stop-opacity="0"/></radialGradient>
+    <filter id="glow" x="-.5" y="-.5" width="2" height="2"><feGaussianBlur stdDeviation="8"/></filter>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#b9a4ff" stroke-opacity=".06"/></pattern>
+  </defs>
+  <rect width="640" height="740" rx="24" fill="url(#night)"/>
+  <rect width="640" height="740" rx="24" fill="url(#grid)"/>
+  <ellipse cx="437" cy="342" rx="230" ry="300" fill="url(#halo)"/>
+  <g font-family="ui-monospace,monospace">
+    <text x="32" y="43" fill="#9fffd2" font-size="20" letter-spacing="2">FIELD NOTES / 02</text>
+    <text x="32" y="81" fill="#f7f4ff" font-size="32" font-weight="bold">An observatory, not a dossier</text>
+  </g>
+  <g fill="none" stroke="#b9a4ff" stroke-opacity=".18">
+    <circle cx="428" cy="370" r="205"/><circle cx="428" cy="370" r="175" stroke-dasharray="3 12"/>
+  </g>
+  <g transform="translate(31 141) rotate(-5 119 75)">
+    <rect width="236" height="151" rx="14" fill="url(#glass)" stroke="#9fffd2" stroke-width="2"/>
+    <path d="M0 31H236" stroke="#9fffd2" stroke-opacity=".3"/>
+    <circle cx="16" cy="16" r="4" fill="#ff9bd6"/><circle cx="31" cy="16" r="4" fill="#ffe9a6"/><circle cx="46" cy="16" r="4" fill="#9fffd2"/>
+    <path d="m30 72-12 10 12 10m23-20 12 10-12 10M84 80h116M19 120h132" stroke="#b9a4ff" stroke-width="3" fill="none"/>
+    <rect x="176" y="111" width="40" height="19" rx="9" fill="#9fffd2" fill-opacity=".15" stroke="#9fffd2"/>
+    <circle cx="205" cy="120" r="6" fill="#9fffd2"/>
+  </g>
+  <g font-family="ui-monospace,monospace" fill="#cfcae8" font-size="23">
+    <text x="31" y="331">Public site</text>
+    <text x="31" y="361" fill="#9fffd2">Consent first</text>
+  </g>
+  <path d="M193 295C177 397 71 398 90 491" stroke="#9fffd2" stroke-width="10" stroke-opacity=".14" fill="none" filter="url(#glow)"/>
+  <path d="M193 295C177 397 71 398 90 491" stroke="#9fffd2" stroke-width="2" fill="none"/>
+  <g fill="#9fffd2"><circle cx="183" cy="332" r="4"/><circle cx="149" cy="386" r="4"/><circle cx="93" cy="437" r="4"/></g>
+  <g transform="translate(151 393)">
+    <path d="M0 22 19 0 38 22 19 44Z" fill="#152b30" stroke="#9fffd2" stroke-width="2"/>
+    <path d="m10 22 7 7 12-15" fill="none" stroke="#9fffd2" stroke-width="3"/>
+  </g>
+  <path d="M443 137 596 191v177c0 112-75 166-153 211-78-45-153-99-153-211V191Z" fill="url(#shield)" stroke="url(#edge)" stroke-width="3"/>
+  <path d="M443 151 582 201v164c0 103-66 153-139 197-73-44-139-94-139-197V201Z" fill="none" stroke="#b9a4ff" stroke-opacity=".15"/>
+  <g transform="translate(408 185)">
+    <path d="M10 34V19a25 25 0 0 1 50 0v15" fill="none" stroke="#9fffd2" stroke-width="5"/>
+    <rect y="30" width="70" height="51" rx="12" fill="url(#glass)" stroke="#9fffd2" stroke-width="2"/>
+    <circle cx="35" cy="49" r="5" fill="#9fffd2"/><path d="M35 49v15" stroke="#9fffd2" stroke-width="3"/>
+  </g>
+  <g transform="translate(316 300)">
+    <rect x="-3" y="-3" width="258" height="161" rx="15" fill="#b9a4ff" opacity=".1" filter="url(#glow)"/>
+    <rect width="252" height="158" rx="13" fill="url(#glass)" stroke="#b9a4ff"/>
+    <path d="M0 30H252" stroke="#b9a4ff" stroke-opacity=".4"/>
+    <text x="16" y="21" fill="#cfcae8" font-family="ui-monospace,monospace" font-size="17">PRIVATE / REPORTS</text>
+    <g fill="#9fffd2" fill-opacity=".7"><rect x="19" y="48" width="62" height="22" rx="5"/><rect x="95" y="48" width="62" height="22" rx="5"/><rect x="171" y="48" width="62" height="22" rx="5"/></g>
+    <path d="M20 91H230M20 111H230M20 135H230" stroke="#b9a4ff" stroke-opacity=".15"/>
+    <g fill="#b9a4ff"><rect x="26" y="111" width="21" height="24" rx="3"/><rect x="64" y="100" width="21" height="35" rx="3"/><rect x="102" y="91" width="21" height="44" rx="3"/></g>
+    <g fill="#ff9bd6"><rect x="160" y="101" width="69" height="5" rx="2"/><rect x="160" y="115" width="45" height="5" rx="2"/><rect x="160" y="129" width="55" height="5" rx="2"/></g>
+  </g>
+  <text x="443" y="495" text-anchor="middle" font-family="ui-monospace,monospace" fill="#f7f4ff" font-size="23">Owner-only session</text>
+  <path d="M215 550C285 610 362 562 394 510" fill="none" stroke="#ff9bd6" stroke-width="2"/>
+  <text x="353" y="607" font-family="ui-monospace,monospace" fill="#ff9bd6" font-size="21">Read aggregates</text>
+  <g transform="translate(38 491)">
+    <path d="M0 24v111c0 31 181 31 181 0V24Z" fill="url(#metal)" stroke="#b9a4ff" stroke-width="2"/>
+    <ellipse cx="90.5" cy="24" rx="90.5" ry="24" fill="#404565" stroke="#b9a4ff" stroke-width="2"/>
+    <ellipse cx="90.5" cy="24" rx="70" ry="14" fill="#b9a4ff" fill-opacity=".08"/>
+    <path d="M0 61c0 31 181 31 181 0M0 98c0 31 181 31 181 0" fill="none" stroke="#b9a4ff" stroke-opacity=".6"/>
+    <g fill="#9fffd2"><circle cx="23" cy="56" r="4"/><circle cx="23" cy="93" r="4"/><circle cx="23" cy="130" r="4"/></g>
+  </g>
+  <g transform="translate(535 560)">
+    <circle r="36" fill="#17192d" stroke="#9fffd2" stroke-opacity=".6"/>
+    <path d="M0-26a26 26 0 1 1-25 19m-5-1 5 7 7-5" fill="none" stroke="#9fffd2" stroke-width="2"/>
+    <text x="0" y="6" text-anchor="middle" font-family="ui-monospace,monospace" fill="#f7f4ff" font-size="19">24h</text>
+  </g>
+  <text x="128" y="671" text-anchor="middle" font-family="ui-monospace,monospace" fill="#cfcae8" font-size="23">PostgreSQL</text>
+  <path d="M32 691H608" stroke="url(#edge)" stroke-opacity=".5"/>
+  <text x="320" y="719" text-anchor="middle" font-family="ui-monospace,monospace" fill="#aba8c8" font-size="19">Concept art / decorative bars, not live data</text>
+</svg>

@@ -12,9 +12,13 @@ I wanted a personal website that felt more like a tiny operating system than a r
 
 The result is `nishad://multiverse`, served at [nishad.ai](https://nishad.ai). The surprisingly useful architectural decision was not adding a frontend framework.
 
+![Original neon illustration: a rocket launches from a terminal browser while a public-persona brain, Markdown notebook, and Pages hosting cloud orbit it. The shell, public facts, generated blog, and hosting are distinct components.](/assets/blog/multiverse-launch.svg)
+
+*🚀 One small website, a whole personal multiverse. Original conceptual artwork, not a screenshot; the browser shell connects public facts, articles, and hosting.*
+
 This is a **reconstruction of the current design from the source**, not a claim that every component was written in this order. It explains how to run and extend the actual site, and how I would approach building the same foundation again. The [companion analytics post](/blog/private-analytics-github-pages/) covers the private backend added beside it.
 
-## Start with a static shell
+## 🚀 Start with a static shell
 
 The homepage lives in `index.html`: HTML, CSS, and an inline JavaScript module. There is no homepage bundler, client-side Markdown engine, or application server.
 
@@ -22,27 +26,7 @@ Its sections are Home, Story, Lore, Music, Work, and Terminal. Each view and tab
 
 This keeps navigation shareable without requiring a server route for every tab. The mobile tab bar, command palette, and terminal commands are alternate entrances into the same page, not separate applications.
 
-The main pieces fit together like this:
-
-```text
-index.html
-  HTML + CSS + inline module
-  views / hash router / terminal
-        |
-        +--> ontology.js: public facts + persona
-        +--> optional AI backend
-        +--> separate Spotify modules
-
-posts/*.md --> scripts/build-site.mjs --> _site/
-                       |
-                       +--> /blog/ listing + article HTML
-                       +--> sitemap + 404 + public-page catalog
-                       +--> copied homepage and public assets
-
-GitHub Actions --> GitHub Pages --> nishad.ai
-
-Optional private metrics: separate VM services, not Pages
-```
+The browser shell imports `ontology.js` for public facts and connects to optional AI and separate Spotify modules. Markdown posts pass through `scripts/build-site.mjs` into `_site/`, alongside copied homepage assets, article HTML, a sitemap, a 404 page, and the public-page catalog. GitHub Actions publishes that static artifact to Pages. Private metrics live in separate VM services, not inside the public bundle.
 
 The tradeoff is explicit: one large homepage file is easy to deploy but needs discipline to remain understandable. Separate data and integrations keep it from becoming the only place where every concern lives.
 
@@ -58,7 +42,7 @@ Unrecognized input goes to `askAI(query, extra?)`. Fun commands like `interview`
 
 There is a small implementation trap for contributors: a local `history` variable holds terminal history. Browser navigation must use `window.history`, not accidentally call methods on that array. Similarly, UI tests must reveal the correct tab before trying to interact with its content.
 
-## Keep biography separate from behavior
+## 🧠 Keep biography separate from behavior
 
 `ontology.js` exports the public profile, career, education, skills, projects, awards, lore, and fictional branches. `buildSystemPrompt()` assembles those facts and the persona into the system prompt.
 
@@ -68,7 +52,7 @@ This is not retrieval from private documents. It is a curated, public knowledge 
 
 The same prompt builder feeds the general-chat backends. Model changes do not require three competing biographies. They do require respecting context limits: the local model uses a 2,048-token context window, so prompt size is a real budget, not an aesthetic preference.
 
-## Three AI routes, one important privacy distinction
+## ⚡ Three AI routes, one important privacy distinction
 
 Reading the current dispatcher is more reliable than repeating an old "local by default" description.
 
@@ -145,7 +129,7 @@ This lets me add a post without migrating the entire homepage to a framework or 
 
 ![Publishing flow: public homepage modules and Markdown posts pass through the Node builder into a static artifact; Actions checks and publishes it to GitHub Pages. Private services and secrets are excluded.](/assets/blog/site-publishing-flow.svg)
 
-*Figure: the current publishing pipeline. The source diagram above shows runtime relationships; this flow shows how public files reach the web.*
+*Figure: the current publishing pipeline. The opening illustration introduces the components; this flow shows how public files reach the web.*
 
 `.github/workflows/pages.yml` builds with Node 22, installs locked dependencies, checks syntax and Node tests, builds `_site/`, and uploads the Pages artifact. Pull requests validate; `master` publishes.
 
@@ -157,7 +141,7 @@ The output uses an explicit public-file copy list. It includes the homepage, pub
 
 My release checklist is about the actual result: did the workflow succeed, does the blog index list the post, and does its exact canonical permalink return the new article? A successful local Markdown parse is necessary, but it is not proof that the internet has the page.
 
-## Extend the boundary, not the bundle
+## ❤️ Extend the boundary, not the bundle
 
 The metrics feature follows the same principle. `deployment.js` contains approved public integration URLs, and the public build emits a launcher and page catalog. Authentication, collection, PostgreSQL, and private reports live in separate services on the VM.
 
