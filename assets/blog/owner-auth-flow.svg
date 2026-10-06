@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="776" viewBox="0 0 420 776" role="img" aria-labelledby="title desc">
+  <title id="title">Owner-only GitHub authentication flow</title>
+  <desc id="desc">Login creates state and an S256 PKCE challenge. GitHub returns to the exact callback. The server validates state and exchanges the code with the verifier, then fetches the immutable user ID. Nonowners receive 403. Only the allowlisted owner receives an opaque server session. Each report checks the session, denying unauthorized access with 401; POSTs also require exact Origin and CSRF. Reports are no-store.</desc>
+  <defs>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#343754" stroke-opacity=".3"/></pattern>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="m0 0 6 4-6 4" fill="none" stroke="#9fffd2" stroke-width="1.5"/></marker>
+  </defs>
+  <rect width="420" height="776" rx="12" fill="#0d0f1b"/>
+  <rect width="420" height="776" rx="12" fill="url(#grid)"/>
+  <g font-family="ui-monospace,monospace" text-anchor="middle">
+    <text x="210" y="32" fill="#b9a4ff" font-size="17">AUTH :: IDENTITY THEN AUTHORIZATION</text>
+    <g fill="#17192d" stroke="#343754">
+      <rect x="24" y="54" width="372" height="78" rx="10"/>
+      <rect x="24" y="168" width="372" height="78" rx="10"/>
+      <rect x="24" y="282" width="372" height="100" rx="10"/>
+      <path d="m210 418 186 55-186 55-186-55Z" stroke="#ff9bd6"/>
+      <rect x="24" y="570" width="372" height="82" rx="10" stroke="#9fffd2"/>
+      <rect x="24" y="692" width="372" height="64" rx="10"/>
+    </g>
+    <g fill="#f7f4ff" font-size="18">
+      <text x="210" y="84">Start GitHub login</text>
+      <text x="210" y="198">GitHub authorization</text>
+      <text x="210" y="312">Server validates state</text>
+      <text x="210" y="462">Immutable ID == owner?</text>
+      <text x="210" y="599">Opaque server session</text>
+      <text x="210" y="718">Authorize every report</text>
+    </g>
+    <g fill="#aba8c8" font-size="16">
+      <text x="210" y="112">Random state + S256 PKCE</text>
+      <text x="210" y="226">Exact callback + code</text>
+      <text x="210" y="342">Exchange code with verifier</text>
+      <text x="210" y="367">Fetch ID; discard provider token</text>
+      <text x="210" y="490">No: 403 / Yes: continue</text>
+      <text x="210" y="628">Secure / HttpOnly / host-only</text>
+      <text x="210" y="743">POST: Origin + CSRF; no-store</text>
+    </g>
+    <text x="210" y="680" fill="#ff9bd6" font-size="16">Missing or expired session: 401</text>
+  </g>
+  <g fill="none" stroke="#9fffd2" stroke-width="2" marker-end="url(#arrow)">
+    <path d="M210 132V158"/><path d="M210 246V272"/><path d="M210 382V408"/><path d="M210 528V558"/><path d="M210 652V666"/>
+  </g>
+</svg>

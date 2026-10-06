@@ -13,7 +13,7 @@ test('homepage link, help, terminal command, and palette reach the blog', async 
   await page.goto('/');
   await page.getByRole('link', { name: 'Read the technical blog' }).click();
   await expect(page).toHaveURL(/\/blog\/$/);
-  await expect(page.locator('.post-list h2').first()).toHaveText('Build a Privacy-First OpenClaw Image Stream');
+  await expect(page.locator(`.post-list a[href="/blog/${slug}/"]`)).toHaveText('Build a Privacy-First OpenClaw Image Stream');
   await page.getByRole('link', { name: 'Home', exact: true }).click();
   await page.locator('.tab[data-view="shell"]').click();
   await page.locator('#term-input').fill('help');
@@ -65,6 +65,41 @@ test('copy preserves exact code text and announces clipboard failures', async ({
   await expect(page.getByRole('status')).toContainText('Could not copy');
   expect(await page.evaluate(() => window.injection)).toBeUndefined();
   await expect(page.locator('.prose script, .prose a[href^="javascript:"], .prose img[src^="data:"]')).toHaveCount(0);
+});
+
+test('site and metrics articles preserve content, cross-links, and responsive diagrams', async ({ page, request }) => {
+  const articles = [
+    { slug: 'building-nishad-ai-from-scratch', diagrams: 1, other: 'private-analytics-github-pages' },
+    { slug: 'private-analytics-github-pages', diagrams: 3, other: 'building-nishad-ai-from-scratch' }
+  ];
+  const sitemap = await (await request.get('/sitemap.xml')).text();
+  const catalog = await (await request.get('/analytics-pages.json')).json();
+  for (const article of articles) {
+    const path = `/blog/${article.slug}/`;
+    const post = parsePost(await readFile(`posts/${article.slug}.md`, 'utf8'), `${article.slug}.md`);
+    const tokens = new MarkdownIt().parse(post.body, {});
+    expect(sitemap).toContain(path);
+    expect(catalog[path]).toBe(post.title);
+    for (const width of [1280, 375]) {
+      await page.setViewportSize({ width, height: 900 });
+      expect((await page.goto(path)).status()).toBe(200);
+      await expect(page.locator('h1')).toHaveText(post.title);
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', `https://nishad.ai${path}`);
+      await expect(page.locator(`.prose a[href="/blog/${article.other}/"]`).first()).toBeAttached();
+      expect(await page.locator('.prose :is(h2,h3)').allTextContents()).toEqual(
+        tokens.flatMap((token, index) => token.type === 'heading_open' ? [tokens[index + 1].content] : []));
+      expect(await page.locator('.code-block code').allTextContents()).toEqual(
+        tokens.filter(token => token.type === 'fence').map(token => token.content));
+      await expect(page.locator('.prose img')).toHaveCount(article.diagrams);
+      for (const image of await page.locator('.prose img').all()) {
+        await image.scrollIntoViewIfNeeded();
+        await expect(image).toHaveJSProperty('complete', true);
+        expect(await image.evaluate(el => el.naturalWidth)).toBeGreaterThan(0);
+        expect(await image.getAttribute('alt')).toBeTruthy();
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+  }
 });
 
 test('mobile layout scrolls code and tables without overflowing the page', async ({ page }) => {

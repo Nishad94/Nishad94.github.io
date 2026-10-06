@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="800" viewBox="0 0 420 800" role="img" aria-labelledby="title desc">
+  <title id="title">Public collection and private reporting boundaries</title>
+  <desc id="desc">A public Pages browser must opt in without DNT or GPC before sending an approved page path, referrer host, and optional daily random browser ID. The public collector validates and bounds input, then writes daily PostgreSQL aggregates with short-lived HMAC deduplication. A separate read-only reporting service reads aggregates and releases them only to the authorized owner. Raw events and identifiers are not stored.</desc>
+  <defs>
+    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" fill="none" stroke="#343754" stroke-opacity=".3"/></pattern>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="m0 0 6 4-6 4" fill="none" stroke="#9fffd2" stroke-width="1.5"/></marker>
+  </defs>
+  <rect width="420" height="800" rx="12" fill="#0d0f1b"/>
+  <rect width="420" height="800" rx="12" fill="url(#grid)"/>
+  <g font-family="ui-monospace,monospace" text-anchor="middle">
+    <text x="210" y="32" fill="#b9a4ff" font-size="17">METRICS :: TWO TRUST BOUNDARIES</text>
+    <g fill="#17192d" stroke="#343754">
+      <rect x="24" y="56" width="372" height="84" rx="10"/>
+      <path d="m210 170 186 52-186 52-186-52Z" stroke="#b9a4ff"/>
+      <rect x="24" y="314" width="372" height="112" rx="10" stroke="#9fffd2"/>
+      <rect x="24" y="466" width="372" height="110" rx="10"/>
+      <rect x="24" y="616" width="372" height="74" rx="10" stroke="#ff9bd6"/>
+      <rect x="24" y="730" width="372" height="50" rx="10"/>
+    </g>
+    <g fill="#f7f4ff" font-size="19">
+      <text x="210" y="84">nishad.ai / GitHub Pages</text>
+      <text x="210" y="212">Opt-in + no DNT/GPC?</text>
+      <text x="210" y="342">metrics.nishad.ai/collect</text>
+      <text x="210" y="494">PostgreSQL / loopback</text>
+      <text x="210" y="644">Private report service</text>
+      <text x="210" y="762">Authorized owner dashboard</text>
+    </g>
+    <g fill="#aba8c8" font-size="16">
+      <text x="210" y="115">Public homepage + blog only</text>
+      <text x="210" y="240">No: stop / Yes: continue</text>
+      <text x="210" y="372">Catalog, schema, body, rate caps</text>
+      <text x="210" y="403">No report or admin routes</text>
+      <text x="210" y="522">Daily counters: 30 days</text>
+      <text x="210" y="551">HMAC dedup: at most 48 hours</text>
+      <text x="210" y="674">Read aggregates; check session</text>
+    </g>
+    <g fill="#9fffd2" font-size="15">
+      <text x="210" y="298">page / referrer host / random ID</text>
+      <text x="210" y="452">Transaction + daily uniqueness</text>
+    </g>
+    <text x="210" y="603" fill="#ff9bd6" font-size="15">Separate read-only database role</text>
+    <text x="210" y="716" fill="#ff9bd6" font-size="15">No session: deny report access</text>
+  </g>
+  <g fill="none" stroke="#9fffd2" stroke-width="2" marker-end="url(#arrow)">
+    <path d="M210 140V160"/><path d="M210 274V288"/><path d="M210 426V438"/><path d="M210 576V588"/><path d="M210 690V702"/>
+  </g>
+</svg>
