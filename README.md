@@ -10,7 +10,7 @@ Branching Hypothesis," an interactive shell, and an in-browser LLM you can talk 
 
 ## Tech stack
 
-- **Static site**: `index.html` + `ontology.js`, with optional Spotify modules (HTML + CSS + vanilla JS, no build step).
+- **Static site**: the homepage remains vanilla HTML/CSS/JS. A small Node build converts Markdown posts into HTML and copies the existing site to `_site/`.
 - **Hosting**: GitHub Pages (`Nishad94/Nishad94.github.io`), served over HTTPS.
 - **Custom domain**: `nishad.ai`, DNS managed at GoDaddy (apex `A` records → GitHub Pages,
   `www` `CNAME` → `nishad94.github.io`). The `CNAME` file in this repo pins the domain.
@@ -20,6 +20,126 @@ Branching Hypothesis," an interactive shell, and an in-browser LLM you can talk 
 No server, no backend, no database — everything runs in the visitor's browser.
 
 ---
+
+## Technical blog: write Markdown, publish through GitHub
+
+The blog lives at `/blog/` (`/blog` redirects there), with durable article URLs at
+`/blog/<filename-without-md>/`. Home has a visible Blog link; the terminal's `blog`
+command and command palette open it too. Posts render as complete HTML, including
+their table of contents, heading anchors, and code highlighting, without JavaScript.
+JavaScript only adds copy buttons. Articles have canonical/description/social metadata
+and appear in `/sitemap.xml`; unknown or unpublished URLs return a custom 404.
+
+### Write a post
+
+1. Copy `posts/post-template.md` to `posts/your-stable-slug.md`.
+2. Replace its metadata and body. Keep `draft: true` until ready.
+3. Preview, then change `draft` to `false` and commit the Markdown file and any images.
+   Once the one-time Pages setup below is done, merging/pushing to `master` builds and
+   publishes automatically. There is no post index to maintain.
+
+Metadata is **JSON between `---` lines**, not YAML. All five fields are required:
+
+```markdown
+---
+{
+  "title": "Your article title",
+  "date": "2026-10-07",
+  "description": "A short plain-text summary for the listing and search results.",
+  "tags": ["engineering", "distributed systems"],
+  "draft": true
+}
+---
+
+Your introduction.
+
+## First section
+
+Your Markdown content.
+```
+
+- Filenames must use lowercase letters, numbers and single separating hyphens.
+  **Keep published filenames stable**: renaming changes the permalink.
+- `date` is a real `YYYY-MM-DD` calendar date, displayed in UTC; newest dates appear
+  first, with slug order breaking ties. A future date does **not** schedule publication:
+  `draft: false` publishes on the next deployment.
+- The layout supplies the H1/title. Use `##` for sections and `###` for subsections.
+  These appear in an accessible, collapsible table of contents with stable heading links.
+- Supported: paragraphs, emphasis, quotes, ordered/unordered lists, inline code,
+  fenced/indented code, links, images, and Markdown tables. Fences labeled `bash`,
+  `javascript`/`js`, `typescript`/`ts`, `json`, or `python`/`py` get build-time
+  highlighting; unknown languages remain safely escaped plain text with a label.
+- Put images in `assets/blog/`, using descriptive alt text and root-relative paths,
+  e.g. `![System architecture](/assets/blog/architecture.png)`. Link to other articles
+  using `/blog/their-slug/`, not a relative Markdown filename.
+- Raw HTML is displayed as text. Script/data/file URLs and protocol-relative links
+  are not rendered as links/images. HTTPS, HTTP, mailto, local paths and fragments work.
+- Drafts are validated but excluded from HTML, listing, sitemap and deployment artifact.
+  **Drafts in this public Git repository are not private.** Never commit secrets.
+- Missing fields, invalid dates, malformed JSON, empty bodies, or stray files inside
+  `posts/` fail the build with a filename-specific error. An empty posts directory
+  produces a genuine “No posts published yet” page.
+
+The first article, **Build a Privacy-First OpenClaw Image Stream**, is the author's
+supplied twelve-chapter tutorial. Its body and code are preserved as provided; the
+original H1 is stored as the metadata title rather than duplicated in the article.
+`post-template.md` remains unpublished.
+
+### Preview and validate
+
+Use Node 22+ and Python 3:
+
+```bash
+npm ci
+npm run preview
+# http://127.0.0.1:8000/blog/
+# http://127.0.0.1:8000/blog/privacy-first-openclaw-image-stream/
+```
+
+Preview builds once, then serves `_site/`. After edits, stop and rerun it, or run
+`npm run build` in a second terminal and refresh. Generated files are ignored by Git;
+edit Markdown and source assets, not `_site/`.
+
+```bash
+npm run test:syntax
+npm run test:blog
+npm test
+```
+
+If Chromium is missing, run `npx playwright install chromium`. Tests render synthetic
+Markdown only inside a temporary `.test-site/` (removed on teardown), exercise real
+direct URLs and 404s, code copying and failure, mobile overflow, no-JS reading,
+article chapter/code preservation, draft exclusion, malformed metadata and empty
+states. The full suite also covers existing homepage/Spotify behavior with mocked
+network requests; it makes no live paid API calls.
+
+### GitHub Pages setup and deployment
+
+This publishing workflow requires **GitHub Actions** as the Pages source. The
+previous **Deploy from a branch**, `master`, `/` mode does not run the Node generator.
+To configure or verify deployment:
+
+1. In repository **Settings → Pages → Build and deployment → Source**, select
+   **GitHub Actions**. Keep the custom domain **nishad.ai** and HTTPS settings unchanged.
+2. Push or merge changes to `master`, or run **Build and publish Pages** from the
+   Actions tab on `master`. Allow its `github-pages` environment deployment
+   if repository protection rules require approval.
+3. Confirm the workflow succeeds and check `/`, `/blog/`, the article permalink,
+   and a nonexistent URL on `https://nishad.ai`.
+
+`.github/workflows/pages.yml` installs locked dependencies with `npm ci` on Node 22,
+checks syntax and unit tests, builds `_site/`, and uploads it to Pages. Pull requests
+build but do not deploy; only `master` can deploy. The artifact includes `CNAME`,
+`.nojekyll`, the existing homepage/Spotify public assets, generated blog and 404;
+it excludes source Markdown, tests, development dependencies and Worker source.
+There is **no DNS change**, backend, CMS or homepage framework migration.
+
+The small build uses pinned `markdown-it` and `highlight.js` only at build time.
+It is preferable here to browser-side Markdown because articles are readable,
+linkable and indexable in their initial HTML and drafts are absent from the artifact.
+The homepage's existing files are copied without transformation. Adding a new
+public root file in future also requires adding it to `scripts/build-site.mjs`'s
+explicit copy list.
 
 ## Features
 
@@ -34,6 +154,7 @@ A faux zsh at the bottom of the page. Type `help` for the full list. Highlights:
 | `cat <file>` | read `README.md`, `about.txt`, `branches.txt`, `status.txt` |
 | `git status` / `git branch` / `git log` | inspect the "life" repo |
 | `timeline`, `branches`, `recruiter`, `linkedin`, `github` | jump around / open links |
+| `blog` | open the technical blog |
 | `roulette`, `chaos`, `toffee`, `palette` | trigger the multiverse controls |
 | `spotify [connect\|status\|disconnect]` | optional Spotify login, consent, status, or local disconnect |
 | `vibe [short\|medium\|long]` | top items and optional music personality, genre guesses, Music MBTI, tarot, shuffle roast |
@@ -188,7 +309,7 @@ No client secret belongs in this repository or the browser.
 
 ### Verification
 
-The site remains dependency-free at runtime. Node dependencies are **test-only**:
+The site remains dependency-free at runtime. Node dependencies support the **blog build and tests**:
 
 ```bash
 npm ci
@@ -217,7 +338,8 @@ update the ontology, the spend-HUD internals, and the deploy flow.
 ```bash
 git clone https://github.com/Nishad94/Nishad94.github.io.git
 cd Nishad94.github.io
-python3 -m http.server 8000   # → http://localhost:8000
+npm ci
+npm run preview             # → http://127.0.0.1:8000
 ```
 
 Serve over `http://` (not `file://`) so the `ontology.js` ES-module import resolves.
@@ -225,8 +347,9 @@ WebGPU features need a Chromium-based browser with WebGPU enabled.
 
 ## Deploy
 
-Push to `master`; GitHub Pages rebuilds automatically and serves at
-`https://nishad.ai`.
+After the one-time **GitHub Actions** Pages setup above, push to `master`; the Pages
+workflow builds `_site/` and publishes it at `https://nishad.ai`. Serving the repository
+root directly still works for homepage-only development, but will not generate the blog.
 
 ---
 

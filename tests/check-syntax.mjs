@@ -1,7 +1,11 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 
-const files = readdirSync('.').filter(file => /\.(js|html)$/.test(file));
+const files = [
+  ...readdirSync('.').filter(file => /\.(js|html)$/.test(file)),
+  ...['blog', 'scripts', 'tests'].flatMap(directory =>
+    readdirSync(directory).filter(file => /\.(m?js)$/.test(file)).map(file => `${directory}/${file}`))
+];
 for (const file of files) {
   const source = readFileSync(file, 'utf8');
   const scripts = file.endsWith('.html')
@@ -12,4 +16,4 @@ for (const file of files) {
     if (result.status !== 0) throw new Error(file + '\n' + result.stderr);
   }
 }
-console.log('JavaScript syntax checked in all root JS and inline HTML scripts.');
+console.log('JavaScript syntax checked in root files, blog, build scripts, and tests.');

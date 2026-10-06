@@ -109,6 +109,7 @@ main{padding:28px 0 90px}.section{margin-top:34px}.section-head{margin-bottom:14
 <a class="btn primary" href="#music">🎧 Decode my music taste</a>
 <a class="btn" href="#shell" id="hero-ask">💬 Ask the AI about Nishad</a>
 <a class="btn" href="#story">🧭 Read the story</a>
+<a class="btn" href="/blog/">Read the technical blog</a>
 </div></div>
 
 <aside class="card hero-status" aria-label="Current checkout">
@@ -826,6 +827,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
         addLine('  timeline | branches   jump around the site');
         addLine('  recruiter             jump to recruiter mode');
         addLine('  linkedin | github     open profile');
+        addLine('  blog                  read technical posts');
         addLine('  clear | history       terminal housekeeping');
         addLine('  roulette              generate an alternate timeline');
         addLine('  chaos                 toggle visual entropy');
@@ -906,6 +908,10 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       case 'linkedin':
       case 'github':
         openTarget(cmd);
+        break;
+
+      case 'blog':
+        window.location.assign('/blog/');
         break;
 
       case 'open':
@@ -1265,6 +1271,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
   }));
 
   const paletteActions = [
+    ['technical blog','blog'],
     ['timeline','#timeline'],['gmail conspiracy','#conspiracy'],['alternate branches','#branches'],
     ['recruiter mode','#recruiter'],['interactive shell','#shell'],['branch topology','#map'],
     ['multiverse controls','#controls'],['summon Toffee','toffee'],['branch roulette','roulette'],
@@ -1299,6 +1306,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
   function runPalette(target){
     closePalette();
     if(target==='toffee') summonToffee();
+    else if(target==='blog') window.location.assign('/blog/');
     else if(target==='roulette') rouletteBtn?.click();
     else if(target==='spotify'||target.startsWith('vibe')||target==='spotify disconnect'){
       reveal('#shell');

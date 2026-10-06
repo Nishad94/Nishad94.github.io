@@ -5,11 +5,12 @@ built so that AI agents and human contributors can work on it safely and quickly
 
 ## TL;DR
 
-- Static site, **no build step, no backend**. Just `index.html` + `ontology.js`,
-  served by GitHub Pages at `nishad.ai`.
+- Static site, **no backend**. The homepage stays buildless; `npm run build`
+  copies public files and generates blog HTML from Markdown into `_site/`.
 - To change **what the AI knows/says**, edit **`ontology.js`** (not `index.html`).
 - To change **UI/behavior**, edit the inline `<script type="module">` in `index.html`.
-- Deploy = commit + push to `master`. Pages rebuilds automatically.
+- Deploy = commit + push to `master` after the one-time Pages source switch to
+  **GitHub Actions** documented in README. Do not deploy without user authorization.
 
 ## Layout
 
@@ -26,12 +27,16 @@ Use `window.history` (a local `history` variable shadows the global). Tests must
 | `README.md` | Human-facing overview and feature docs. |
 | `AGENTS.md` | This file. |
 | `CNAME` | Pins the custom domain `nishad.ai` for GitHub Pages. |
+| `posts/*.md` | Technical articles: JSON frontmatter (`title`, `date`, `description`, `tags`, `draft`) between `---` lines. Filename is the stable slug. |
+| `scripts/build-site.mjs` | Validates posts, safely renders Markdown/highlighting/TOC, generates listing, permalinks, 404 and sitemap, copies public files. |
+| `blog/blog.css`, `blog/blog.js` | Scoped reading styles and progressive copy controls. No runtime Markdown dependency. |
+| `.github/workflows/pages.yml` | Reproducible Node 22 build; PRs validate, master deploys `_site/` to Pages. |
 | `spotify.js` | Browser-only PKCE, tab-scoped tokens/refresh, top items/recent plays, safe Spotify links. |
 | `spotify-ui.js` | Spotify terminal views, explicit AI consent, strict report validation, music reports. |
 | `spotify-callback.html` | Same-origin one-shot OAuth callback; cleans URL before importing code. |
 | `spotify-privacy.html` | User-facing data flow, storage, disconnect, and policy prerequisites. |
 | `assets/spotify-logo-white.svg` | Unmodified official Spotify attribution logo. |
-| `tests/`, `playwright.config.js`, `package.json` | Test-only tooling; not a runtime build requirement. |
+| `tests/`, `playwright.config.js`, `package.json` | Build/test tooling; no Node code or dependency is shipped to the browser. |
 
 ## How the AI works
 
@@ -77,7 +82,7 @@ other edits needed.
 
 Deterministic (no model): `help`, `conspiracy`/`gmail`, `whoami`, `pwd`, `ls`,
 `cat <file>`, `git status|branch|log`, `timeline`, `branches`, `recruiter`,
-`linkedin`, `github`, `open`, `echo`, `date`, `history`, `clear`, `sudo`, `rm`,
+`linkedin`, `github`, `blog`, `open`, `echo`, `date`, `history`, `clear`, `sudo`, `rm`,
 `ssh`, `roulette`, `chaos`, `toffee`, `palette`, `matrix`, `exit`/`logout`.
 
 BYOK: `multiverse` (unlock), `lockdown`/`clearkey` (exit + reset spend).
@@ -128,19 +133,26 @@ uses `https://nishad.ai/spotify-callback.html`; registration is manual.
 ## Local dev & deploy
 
 ```bash
-# serve locally (module imports need http://, not file://)
-python3 -m http.server 8000   # → http://localhost:8000
+# build and serve locally (Node 22+, Python 3; not file://)
+npm ci
+npm run preview              # → http://127.0.0.1:8000
 
 # deploy
 git add -A && git commit -m "..." && git push origin master
 ```
 
-GitHub Pages auto-rebuilds on push. Verify live with a cache-busting fetch, e.g.
+GitHub Pages Actions auto-rebuilds on push after manual source setup. Verify live with a cache-busting fetch, e.g.
 `curl -s "https://nishad.ai/?v=$(date +%s)" | grep something`.
 
 ## Conventions
 
-- Keep everything dependency-free and buildless.
+- Keep the homepage buildless and runtime dependency-free. Blog build dependencies
+  are pinned/locked; do not migrate the homepage to a framework.
+- Author posts in `posts/`; never hand-edit `_site/` or maintain a separate index.
+  Drafts must not ship. Validate even drafts; malformed metadata fails the build.
+  The public repository itself is not private storage for drafts or secrets.
+- Preserve supplied article prose/code; layout supplies the H1. Add public assets
+  to the build copy list if they are outside `assets/`.
 - Prefer editing `ontology.js` for content; keep `index.html` for behavior/UI.
 - Run a JS syntax check before pushing:
   `node --check ontology.js` and extract+check the inline script.
