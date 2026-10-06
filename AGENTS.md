@@ -161,3 +161,26 @@ GitHub Pages Actions auto-rebuilds on push after manual source setup. Verify liv
 ## AI proxy
 
 `worker/ai-proxy.js` (Cloudflare Worker) is an optional owner-funded gpt-4o proxy; `AI_PROXY_DEFAULT` in `index.html` enables it (empty = BYOK). Never put the OpenAI key in client code; it is a Worker secret. Keep the message/size validation and limits when editing. Tests: `npm test`.
+
+## Private metrics dashboard and analytics
+
+`dashboard/` is an isolated Go module, not a Pages backend. It provides GitHub
+immutable-owner authorization, server sessions, a separate PostgreSQL collector
+and private aggregate reports. File browsing, connectors and OpenClaw integration
+are explicitly out of scope. See `dashboard/README.md`.
+
+Keep real runtime configuration, credentials, owner IDs, host details and all
+private data outside the repository and Pages output. Only synthetic
+fixtures belong in tests. Do not scan host roots, provision services, publish
+integration or deploy without explicit authorization.
+
+`deployment.js` contains only approved public URLs; empty values disable integration.
+`analytics.js` tracks only catalog-approved public pages after consent, honors
+DNT/GPC, drops queries/fragments/private referrers, and uses random daily IDs,
+never device fingerprints. Do not add the tracker to private views, callbacks,
+404s or the metrics launcher. Never connect it to the AI/Spotify modules.
+The generated `/dashboard_metrics` entry is a redirect, not authentication.
+
+Validate with `npm run test:syntax`, `npm test`, and
+`cd dashboard && go test -race ./... && go vet ./...`.
+The Go tests start and stop a synthetic temporary PostgreSQL instance.

@@ -1,0 +1,10 @@
+[Unit]
+Description=Hourly metrics retention even when collector is stopped
+
+[Timer]
+OnCalendar=hourly
+Persistent=yes
+RandomizedDelaySec=60
+
+[Install]
+WantedBy=timers.target

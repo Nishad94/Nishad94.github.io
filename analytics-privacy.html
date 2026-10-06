@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Website analytics privacy | Nishad Dawkhar</title><link rel="stylesheet" href="/blog/blog.css"></head>
+<body class="blog">
+<header class="site-header"><nav aria-label="Primary"><a href="/">Home</a><a href="/blog/">Blog</a></nav></header>
+<main>
+<h1>Website analytics privacy</h1>
+<p>Public pages offer an explicit choice: self-hosted analytics stays off until you allow it. Browser Do Not Track and Global Privacy Control take precedence.</p>
+<h2>What is collected</h2>
+<p>For consenting visits to the homepage, blog listing and published articles, the service receives an approved public page identifier, the referring site's hostname (not its full URL), and an optional random first-party browser identifier. No query strings, fragments, page text, form values, terminal commands, AI keys, account identity or private file names/content are collected. There is no session replay, device fingerprinting, cross-site identification or AI processing.</p>
+<p>The random identifier expires within 24 hours and rotates at UTC day boundaries. It is stored only under a dedicated public-site analytics storage key, never derived from your device or IP. If browser storage fails, pageviews may be counted without an identifier. This is why unique counts are estimates of daily browsers, not people, and totals across days are not deduplicated monthly visitors.</p>
+<h2>Network and geography</h2>
+<p>The Azure-hosted collector necessarily receives your IP and User-Agent over the network. They may be used transiently for abuse limits, bot filtering and a local country lookup, but are not stored or hashed into tracking identifiers. Country is approximate: VPNs and proxies affect it, and unavailable or unsuitable lookups are shown as Unknown. No city/region is retained or external geolocation lookup used.</p>
+<h2>Storage and access</h2>
+<p>Only the owner's authenticated dashboard can read reports. PostgreSQL stores daily page, referrer-domain and country counters, plus keyed pseudonyms needed for daily deduplication. It does not store raw events or raw browser identifiers. Deduplication rows and daily keys expire within 48 hours; aggregate counters expire after 30 days. Initially there are no backups: a server failure can lose the retained metrics.</p>
+<p>Private dashboard and sign-in pages are never tracked. No file browsing, session replay or private memory collection is provided. Low-count country/referrer rows are suppressed in reports; underlying aggregate storage still contains those counts until retention deletes them.</p>
+<h2>Your choice and deletion</h2>
+<p>Use “Decline / withdraw” on a public page to stop future collection and remove this browser's analytics identifier. This does not remove already-aggregated counts, which are not individually attributable after deduplication expires. The owner can purge the analytics database and applicable backups. For privacy or deletion requests, use the public contact details on the homepage; do not include credentials or private files.</p>
+<p>Ad blockers, consent refusal, bots, changing browsers and missing identifiers affect accuracy. The site works without analytics or JavaScript. These technical safeguards are not a blanket claim of compliance with every jurisdiction's privacy law.</p>
+</main>
+</body>
+</html>

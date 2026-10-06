@@ -96,7 +96,8 @@ test('no-JS article is complete and keyboard skip link works', async ({ browser 
 test('empty listing and unknown or draft URLs are explicit; private sources are not served', async ({ page, request }) => {
   await page.goto('/empty.html');
   await expect(page.getByRole('heading', { name: 'No posts published yet' })).toBeVisible();
-  for (const path of ['/blog/does-not-exist/', '/blog/post-template/', '/posts/post-template.md', '/worker/ai-proxy.js']) {
+  for (const path of ['/blog/does-not-exist/', '/blog/post-template/', '/posts/post-template.md', '/worker/ai-proxy.js',
+    '/dashboard/config.go', '/dashboard/schema.sql', '/dashboard/go.mod', '/dashboard/README.md']) {
     const response = await page.goto(path);
     expect(response.status()).toBe(404);
     await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();

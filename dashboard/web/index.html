@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Private dashboard</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/dashboard_metrics"><span class="brand-mark" aria-hidden="true">n.</span><span>nishad<span class="brand-slash"> / </span><strong>control room</strong></span></a>
+    <nav aria-label="Dashboard"><a href="/dashboard_metrics" id="metrics-nav" aria-current="page">Website metrics</a><span class="private-badge">Owner only</span><button id="logout" type="button" class="quiet">Sign out</button></nav>
+  </header>
+  <main>
+    <div class="status-line"><span class="status-dot" aria-hidden="true"></span><p id="status" role="status">Checking session...</p><span class="status-meta">PRIVATE BY DESIGN</span></div>
+    <section id="metrics" hidden>
+      <div class="page-heading"><div><p class="eyebrow">NISHAD.AI / ANALYTICS</p><h1>A little signal.<br>A bigger picture<span class="accent">.</span></h1><p class="subtitle">See what brings people here, and where they come from.</p></div>
+      <div class="range-controls"><label class="sr-only" for="days">Range</label><select id="days"><option value="1">Today · UTC</option><option value="7" selected>Last 7 days · UTC</option><option value="30">Last 30 days · UTC</option></select><button id="refresh" type="button" class="primary">Refresh data</button></div></div>
+      <div id="report" aria-live="polite"></div>
+      <p class="privacy-note">Only consented pageviews. Daily unique browsers are estimates, not people; multi-day totals sum daily uniques. Bots, blockers and consent affect coverage. Country is approximate, never a precise visitor location.</p>
+    </section>
+    <footer><span>nishad / control room</span><span>No fingerprints. No session replay.</span></footer>
+  </main>
+</body>
+</html>

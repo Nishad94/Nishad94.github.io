@@ -17,7 +17,29 @@ Branching Hypothesis," an interactive shell, and an in-browser LLM you can talk 
 - **In-browser AI**: [WebLLM](https://github.com/mlc-ai/web-llm) + WebGPU (local model),
   with an optional bring-your-own-key path to the OpenAI API.
 
-No server, no backend, no database — everything runs in the visitor's browser.
+The public site stays static. Optional AI and private analytics services are separate.
+
+### Private website metrics
+
+Canonical owner sign-in URL: **https://private.nishad.ai/dashboard_metrics**.
+The public **https://nishad.ai/dashboard_metrics** entry is a launcher alias.
+
+`dashboard/` is a separate Go service, not part of GitHub Pages. GitHub
+owner-only authentication protects aggregate reports, charts and a locally
+bundled world map. A narrow PostgreSQL collector measures consenting public
+visitors without fingerprinting. There is no file browser, device connector or
+OpenClaw integration. See [setup and privacy boundaries](dashboard/README.md).
+
+Public integration is configured in `deployment.js`; empty values disable it.
+`/dashboard_metrics` is only a public launcher that
+redirects to the authenticated private backend; Pages itself cannot protect
+that path. The homepage/blog tracker is opt-in, records approved public pages
+only, and uses random daily browser IDs rather than fingerprints. See
+`analytics-privacy.html` for collection, retention and withdrawal details.
+No backend services, credentials or analytics data are copied to `_site/`.
+The existing Pages workflow publishes only static integration; backend deployment
+is separate. Initially countries are Unknown until local GeoIP is configured, and
+the owner has accepted launching without backups.
 
 ---
 

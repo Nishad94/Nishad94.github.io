@@ -1,0 +1,17 @@
+REVOKE ALL ON DATABASE nishad_metrics FROM PUBLIC;
+REVOKE CREATE ON SCHEMA public FROM PUBLIC;
+GRANT CONNECT ON DATABASE nishad_metrics TO "nishad-report", "nishad-collect";
+GRANT USAGE ON SCHEMA metrics TO "nishad-report", "nishad-collect";
+GRANT SELECT ON metrics.days, metrics.buckets TO "nishad-report";
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA metrics TO "nishad-collect";
+ALTER ROLE "nishad-report" SET default_transaction_read_only = on;
+ALTER ROLE "nishad-report" SET statement_timeout = '5s';
+ALTER ROLE "nishad-collect" SET statement_timeout = '5s';
+ALTER ROLE "nishad-report" SET log_statement = 'none';
+ALTER ROLE "nishad-collect" SET log_statement = 'none';
+ALTER ROLE "nishad-report" SET log_min_error_statement = 'panic';
+ALTER ROLE "nishad-collect" SET log_min_error_statement = 'panic';
+ALTER ROLE "nishad-report" SET log_error_verbosity = 'terse';
+ALTER ROLE "nishad-collect" SET log_error_verbosity = 'terse';
+ALTER ROLE "nishad-report" SET log_parameter_max_length_on_error = 0;
+ALTER ROLE "nishad-collect" SET log_parameter_max_length_on_error = 0;

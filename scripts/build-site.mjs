@@ -8,6 +8,7 @@ import javascript from 'highlight.js/lib/languages/javascript';
 import typescript from 'highlight.js/lib/languages/typescript';
 import json from 'highlight.js/lib/languages/json';
 import python from 'highlight.js/lib/languages/python';
+import { PRIVATE_DASHBOARD_ORIGIN, ANALYTICS_ENDPOINT } from '../deployment.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const origin = 'https://nishad.ai';
@@ -112,6 +113,7 @@ ${notFound ? '' : `<meta property="og:url" content="${url}">`}
 <meta name="twitter:card" content="summary">
 <link rel="stylesheet" href="/blog/blog.css">
 <script src="/blog/blog.js" defer></script>
+${notFound ? '' : '<link rel="stylesheet" href="/analytics.css">\n<script type="module" src="/analytics.js"></script>'}
 </head>
 <body class="blog">
 <a class="skip-link" href="#content">Skip to content</a>
@@ -160,6 +162,8 @@ export function renderBlog(allPosts) {
   const posts = allPosts.filter(post => !post.draft).sort((a, b) =>
     b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug));
   const files = new Map();
+  files.set('analytics-pages.json', JSON.stringify(publicPageCatalog(posts)) + '\n');
+  files.set('dashboard_metrics/index.html', renderMetricsEntry(PRIVATE_DASHBOARD_ORIGIN));
   const listing = posts.length
     ? `<ol class="post-list">${posts.map(post => `<li><article>
 ${date(post)}<h2><a href="/blog/${post.slug}/">${escape(post.title)}</a></h2>
@@ -189,6 +193,31 @@ ${date(post)}<h2><a href="/blog/${post.slug}/">${escape(post.title)}</a></h2>
   return files;
 }
 
+export function publicPageCatalog(posts) {
+  return Object.fromEntries([
+    ['/', 'Home'], ['/blog/', 'Technical blog'],
+    ...posts.filter(post => !post.draft).map(post => [`/blog/${post.slug}/`, post.title])
+  ]);
+}
+
+export function renderMetricsEntry(privateOrigin) {
+  if (privateOrigin) {
+    const url = new URL(privateOrigin);
+    if (url.protocol !== 'https:' || url.origin !== privateOrigin || url.username || url.password) {
+      throw new Error('Private dashboard must be a bare HTTPS origin');
+    }
+  }
+  const target = privateOrigin ? `${privateOrigin}/dashboard_metrics` : '';
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<title>Private website metrics</title>
+${target ? `<meta http-equiv="refresh" content="0;url=${escape(target)}">` : ''}
+</head><body><h1>Private website metrics</h1>
+${target ? `<p>Continue to the <a href="${escape(target)}" rel="noreferrer">sign-in-protected dashboard</a>.</p>` : '<p>The private dashboard is not configured yet. No analytics results are published here.</p>'}
+<p><a href="/">Back to nishad.ai</a></p></body></html>\n`;
+}
+
 export async function writePages(files, output) {
   for (const [path, content] of files) {
     await mkdir(dirname(join(output, path)), { recursive: true });
@@ -197,6 +226,11 @@ export async function writePages(files, output) {
 }
 
 export async function buildSite() {
+  if (ANALYTICS_ENDPOINT) {
+    const endpoint = new URL(ANALYTICS_ENDPOINT);
+    if (endpoint.protocol !== 'https:' || endpoint.pathname !== '/collect' || endpoint.search ||
+        endpoint.hash || endpoint.username || endpoint.password) throw new Error('Invalid public analytics endpoint');
+  }
   const posts = await loadPosts(join(root, 'posts'));
   const pages = renderBlog(posts);
   const output = join(root, '_site');
@@ -204,7 +238,8 @@ export async function buildSite() {
   await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
   for (const path of ['index.html', 'ontology.js', 'spotify.js', 'spotify-ui.js',
-    'spotify-callback.html', 'spotify-privacy.html', 'preview.html', 'assets', 'CNAME', '.nojekyll']) {
+    'spotify-callback.html', 'spotify-privacy.html', 'preview.html', 'assets', 'CNAME', '.nojekyll',
+    'deployment.js', 'analytics.js', 'analytics.css', 'analytics-privacy.html']) {
     await cp(join(root, path), join(output, path), { recursive: true });
   }
   await writePages(pages, output);

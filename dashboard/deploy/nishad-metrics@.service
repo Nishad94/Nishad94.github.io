@@ -1,0 +1,34 @@
+[Unit]
+Description=Nishad private metrics %i
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+User=nishad-%i
+Group=nishad-%i
+LoadCredential=config:/etc/nishad-dashboard/%i.json
+ExecStart=/opt/nishad-dashboard/current/dashboard -config %d/config
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=15
+UMask=0077
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+LockPersonality=yes
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+LimitCORE=0
+TasksMax=64
+MemoryMax=256M
+CPUQuota=100%
+
+[Install]
+WantedBy=multi-user.target
