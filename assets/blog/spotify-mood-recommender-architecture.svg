@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+<title id="title">Private Spotify mood recommender architecture</title>
+<desc id="desc">Recently Played, Liked Songs, and ephemeral private mood signals feed a grounded 768-dimensional vector ranking pipeline. A separate one-minute OAuth health plane emits deduplicated failure and recovery alerts.</desc>
+<defs><style>
+.bg{fill:#0d0f1b}.panel{fill:#15192b;stroke:#56f2c4;stroke-width:2}.alt{fill:#1b1f36;stroke:#f4cf57;stroke-width:2}.health{fill:#20172b;stroke:#ff6eb4;stroke-width:2}.t{fill:#f7f8ff;font:700 23px system-ui,sans-serif}.s{fill:#b8bfd9;font:17px system-ui,sans-serif}.m{fill:#56f2c4;font:700 17px ui-monospace,monospace}.a{stroke:#8d96bd;stroke-width:3;fill:none;marker-end:url(#arrow)}
+</style><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0 0L9 3L0 6Z" fill="#8d96bd"/></marker></defs>
+<rect class="bg" width="1200" height="720" rx="28"/>
+<text class="t" x="60" y="65">Private Spotify mood recommender</text>
+<text class="s" x="60" y="96">Cache stable songs. Keep human context ephemeral. Ground before ranking.</text>
+<rect class="panel" x="55" y="145" width="255" height="105" rx="18"/><text class="m" x="80" y="182">SPOTIFY INPUTS</text><text class="s" x="80" y="214">Recently Played</text><text class="s" x="80" y="239">Liked Songs</text>
+<rect class="health" x="55" y="290" width="255" height="125" rx="18"/><text class="m" x="80" y="328">PRIVATE SIGNALS</text><text class="s" x="80" y="360">Structured mood profile</text><text class="s" x="80" y="386">Transient chat vectors</text>
+<rect class="alt" x="390" y="145" width="300" height="270" rx="18"/><text class="m" x="420" y="182">QUERY + CANDIDATES</text><text class="s" x="420" y="218">65% structured mood</text><text class="s" x="420" y="245">35% recency-weighted chat</text><text class="s" x="420" y="285">4 verified Liked Songs</text><text class="s" x="420" y="312">4 discovery songs</text><text class="s" x="420" y="352">MusicBrainz metadata</text><text class="s" x="420" y="379">Lyric-derived semantics</text>
+<rect class="panel" x="770" y="145" width="370" height="270" rx="18"/><text class="m" x="800" y="182">768D LOCAL RANKING</text><text class="s" x="800" y="220">Versioned song-vector cache</text><text class="s" x="800" y="252">Ephemeral query vector</text><text class="s" x="800" y="284">Cosine / ANN retrieval</text><text class="s" x="800" y="316">Recent + duplicate filters</text><text class="s" x="800" y="348">Deterministic reranking</text><text class="s" x="800" y="380">Privacy-safe report</text>
+<path class="a" d="M310 200H380"/><path class="a" d="M310 352H380"/><path class="a" d="M690 280H760"/>
+<rect class="health" x="55" y="505" width="1085" height="145" rx="18"/><text class="m" x="85" y="545">ALWAYS-ON OAUTH HEALTH PLANE</text><text class="s" x="85" y="582">60s dual-endpoint probe</text><text class="s" x="330" y="582">→ one refresh + retry</text><text class="s" x="575" y="582">→ second failure: alert once</text><text class="s" x="870" y="582">→ recovery: notify once</text><text class="s" x="85" y="618">Detection objective: 60–120s plus relay pickup. Revoked consent still requires a person.</text>
+</svg>
