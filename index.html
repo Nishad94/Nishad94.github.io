@@ -338,7 +338,9 @@ import { createSpotifyTerminal } from './spotify-ui.js';
   const PRICE_OUT = 10.0 / 1e6;
   const SPEND_CAP = 0.50; // soft per-browser cap in USD
   let awaitingKey = false;
+  let hostedMode = false;
   let hostedKey = null;
+  // A remembered key is never auto-activated: Gemma remains the default on every load.
   try { hostedKey = localStorage.getItem(KEY_STORAGE); } catch (_) { hostedKey = null; }
   let spendTotal = 0;
   try { spendTotal = parseFloat(localStorage.getItem(SPEND_STORAGE)) || 0; } catch (_) { spendTotal = 0; }
@@ -358,7 +360,7 @@ import { createSpotifyTerminal } from './spotify-ui.js';
       ? 'OpenAI key ready · shared spend ' + fmtUSD(spendTotal) + ' / ' + fmtUSD(SPEND_CAP) + ' soft cap'
       : 'No OpenAI key · raw music views work without AI';
     if (!hudEl) return;
-    if (hostedKey) hudEl.classList.add('on'); else hudEl.classList.remove('on');
+    if (hostedMode && hostedKey) hudEl.classList.add('on'); else hudEl.classList.remove('on');
     if (hudAmountEl) hudAmountEl.textContent = fmtUSD(spendTotal);
     const pct = Math.min(100, (spendTotal / SPEND_CAP) * 100);
     if (hudBarFillEl) hudBarFillEl.style.width = pct + '%';
@@ -747,8 +749,8 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     aiBusy = true;
     input.disabled = true;
 
-    // Hosted (BYOK) path — unlocked via the MULTIVERSE cheat code.
-    if (hostedKey) {
+    // Hosted BYOK is a deliberate, page-session override. Gemma stays the default.
+    if (hostedMode && hostedKey) {
       if (spendTotal >= SPEND_CAP) {
         addLine('ai: OpenAI spend cap reached; falling back to self-hosted Gemma.', 'pink');
       } else try {
@@ -858,7 +860,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
         if (!AI_PROXY_URL) {
           addLine('AI backend:', 'yellow');
           addLine('  key | login           unlock hosted gpt-4o with your own OpenAI key');
-          addLine('  lockdown              wipe your key + go back to the local model');
+          addLine('  lockdown              wipe your key + return to self-hosted Gemma');
           addLine('');
         }
         addLine(AI_PROXY_URL ? 'Anything else is sent to self-hosted Gemma 4, with local WebGPU fallback.' : 'Anything else is sent to the AI (hosted gpt-4o if unlocked, else local WebGPU model).', 'yellow');
@@ -1029,8 +1031,12 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       case 'key':
       case 'login':
       case 'usekey':
-        if (hostedKey) {
-          addLine('✨ hosted gpt-4o mode is already ON. type lockdown to switch back to the local model.', 'yellow');
+        if (hostedMode && hostedKey) {
+          addLine('✨ hosted gpt-4o mode is already ON. type lockdown to switch back to Gemma.', 'yellow');
+        } else if (hostedKey) {
+          hostedMode = true;
+          updateHUD();
+          addLine('✨ hosted gpt-4o mode enabled for this page session. type lockdown to return to Gemma.', 'yellow');
         } else {
           awaitingKey = true;
           addLine('paste your OpenAI API key (sk-...) and press enter to unlock gpt-4o (or type cancel):', 'yellow');
@@ -1039,23 +1045,28 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
 
       case 'lockdown':
       case 'clearkey':
-        if (hostedKey) {
+        if (hostedKey || hostedMode) {
+          hostedMode = false;
           hostedKey = null;
           spendTotal = 0;
           try { localStorage.removeItem(KEY_STORAGE); } catch (_) {}
           try { localStorage.removeItem(SPEND_STORAGE); } catch (_) {}
           updateHUD();
-          addLine('🔒 hosted mode OFF. key wiped from this browser, spend counter reset. back to the local model.', 'yellow');
+          addLine('🔒 hosted mode OFF. key wiped, spend counter reset. Gemma is the default again.', 'yellow');
         } else {
-          addLine('already on the local model. nothing to lock down.', 'dim');
+          addLine('already on self-hosted Gemma. nothing to lock down.', 'dim');
         }
         break;
 
       default:
         // `multiverse` is a fun alias for the key flow.
         if (cmd === CHEAT_WORD) {
-          if (hostedKey) {
-            addLine('✨ hosted gpt-4o mode already active. type lockdown to exit.', 'yellow');
+          if (hostedMode && hostedKey) {
+            addLine('✨ hosted gpt-4o mode already active. type lockdown to return to Gemma.', 'yellow');
+          } else if (hostedKey) {
+            hostedMode = true;
+            updateHUD();
+            addLine('✨ hosted gpt-4o mode enabled for this page session. type lockdown to return to Gemma.', 'yellow');
           } else {
             awaitingKey = true;
             addLine('✨ paste your OpenAI API key (sk-...) and press enter to unlock gpt-4o (or type cancel):', 'yellow');
@@ -1067,10 +1078,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
   }
 
   addLine('nishad://multiverse shell v2.1', 'yellow');
-  if (hostedKey) {
-    addLine('✨ hosted gpt-4o mode is ON (your key, this browser only). ask me anything.', 'yellow');
-    addLine('type lockdown to switch back to the local model.', 'dim');
-  } else if (AI_PROXY_URL) {
+  if (AI_PROXY_URL) {
     addLine('◆ self-hosted Gemma 4 is on, no key needed. Ask me anything.', 'yellow');
     addLine('if the inference host is unavailable, the browser-local model takes over.', 'dim');
   } else {
@@ -1162,7 +1170,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     const key = rawKey.trim();
     awaitingKey = false;
     if (!key || key.toLowerCase() === 'cancel') {
-      addLine('cancelled. staying on the local model.', 'dim');
+      addLine('cancelled. staying on self-hosted Gemma.', 'dim');
       return;
     }
     if (!/^sk-/.test(key)) {
@@ -1170,6 +1178,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       return;
     }
     hostedKey = key;
+    hostedMode = true;
     try { localStorage.setItem(KEY_STORAGE, key); } catch (_) {}
     updateHUD();
     addLine('🔓 hosted mode ON (' + HOSTED_MODEL + '). your key stays in this browser only,', 'yellow');

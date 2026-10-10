@@ -42,13 +42,16 @@ Use `window.history` (a local `history` variable shadows the global). Tests must
 
 There are **three** model paths behind the terminal, in precedence order:
 
-1. **Hosted BYOK (explicit override):** OpenAI `gpt-4o` via the Chat Completions API,
-   unlocked by typing **`MULTIVERSE`** and supplying an `sk-...` key. The key is
-   stored only in `localStorage` and sent directly to OpenAI.
-2. **Self-hosted (keyless default):** Gemma 4 26B-A4B Q4 through the narrow HTTPS
-   gateway configured as `AI_PROXY_DEFAULT`. The model runs on a separate Azure
-   CPU inference VM; the gateway validates origins and bodies, rate-limits requests,
-   stores no prompts, and exposes neither llama.cpp nor management ports publicly.
+1. **Self-hosted (keyless default):** Gemma 4 26B-A4B Q4 through the narrow HTTPS
+   gateway configured as `AI_PROXY_DEFAULT`. It remains the default on every page
+   load, even when an OpenAI key is remembered in `localStorage`. The model runs
+   on a separate Azure CPU inference VM; the gateway validates origins and bodies,
+   rate-limits requests, stores no prompts, and exposes neither llama.cpp nor
+   management ports publicly.
+2. **Hosted BYOK (explicit session override):** OpenAI `gpt-4o` via the Chat
+   Completions API, activated only by typing **`MULTIVERSE`** or `key` in the
+   current page session. The key is stored only in `localStorage` and sent directly
+   to OpenAI. A remembered key is not automatically activated.
 3. **Browser fallback:** `SmolLM2-360M-Instruct` via **WebLLM + WebGPU**, loaded
    lazily when the self-hosted path is unavailable. It runs fully in the browser.
    Its context window is 2048, so keep the shared system prompt reasonably tight.
@@ -59,7 +62,7 @@ All paths are fed the **same system prompt**, produced by `buildSystemPrompt()` 
 ### Key functions in `index.html`
 
 - `buildSystemPrompt()` (imported from `ontology.js`) → the system prompt string.
-- `askAI(query, extra?)` → routes to hosted or local; `extra` is an optional mode
+- `askAI(query, extra?)` → routes to Gemma, explicit hosted override, or local fallback; `extra` is an optional mode
   instruction appended to the system prompt (used by the fun commands).
 - `hostedAskAI(query, extra?)` → streams from OpenAI, requests
   `stream_options.include_usage`, and records spend.

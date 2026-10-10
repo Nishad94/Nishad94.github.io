@@ -410,23 +410,32 @@ test('existing deterministic commands, palette, local failure, BYOK streaming an
   expect(errors).toEqual([]);
 });
 
-test('failed stored OpenAI key falls through to self-hosted Gemma', async ({ page }) => {
+test('remembered OpenAI key stays inactive until explicit session activation', async ({ page }) => {
   await seed(page, { key: true });
-  await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/gemma-fallback'));
+  await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/gemma-default'));
   let openaiCalls = 0;
   let gemmaCalls = 0;
   await page.route('https://api.openai.com/v1/chat/completions', route => {
     openaiCalls++;
-    return route.fulfill({ status: 429, json: { error: { message: 'You have no credits remaining.' } } });
+    return route.fulfill({
+      contentType: 'text/event-stream',
+      body: 'data: {"choices":[{"delta":{"content":"EXPLICIT_OPENAI_OK"}}]}\n\ndata: [DONE]\n\n'
+    });
   });
-  await page.route('http://127.0.0.1:9/gemma-fallback', route => {
+  await page.route('http://127.0.0.1:9/gemma-default', route => {
     gemmaCalls++;
-    return route.fulfill({ json: { content: 'BYOK_FALLBACK_OK', finish_reason: 'stop' } });
+    return route.fulfill({ json: { content: 'GEMMA_DEFAULT_OK', finish_reason: 'stop' } });
   });
   await page.reload();
-  await command(page, 'prove fallback');
-  await expect(page.locator('#term-output')).toContainText('OpenAI unavailable');
-  await expect(page.locator('#term-output')).toContainText('BYOK_FALLBACK_OK');
+  await expect(page.locator('#term-output')).toContainText('self-hosted Gemma 4 is on');
+  await expect(page.locator('#spend-hud')).not.toHaveClass(/on/);
+  await command(page, 'prove default');
+  await expect(page.locator('#term-output')).toContainText('GEMMA_DEFAULT_OK');
+  expect(openaiCalls).toBe(0);
+  expect(gemmaCalls).toBe(1);
+  await command(page, 'MULTIVERSE');
+  await command(page, 'prove explicit override');
+  await expect(page.locator('#term-output')).toContainText('EXPLICIT_OPENAI_OK');
   expect(openaiCalls).toBe(1);
   expect(gemmaCalls).toBe(1);
 });

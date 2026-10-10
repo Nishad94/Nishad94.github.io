@@ -225,7 +225,10 @@ A hidden GTA-style cheat upgrades the terminal to a hosted model:
 2. When prompted, paste your own **OpenAI API key** (`sk-...`).
 3. The terminal switches to **`gpt-4o`** via the OpenAI API, streaming responses
    (prompt prefix becomes `nishad.ai✨>`).
-4. Type **`lockdown`** (or `clearkey`) to wipe the key and revert to the local model.
+4. Type **`lockdown`** (or `clearkey`) to wipe the key and return to self-hosted Gemma.
+
+Gemma is the default on every page load. A remembered OpenAI key is activated only
+after you explicitly type `MULTIVERSE` or `key` in that page session.
 
 **Where your key lives:** only in your browser's `localStorage`. Requests go **directly**
 from your browser to `api.openai.com` — the key is never sent to, or stored on, any server
