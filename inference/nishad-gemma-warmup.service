@@ -1,0 +1,17 @@
+[Unit]
+Description=Warm the nishad.ai Gemma ontology prompt cache
+After=nishad-gemma.service
+Requires=nishad-gemma.service
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'for i in $(seq 1 120); do curl -fsS --max-time 2 http://127.0.0.1:8080/health >/dev/null && break; sleep 2; done; curl -fsS --max-time 180 -H "Content-Type: application/json" --data-binary @/opt/nishad-ai/warmup.json http://127.0.0.1:8080/v1/chat/completions >/dev/null'
+RemainAfterExit=yes
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target

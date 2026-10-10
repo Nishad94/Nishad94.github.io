@@ -40,17 +40,21 @@ Use `window.history` (a local `history` variable shadows the global). Tests must
 
 ## How the AI works
 
-There are **two** interchangeable model backends behind the terminal:
+There are **three** model paths behind the terminal, in precedence order:
 
-1. **Local (default, keyless):** `SmolLM2-360M-Instruct` via **WebLLM + WebGPU**,
-   loaded lazily from a CDN on the first AI query. Runs fully in the browser.
-   Context window is small (2048), so keep the system prompt reasonably tight.
-2. **Hosted (BYOK, opt-in):** OpenAI `gpt-4o` via the Chat Completions API,
-   unlocked by typing the cheat code **`MULTIVERSE`** and pasting an `sk-...` key.
-   The key is stored only in `localStorage` and sent directly to OpenAI.
+1. **Hosted BYOK (explicit override):** OpenAI `gpt-4o` via the Chat Completions API,
+   unlocked by typing **`MULTIVERSE`** and supplying an `sk-...` key. The key is
+   stored only in `localStorage` and sent directly to OpenAI.
+2. **Self-hosted (keyless default):** Gemma 4 26B-A4B Q4 through the narrow HTTPS
+   gateway configured as `AI_PROXY_DEFAULT`. The model runs on a separate Azure
+   CPU inference VM; the gateway validates origins and bodies, rate-limits requests,
+   stores no prompts, and exposes neither llama.cpp nor management ports publicly.
+3. **Browser fallback:** `SmolLM2-360M-Instruct` via **WebLLM + WebGPU**, loaded
+   lazily when the self-hosted path is unavailable. It runs fully in the browser.
+   Its context window is 2048, so keep the shared system prompt reasonably tight.
 
-Both backends are fed the **same system prompt**, produced by
-`buildSystemPrompt()` in `ontology.js`. The prompt = `PERSONA` + structured facts.
+All paths are fed the **same system prompt**, produced by `buildSystemPrompt()` in
+`ontology.js`. The prompt = `PERSONA` + structured facts.
 
 ### Key functions in `index.html`
 
@@ -158,9 +162,15 @@ GitHub Pages Actions auto-rebuilds on push after manual source setup. Verify liv
   `node --check ontology.js` and extract+check the inline script.
 - Match the existing neon/terminal aesthetic (CSS custom props: `--mint`,
   `--yellow`, `--pink`, `--purple`).
-## AI proxy
+## AI inference gateway
 
-`worker/ai-proxy.js` (Cloudflare Worker) is an optional owner-funded gpt-4o proxy; `AI_PROXY_DEFAULT` in `index.html` enables it (empty = BYOK). Never put the OpenAI key in client code; it is a Worker secret. Keep the message/size validation and limits when editing. Tests: `npm test`.
+`AI_PROXY_DEFAULT` points to the self-hosted Gemma gateway. Generic deployment
+sources live under `inference/`; runtime configuration, machine addresses beyond
+approved public endpoints, and operational data stay outside Pages output. Keep
+origin/body validation, rate limits, loopback-only llama.cpp binding, no-prompt
+logging, and browser fallback when editing. `worker/ai-proxy.js` is retained only
+as a tested rollback artifact; never put an OpenAI key in client code. Tests:
+`npm run test:syntax` and `npm test`.
 
 ## Private metrics dashboard and analytics
 

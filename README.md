@@ -14,8 +14,9 @@ Branching Hypothesis," an interactive shell, and an in-browser LLM you can talk 
 - **Hosting**: GitHub Pages (`Nishad94/Nishad94.github.io`), served over HTTPS.
 - **Custom domain**: `nishad.ai`, DNS managed at GoDaddy (apex `A` records → GitHub Pages,
   `www` `CNAME` → `nishad94.github.io`). The `CNAME` file in this repo pins the domain.
-- **In-browser AI**: [WebLLM](https://github.com/mlc-ai/web-llm) + WebGPU (local model),
-  with an optional bring-your-own-key path to the OpenAI API.
+- **AI terminal**: self-hosted Gemma 4 26B-A4B Q4 served by llama.cpp on an
+  isolated Azure ARM64 inference VM, with browser-local WebLLM/WebGPU fallback
+  and an optional bring-your-own-key path to the OpenAI API.
 
 The public site stays static. Optional AI and private analytics services are separate.
 
@@ -193,11 +194,14 @@ Anything that isn't a known command is sent to the **AI** (see below).
 - **summon Toffee** — deploy the site's least-qualified SRE (a cat 🐈).
 - **command palette** — `⌘K` / `Ctrl+K` fuzzy navigation.
 
-### Local AI (default, keyless)
-The first time you ask a question, the site lazy-loads
-**SmolLM2-360M-Instruct** via WebLLM and runs it **entirely in your browser** using WebGPU.
-No API key, no server, nothing leaves your machine. Works best in current Chrome/Edge on
-hardware with WebGPU.
+### Self-hosted AI with a browser-local fallback
+Keyless terminal questions go first to **Gemma 4 26B-A4B Q4**, hosted through a
+narrow HTTPS gateway on a dedicated Azure ARM64 inference VM. The llama.cpp model
+server and management ports stay loopback-only; the gateway validates origins and
+request sizes, rate-limits use, and does not log prompts. If that host is unavailable,
+the terminal lazy-loads **SmolLM2-360M-Instruct** through WebLLM and runs it entirely
+inside the visitor's browser using WebGPU. Local fallback works best in current
+Chrome/Edge on hardware with WebGPU.
 
 The AI's knowledge (Nishad's career, projects, skills, lore, persona) lives in
 **`ontology.js`** — a single, heavily-commented source of truth. `buildSystemPrompt()`
@@ -376,9 +380,12 @@ root directly still works for homepage-only development, but will not generate t
 ---
 
 *main is protected · force push disabled · built with HTML/CSS/JS and questionable 5 AM lore.*
-## Optional owner-funded AI proxy (no visitor key)
+## Legacy OpenAI proxy rollback path
 
-`worker/ai-proxy.js` is a small Cloudflare Worker that forwards music-report prompts to OpenAI gpt-4o using a key stored as a Worker secret, so visitors need no BYOK key. It enforces an origin allowlist, a 32 KB body limit, fixed model/token limits, a per-IP daily limit and a global daily limit (shared via an optional `RATE` KV namespace; counters are best-effort, so also set a budget limit in the OpenAI dashboard).
+`worker/ai-proxy.js` is retained as a tested rollback artifact. It forwards prompts
+to OpenAI gpt-4o using a Worker secret and enforces an origin allowlist, 32 KB body
+limit, fixed token limits, and per-IP/global daily limits. It is not the active
+terminal backend; `AI_PROXY_DEFAULT` points to the self-hosted Gemma gateway.
 
 Setup (manual, not done by this repo):
 
@@ -388,11 +395,16 @@ npx wrangler secret put OPENAI_API_KEY
 npx wrangler deploy
 ```
 
-Then set `AI_PROXY_DEFAULT` in `index.html` to the Worker URL. While it is empty, the site keeps using visitor BYOK. For local testing on `127.0.0.1`, run `localStorage.setItem('nishad_ai_proxy', '<worker url>')` and add `http://127.0.0.1:8000` to `ALLOWED_ORIGINS`. Tests: `node --test tests/ai-proxy.test.mjs` (mocked upstream; no live key).
+To reactivate this rollback path, replace `AI_PROXY_DEFAULT` with the Worker URL and
+restore its production origin allowlist. For local testing, set
+`localStorage.nishad_ai_proxy` to a mock/development URL. Tests:
+`node --test tests/ai-proxy.test.mjs` (mocked upstream; no live key).
 
 This does not change the Spotify Developer Policy III.13/III.14 position: an owner-run server sending other users' Spotify data to an AI model is a larger contractual exposure than a private BYOK test. Obtain Spotify's permission before enabling it for public visitors.
 
-The Worker is deployed at `https://nishad-ai-proxy.nishad-dawkhar94.workers.dev` and `AI_PROXY_DEFAULT` points at it. On `127.0.0.1`, `localStorage.nishad_ai_proxy = 'off'` forces BYOK (used by tests). `ALLOWED_ORIGINS` in `worker/wrangler.toml` includes `http://127.0.0.1:8000` for local testing; remove it for strict production.
+The legacy Worker may remain deployed for rollback, but the production terminal does
+not point at it. On loopback, `localStorage.nishad_ai_proxy = 'off'` forces BYOK/local
+mode for tests; a temporary HTTP(S) URL can select a mock or development gateway.
 
 ## Layout
 

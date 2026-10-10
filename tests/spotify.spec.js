@@ -410,6 +410,25 @@ test('existing deterministic commands, palette, local failure, BYOK streaming an
   expect(errors).toEqual([]);
 });
 
+test('self-hosted terminal AI uses Gemma gateway without a visitor key', async ({ page }) => {
+  await seed(page, { key: false });
+  await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/gemma'));
+  let calls = 0;
+  await page.route('https://api.openai.com/**', route => { throw new Error('direct OpenAI call'); });
+  await page.route('http://127.0.0.1:9/gemma', route => {
+    calls++;
+    expect(route.request().postDataJSON()).toMatchObject({
+      mode: 'chat',
+      messages: [{ role: 'system' }, { role: 'user', content: 'prove self hosted' }]
+    });
+    return route.fulfill({ json: { content: 'GEMMA_TERMINAL_OK', finish_reason: 'stop' } });
+  });
+  await page.reload();
+  await command(page, 'prove self hosted');
+  await expect(page.locator('#term-output')).toContainText('GEMMA_TERMINAL_OK');
+  expect(calls).toBe(1);
+});
+
 for (const outcome of ['ok', 'visitor_limit', 'global_limit', 'down']) {
   test('site AI proxy ' + outcome + ' works without a visitor key and never calls OpenAI directly', async ({ page }) => {
     await seed(page, { key: false });

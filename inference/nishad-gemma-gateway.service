@@ -1,0 +1,27 @@
+[Unit]
+Description=Nishad.ai public Gemma inference gateway
+After=network-online.target nishad-gemma-warmup.service
+Wants=network-online.target
+Requires=nishad-gemma-warmup.service
+
+[Service]
+Type=simple
+User=nishad-ai
+Group=nishad-ai
+Environment=LISTEN=127.0.0.1:8090
+Environment=GEMMA_UPSTREAM=http://127.0.0.1:8080/v1/chat/completions
+Environment=GEMMA_MODEL=gemma-4-26b-a4b-q4
+Environment=ALLOWED_ORIGINS=https://nishad.ai
+ExecStart=/usr/bin/python3 /opt/nishad-ai/gateway.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+MemoryDenyWriteExecute=true
+
+[Install]
+WantedBy=multi-user.target

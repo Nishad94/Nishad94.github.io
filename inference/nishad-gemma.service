@@ -1,0 +1,26 @@
+[Unit]
+Description=Nishad.ai Gemma 4 inference server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nishad-ai
+Group=nishad-ai
+ExecStart=/usr/local/bin/llama-server --model /var/lib/nishad-ai/models/gemma-4-26B_q4_0-it.gguf --alias gemma-4-26b-a4b-q4 --host 127.0.0.1 --port 8080 --ctx-size 4096 --threads 8 --threads-batch 8 --parallel 1 --batch-size 512 --ubatch-size 128 --load-mode mmap+mlock --reasoning off --reasoning-budget 0 --no-webui
+Restart=on-failure
+RestartSec=10
+TimeoutStartSec=600
+LimitNOFILE=65536
+LimitMEMLOCK=infinity
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/nishad-ai
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=true
+MemoryDenyWriteExecute=false
+
+[Install]
+WantedBy=multi-user.target
