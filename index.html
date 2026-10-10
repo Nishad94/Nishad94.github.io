@@ -728,14 +728,46 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       answerLine.textContent = 'nishad.ai◆> [self-hosted Gemma unavailable (' + response.status + '); switching to local WebGPU]';
       return false;
     }
-    const json = await response.json();
-    const content = json?.content?.trim();
-    if (!content) {
+    const type = response.headers.get('content-type') || '';
+    if (!type.includes('text/event-stream')) {
+      const json = await response.json();
+      const content = json?.content?.trim();
+      if (!content) {
+        answerLine.textContent = 'nishad.ai◆> [empty Gemma response; switching to local WebGPU]';
+        return false;
+      }
+      answerLine.textContent = 'nishad.ai◆> ' + content;
+      output.scrollTop = output.scrollHeight;
+      return true;
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let accumulated = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const events = buffer.split('\n\n');
+      buffer = events.pop() || '';
+      for (const event of events) {
+        const line = event.split('\n').find(part => part.startsWith('data:'));
+        if (!line) continue;
+        try {
+          const data = JSON.parse(line.slice(5).trim());
+          if (data.delta) {
+            accumulated += data.delta;
+            answerLine.textContent = 'nishad.ai◆> ' + accumulated;
+            output.scrollTop = output.scrollHeight;
+          }
+        } catch (_) { /* ignore malformed/keepalive events */ }
+      }
+    }
+    if (!accumulated.trim()) {
       answerLine.textContent = 'nishad.ai◆> [empty Gemma response; switching to local WebGPU]';
       return false;
     }
-    answerLine.textContent = 'nishad.ai◆> ' + content;
-    output.scrollTop = output.scrollHeight;
     return true;
   }
 

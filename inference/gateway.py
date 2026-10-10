@@ -146,9 +146,9 @@ class Handler(BaseHTTPRequestHandler):
         request_body = {
             "model": MODEL,
             "messages": body["messages"],
-            "temperature": 0.85,
-            "max_tokens": 700 if chat else 2600,
-            "stream": False,
+            "temperature": 0.75,
+            "max_tokens": 256 if chat else 2600,
+            "stream": chat,
         }
         if not chat:
             request_body["response_format"] = {"type": "json_object"}
@@ -159,20 +159,56 @@ class Handler(BaseHTTPRequestHandler):
             headers={"Content-Type": "application/json"},
         )
         try:
-            with urllib.request.urlopen(upstream_request, timeout=180) as response:
-                result = json.load(response)
+            upstream = urllib.request.urlopen(upstream_request, timeout=180)
         except urllib.error.HTTPError as error:
             self.send_json(502, {"error": "upstream_error", "status": error.code}, origin)
             return
         except Exception:
             self.send_json(502, {"error": "upstream_unreachable"}, origin)
             return
+
+        if chat:
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.send_header("Cache-Control", "no-store, no-transform")
+            self.send_header("X-Accel-Buffering", "no")
+            self.send_header("Access-Control-Allow-Origin", origin)
+            self.send_header("Vary", "Origin")
+            self.end_headers()
+            try:
+                with upstream:
+                    for raw in upstream:
+                        line = raw.decode("utf-8", "replace").strip()
+                        if not line.startswith("data:"):
+                            continue
+                        payload = line[5:].strip()
+                        if payload == "[DONE]":
+                            self.wfile.write(b'data: {"done":true}\n\n')
+                            self.wfile.flush()
+                            break
+                        try:
+                            event = json.loads(payload)
+                            choice = (event.get("choices") or [{}])[0]
+                            delta = (choice.get("delta") or {}).get("content")
+                            finish = choice.get("finish_reason")
+                        except (json.JSONDecodeError, AttributeError):
+                            continue
+                        if delta or finish:
+                            safe = json.dumps({"delta": delta or "", "finish_reason": finish}, separators=(",", ":"))
+                            self.wfile.write(("data: " + safe + "\n\n").encode())
+                            self.wfile.flush()
+            except (BrokenPipeError, ConnectionResetError):
+                pass
+            return
+
+        try:
+            with upstream:
+                result = json.load(upstream)
+        except Exception:
+            self.send_json(502, {"error": "upstream_unreadable"}, origin)
+            return
         choice = (result.get("choices") or [{}])[0]
-        self.send_json(
-            200,
-            {"content": (choice.get("message") or {}).get("content"), "finish_reason": choice.get("finish_reason")},
-            origin,
-        )
+        self.send_json(200, {"content": (choice.get("message") or {}).get("content"), "finish_reason": choice.get("finish_reason")}, origin)
 
 
 def main() -> None:

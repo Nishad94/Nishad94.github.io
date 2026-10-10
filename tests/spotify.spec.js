@@ -440,6 +440,19 @@ test('remembered OpenAI key stays inactive until explicit session activation', a
   expect(gemmaCalls).toBe(1);
 });
 
+test('self-hosted Gemma streams incremental terminal output', async ({ page }) => {
+  await seed(page, { key: false });
+  await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/gemma-stream'));
+  await page.route('http://127.0.0.1:9/gemma-stream', route => route.fulfill({
+    contentType: 'text/event-stream',
+    body: 'data: {"delta":"STREAMED_"}\n\ndata: {"delta":"GEMMA_OK"}\n\ndata: {"done":true}\n\n'
+  }));
+  await page.reload();
+  await command(page, 'prove streaming');
+  await expect(page.locator('#term-output')).toContainText('STREAMED_GEMMA_OK');
+  await expect(page.locator('#term-input')).toBeEnabled();
+});
+
 test('self-hosted terminal AI uses Gemma gateway without a visitor key', async ({ page }) => {
   await seed(page, { key: false });
   await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/gemma'));
