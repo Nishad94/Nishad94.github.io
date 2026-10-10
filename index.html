@@ -657,11 +657,12 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       let detail = resp.status + ' ' + resp.statusText;
       try { const j = await resp.json(); if (j?.error?.message) detail = j.error.message; } catch (_) {}
       if (resp.status === 401) {
-        addLine('ai error: key rejected (401). type lockdown to remove it, then MULTIVERSE to re-enter.', 'pink');
+        addLine('ai: saved OpenAI key was rejected; falling back to self-hosted Gemma.', 'pink');
       } else {
-        addLine('ai error: ' + detail, 'pink');
+        addLine('ai: OpenAI unavailable (' + detail + '); falling back to self-hosted Gemma.', 'pink');
       }
-      return;
+      answerLine.remove();
+      return false;
     }
 
     const reader = resp.body.getReader();
@@ -700,6 +701,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     const outTok = usage?.completion_tokens ?? Math.ceil(accumulated.length / 4);
     const cost = recordSpend(inTok, outTok);
     addLine('[usage] +' + (inTok + outTok) + ' tok · ' + fmtUSD(cost) + ' · session ' + fmtUSD(spendTotal) + ' / ' + fmtUSD(SPEND_CAP), 'dim');
+    return true;
   }
 
   async function proxyAskAI(query, extra) {
@@ -748,22 +750,17 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     // Hosted (BYOK) path — unlocked via the MULTIVERSE cheat code.
     if (hostedKey) {
       if (spendTotal >= SPEND_CAP) {
-        addLine('⚠ session spend cap reached (' + fmtUSD(SPEND_CAP) + '). type lockdown or refresh to reset.', 'pink');
-        aiBusy = false;
-        input.disabled = false;
-        input.focus();
-        return;
-      }
-      try {
-        await hostedAskAI(query, extra);
+        addLine('ai: OpenAI spend cap reached; falling back to self-hosted Gemma.', 'pink');
+      } else try {
+        if (await hostedAskAI(query, extra)) {
+          aiBusy = false;
+          input.disabled = false;
+          input.focus();
+          return;
+        }
       } catch (err) {
-        addLine('ai error: ' + (err?.message || String(err)), 'pink');
-      } finally {
-        aiBusy = false;
-        input.disabled = false;
-        input.focus();
+        addLine('ai: OpenAI unreachable (' + (err?.message || String(err)) + '); falling back to self-hosted Gemma.', 'pink');
       }
-      return;
     }
 
     if (AI_PROXY_URL) {

@@ -410,6 +410,27 @@ test('existing deterministic commands, palette, local failure, BYOK streaming an
   expect(errors).toEqual([]);
 });
 
+test('failed stored OpenAI key falls through to self-hosted Gemma', async ({ page }) => {
+  await seed(page, { key: true });
+  await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/gemma-fallback'));
+  let openaiCalls = 0;
+  let gemmaCalls = 0;
+  await page.route('https://api.openai.com/v1/chat/completions', route => {
+    openaiCalls++;
+    return route.fulfill({ status: 429, json: { error: { message: 'You have no credits remaining.' } } });
+  });
+  await page.route('http://127.0.0.1:9/gemma-fallback', route => {
+    gemmaCalls++;
+    return route.fulfill({ json: { content: 'BYOK_FALLBACK_OK', finish_reason: 'stop' } });
+  });
+  await page.reload();
+  await command(page, 'prove fallback');
+  await expect(page.locator('#term-output')).toContainText('OpenAI unavailable');
+  await expect(page.locator('#term-output')).toContainText('BYOK_FALLBACK_OK');
+  expect(openaiCalls).toBe(1);
+  expect(gemmaCalls).toBe(1);
+});
+
 test('self-hosted terminal AI uses Gemma gateway without a visitor key', async ({ page }) => {
   await seed(page, { key: false });
   await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/gemma'));
