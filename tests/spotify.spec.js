@@ -445,11 +445,24 @@ test('self-hosted Gemma streams incremental terminal output', async ({ page }) =
   await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/gemma-stream'));
   await page.route('http://127.0.0.1:9/gemma-stream', route => route.fulfill({
     contentType: 'text/event-stream',
-    body: 'data: {"delta":"STREAMED_"}\n\ndata: {"delta":"GEMMA_OK"}\n\ndata: {"done":true}\n\n'
+    body: 'data: {"delta":"STREAMED_"}\n\ndata: {"delta":"GEMMA_OK"}\n\ndata: {"delta":"","finish_reason":"stop"}\n\ndata: {"done":true}\n\n'
   }));
   await page.reload();
   await command(page, 'prove streaming');
   await expect(page.locator('#term-output')).toContainText('STREAMED_GEMMA_OK');
+  await expect(page.locator('#term-input')).toBeEnabled();
+});
+
+test('self-hosted Gemma labels a genuinely truncated streamed answer', async ({ page }) => {
+  await seed(page, { key: false });
+  await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/gemma-length'));
+  await page.route('http://127.0.0.1:9/gemma-length', route => route.fulfill({
+    contentType: 'text/event-stream',
+    body: 'data: {"delta":"Partial answer"}\n\ndata: {"delta":"","finish_reason":"length"}\n\ndata: {"done":true}\n\n'
+  }));
+  await page.reload();
+  await command(page, 'write a long answer');
+  await expect(page.locator('#term-output')).toContainText('answer reached the output limit');
   await expect(page.locator('#term-input')).toBeEnabled();
 });
 

@@ -745,6 +745,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     const decoder = new TextDecoder();
     let buffer = '';
     let accumulated = '';
+    let finishReason = null;
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -761,12 +762,16 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
             answerLine.textContent = 'nishad.ai◆> ' + accumulated;
             output.scrollTop = output.scrollHeight;
           }
+          if (data.finish_reason) finishReason = data.finish_reason;
         } catch (_) { /* ignore malformed/keepalive events */ }
       }
     }
     if (!accumulated.trim()) {
       answerLine.textContent = 'nishad.ai◆> [empty Gemma response; switching to local WebGPU]';
       return false;
+    }
+    if (finishReason === 'length') {
+      answerLine.textContent += '\n\n[answer reached the output limit — ask “continue” for the rest]';
     }
     return true;
   }

@@ -147,7 +147,9 @@ class Handler(BaseHTTPRequestHandler):
             "model": MODEL,
             "messages": body["messages"],
             "temperature": 0.75,
-            "max_tokens": 256 if chat else 2600,
+            # Streaming keeps first-token latency low; allow enough room to finish
+            # normal prose answers instead of cutting them off mid-sentence.
+            "max_tokens": 768 if chat else 2600,
             "stream": chat,
         }
         if not chat:
