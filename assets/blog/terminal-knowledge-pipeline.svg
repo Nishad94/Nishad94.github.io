@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+<title id="title">Terminal knowledge and publishing pipelines</title><desc id="desc">The current AI knowledge lane turns ontology.js into a system prompt sent with each question. A separate publishing lane validates posts Markdown and generates static blog HTML. A future optional RAG lane would chunk approved public documents, embed them locally, retrieve passages, and cite them.</desc>
+<defs><style>.bg{fill:#0d0f1b}.lane{fill:#121528;stroke:#343754;stroke-width:2}.src{fill:#17192d;stroke:#b9a4ff;stroke-width:2}.proc{fill:#17212b;stroke:#9fffd2;stroke-width:2}.out{fill:#241f25;stroke:#f4cf57;stroke-width:2}.future{fill:#221827;stroke:#ff9bd6;stroke-width:2;stroke-dasharray:8 7}.t{fill:#f7f4ff;font:700 29px system-ui,sans-serif}.s{fill:#aba8c8;font:17px system-ui,sans-serif}.h{fill:#f7f4ff;font:700 18px system-ui,sans-serif}.p{fill:#cfcbe5;font:15px system-ui,sans-serif}.m{fill:#9fffd2;font:700 15px ui-monospace,monospace}.w{fill:none;stroke:#7580a8;stroke-width:3;marker-end:url(#a)}.fd{fill:none;stroke:#ff9bd6;stroke-width:3;stroke-dasharray:9 8;marker-end:url(#p)}</style><marker id="a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0L9 3L0 6Z" fill="#7580a8"/></marker><marker id="p" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0L9 3L0 6Z" fill="#ff9bd6"/></marker></defs>
+<rect class="bg" width="1400" height="820" rx="28"/><text class="t" x="55" y="60">Two real pipelines—and one possible future</text><text class="s" x="55" y="92">Markdown publishes articles. ontology.js feeds the model. They do not secretly swap jobs at night.</text>
+<rect class="lane" x="45" y="125" width="1310" height="190" rx="22"/><text class="m" x="70" y="160">CURRENT AI KNOWLEDGE LANE</text>
+<path class="w" d="M290 225H380"/><path class="w" d="M610 225H700"/><path class="w" d="M930 225H1020"/>
+<rect class="src" x="75" y="180" width="215" height="100" rx="16"/><text class="h" x="103" y="217">ontology.js</text><text class="p" x="103" y="246">facts · persona · lore</text>
+<rect class="proc" x="380" y="180" width="230" height="100" rx="16"/><text class="h" x="408" y="217">buildSystemPrompt()</text><text class="p" x="408" y="246">one curated instruction</text>
+<rect class="proc" x="700" y="180" width="230" height="100" rx="16"/><text class="h" x="728" y="217">Browser request</text><text class="p" x="728" y="246">system + user message</text>
+<rect class="out" x="1020" y="180" width="290" height="100" rx="16"/><text class="h" x="1048" y="217">Gemma / OpenAI / WebGPU</text><text class="p" x="1048" y="246">same semantic prompt</text>
+<rect class="lane" x="45" y="345" width="1310" height="190" rx="22"/><text class="m" x="70" y="380">CURRENT PUBLISHING LANE</text>
+<path class="w" d="M290 445H380"/><path class="w" d="M610 445H700"/><path class="w" d="M930 445H1020"/>
+<rect class="src" x="75" y="400" width="215" height="100" rx="16"/><text class="h" x="103" y="437">posts/*.md</text><text class="p" x="103" y="466">articles + metadata</text>
+<rect class="proc" x="380" y="400" width="230" height="100" rx="16"/><text class="h" x="408" y="437">build-site.mjs</text><text class="p" x="408" y="466">validate + render safely</text>
+<rect class="proc" x="700" y="400" width="230" height="100" rx="16"/><text class="h" x="728" y="437">_site/blog/</text><text class="p" x="728" y="466">generated static HTML</text>
+<rect class="out" x="1020" y="400" width="290" height="100" rx="16"/><text class="h" x="1048" y="437">GitHub Pages</text><text class="p" x="1048" y="466">public reading experience</text>
+<rect class="future" x="45" y="575" width="1310" height="185" rx="22"/><text class="m" x="70" y="611" style="fill:#ff9bd6">OPTIONAL FUTURE RAG LANE</text>
+<path class="fd" d="M290 680H365"/><path class="fd" d="M560 680H635"/><path class="fd" d="M830 680H905"/><path class="fd" d="M1095 680H1170"/>
+<rect class="src" x="75" y="635" width="215" height="90" rx="16"/><text class="h" x="103" y="671">Approved public docs</text><text class="p" x="103" y="699">never surprise-index drafts</text>
+<rect class="proc" x="365" y="635" width="195" height="90" rx="16"/><text class="h" x="393" y="671">Chunk + embed</text><text class="p" x="393" y="699">local build step</text>
+<rect class="proc" x="635" y="635" width="195" height="90" rx="16"/><text class="h" x="663" y="671">Vector search</text><text class="p" x="663" y="699">top relevant passages</text>
+<rect class="proc" x="905" y="635" width="190" height="90" rx="16"/><text class="h" x="933" y="671">Ground prompt</text><text class="p" x="933" y="699">evidence, not commands</text>
+<rect class="out" x="1170" y="635" width="140" height="90" rx="16"/><text class="h" x="1198" y="671">Answer</text><text class="p" x="1198" y="699">+ citations</text>
+</svg>

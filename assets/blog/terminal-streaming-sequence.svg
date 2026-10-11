@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900" role="img" aria-labelledby="title desc">
+<title id="title">Streaming inference request sequence</title><desc id="desc">The browser sends an HTTPS question through Caddy to the gateway. The gateway validates it and calls loopback llama.cpp. llama.cpp reuses the ontology prefix and runs Gemma. Tokens return as Server-Sent Events and are painted incrementally until a stop or length finish reason.</desc>
+<defs><style>.bg{fill:#0d0f1b}.head{fill:#17192d;stroke:#9fffd2;stroke-width:2}.model{fill:#201a35;stroke:#b9a4ff;stroke-width:2}.t{fill:#f7f4ff;font:700 29px system-ui,sans-serif}.s{fill:#aba8c8;font:17px system-ui,sans-serif}.h{fill:#f7f4ff;font:700 17px system-ui,sans-serif}.m{fill:#9fffd2;font:700 14px ui-monospace,monospace}.life{stroke:#4b5274;stroke-width:2;stroke-dasharray:6 8}.call{stroke:#7781a8;stroke-width:3;fill:none;marker-end:url(#a)}.ret{stroke:#b9a4ff;stroke-width:3;fill:none;marker-end:url(#p)}.note{fill:#241f25;stroke:#f4cf57;stroke-width:2}.pink{fill:#ff9bd6}</style><marker id="a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0L9 3L0 6Z" fill="#7781a8"/></marker><marker id="p" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0L9 3L0 6Z" fill="#b9a4ff"/></marker></defs>
+<rect class="bg" width="1400" height="900" rx="28"/><text class="t" x="55" y="60">A question’s road trip, measured in tokens</text><text class="s" x="55" y="92">Streaming optimizes “I can see it working,” not just total completion time.</text>
+<rect class="head" x="55" y="125" width="190" height="76" rx="15"/><text class="h" x="111" y="169">Browser</text>
+<rect class="head" x="330" y="125" width="190" height="76" rx="15"/><text class="h" x="398" y="169">Caddy</text>
+<rect class="head" x="605" y="125" width="190" height="76" rx="15"/><text class="h" x="655" y="159">Python</text><text class="h" x="654" y="182">gateway</text>
+<rect class="head" x="880" y="125" width="190" height="76" rx="15"/><text class="h" x="930" y="169">llama.cpp</text>
+<rect class="model" x="1155" y="125" width="190" height="76" rx="15"/><text class="h" x="1217" y="169">Gemma</text>
+<path class="life" d="M150 201V835M425 201V835M700 201V835M975 201V835M1250 201V835"/>
+<path class="call" d="M150 255H425"/><text class="m" x="205" y="243">POST / over HTTPS</text>
+<path class="call" d="M425 315H700"/><text class="m" x="475" y="303">reverse proxy</text>
+<rect class="note" x="615" y="350" width="170" height="100" rx="14"/><text class="m" x="638" y="381">VALIDATE</text><text class="s" x="638" y="410">origin · size</text><text class="s" x="638" y="435">roles · quotas</text>
+<path class="call" d="M700 490H975"/><text class="m" x="750" y="478">loopback JSON</text>
+<path class="call" d="M975 550H1250"/><text class="m" x="1014" y="538">tokenize + execute</text>
+<rect class="note" x="1165" y="585" width="170" height="95" rx="14"/><text class="m" x="1188" y="616">PREFIX CACHE</text><text class="s" x="1188" y="646">reuse ontology</text><text class="s" x="1188" y="670">when possible</text>
+<path class="ret" d="M1250 715H975"/><text class="m" x="1045" y="703">next token</text>
+<path class="ret" d="M975 755H700"/><text class="m" x="757" y="743">llama SSE</text>
+<path class="ret" d="M700 795H425"/><text class="m" x="479" y="783">safe delta SSE</text>
+<path class="ret" d="M425 835H150"/><text class="m" x="201" y="823">paint DOM now</text>
+<text class="s pink" x="55" y="875">finish_reason = stop → done  ·  finish_reason = length → show “ask continue” instead of silently vanishing</text>
+</svg>

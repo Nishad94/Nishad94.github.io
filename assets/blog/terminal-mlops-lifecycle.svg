@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="860" viewBox="0 0 1400 860" role="img" aria-labelledby="title desc">
+<title id="title">Terminal MLOps and deployment lifecycle</title><desc id="desc">A static application lane validates source, tests browser behavior, builds the site, and deploys through GitHub Pages. A model-serving lane compiles llama.cpp, downloads and checksums the GGUF, installs hardened systemd services, warms the ontology prefix, probes health, and keeps rollback paths.</desc>
+<defs><style>.bg{fill:#0d0f1b}.lane{fill:#121528;stroke:#343754;stroke-width:2}.box{fill:#17192d;stroke:#9fffd2;stroke-width:2}.alt{fill:#201a35;stroke:#b9a4ff;stroke-width:2}.gate{fill:#241f25;stroke:#f4cf57;stroke-width:2}.risk{fill:#25182a;stroke:#ff9bd6;stroke-width:2}.t{fill:#f7f4ff;font:700 29px system-ui,sans-serif}.s{fill:#aba8c8;font:17px system-ui,sans-serif}.h{fill:#f7f4ff;font:700 17px system-ui,sans-serif}.p{fill:#cfcbe5;font:14px system-ui,sans-serif}.m{fill:#9fffd2;font:700 15px ui-monospace,monospace}.w{fill:none;stroke:#7680a8;stroke-width:3;marker-end:url(#a)}.loop{fill:none;stroke:#ff9bd6;stroke-width:3;stroke-dasharray:8 8;marker-end:url(#p)}</style><marker id="a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0L9 3L0 6Z" fill="#7680a8"/></marker><marker id="p" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0L9 3L0 6Z" fill="#ff9bd6"/></marker></defs>
+<rect class="bg" width="1400" height="860" rx="28"/><text class="t" x="55" y="62">MLOps for one model, two deployment lanes, zero hand-waving</text><text class="s" x="55" y="94">The static site and the inference host ship independently; production proof joins them.</text>
+<rect class="lane" x="45" y="125" width="1310" height="250" rx="22"/><text class="m" x="70" y="162">STATIC APPLICATION LANE</text>
+<path class="w" d="M275 250H330M540 250H595M805 250H860M1070 250H1125"/>
+<rect class="box" x="70" y="195" width="205" height="110" rx="17"/><text class="h" x="98" y="235">Source change</text><text class="p" x="98" y="264">HTML · JS · Markdown</text>
+<rect class="box" x="330" y="195" width="210" height="110" rx="17"/><text class="h" x="358" y="235">Syntax + unit</text><text class="p" x="358" y="264">safe parser checks</text>
+<rect class="box" x="595" y="195" width="210" height="110" rx="17"/><text class="h" x="623" y="235">Playwright</text><text class="p" x="623" y="264">routing + fallback UX</text>
+<rect class="alt" x="860" y="195" width="210" height="110" rx="17"/><text class="h" x="888" y="235">Build _site</text><text class="p" x="888" y="264">posts → static HTML</text>
+<rect class="gate" x="1125" y="195" width="200" height="110" rx="17"/><text class="h" x="1153" y="235">GitHub Pages</text><text class="p" x="1153" y="264">publish nishad.ai</text>
+<rect class="lane" x="45" y="405" width="1310" height="250" rx="22"/><text class="m" x="70" y="442">MODEL-SERVING LANE</text>
+<path class="w" d="M275 530H330M540 530H595M805 530H860M1070 530H1125"/>
+<rect class="box" x="70" y="475" width="205" height="110" rx="17"/><text class="h" x="98" y="515">Compile runtime</text><text class="p" x="98" y="544">ARM64 native llama.cpp</text>
+<rect class="box" x="330" y="475" width="210" height="110" rx="17"/><text class="h" x="358" y="515">Fetch model</text><text class="p" x="358" y="544">GGUF + SHA-256</text>
+<rect class="alt" x="595" y="475" width="210" height="110" rx="17"/><text class="h" x="623" y="515">systemd units</text><text class="p" x="623" y="544">least privilege + restart</text>
+<rect class="alt" x="860" y="475" width="210" height="110" rx="17"/><text class="h" x="888" y="515">Warm ontology</text><text class="p" x="888" y="544">prime shared prefix</text>
+<rect class="gate" x="1125" y="475" width="200" height="110" rx="17"/><text class="h" x="1153" y="515">Health + TLS</text><text class="p" x="1153" y="544">Caddy public edge</text>
+<rect class="risk" x="360" y="710" width="680" height="100" rx="18"/><text class="m" x="392" y="746" style="fill:#ff9bd6">PRODUCTION PROOF GATE</text><text class="h" x="392" y="780">Real page → real endpoint → visible answer → network evidence</text>
+<path class="w" d="M1225 305V690H940"/><path class="w" d="M1225 585V690H940"/><path class="loop" d="M360 760H170V640"/>
+<text class="p" x="72" y="748">Failure?</text><text class="p" x="72" y="773">Rollback route, fix, retest.</text>
+</svg>

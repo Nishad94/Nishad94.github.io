@@ -102,9 +102,33 @@ test('site and metrics articles preserve content, cross-links, and responsive di
   }
 });
 
+test('terminal HLD publishes complete responsive diagrams and implementation guidance', async ({ page, request }) => {
+  const hldSlug = 'inside-nishad-ai-terminal';
+  const path = `/blog/${hldSlug}/`;
+  const post = parsePost(await readFile(`posts/${hldSlug}.md`, 'utf8'), `${hldSlug}.md`);
+  expect((await (await request.get('/sitemap.xml')).text())).toContain(path);
+  expect((await (await request.get('/analytics-pages.json')).json())[path]).toBe(post.title);
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect((await page.goto(path)).status()).toBe(200);
+    await expect(page.locator('h1')).toHaveText(post.title);
+    await expect(page.locator('.prose img')).toHaveCount(5);
+    await expect(page.locator('.prose')).toContainText('Gemma is the brain; llama.cpp is the engine');
+    await expect(page.locator('.prose')).toContainText('Does RAG improve fidelity?');
+    await expect(page.locator('.prose')).toContainText('Caddy: the HTTPS front door');
+    for (const image of await page.locator('.prose img').all()) {
+      await image.scrollIntoViewIfNeeded();
+      await expect(image).toHaveJSProperty('complete', true);
+      expect(await image.evaluate(el => el.naturalWidth)).toBeGreaterThanOrEqual(1200);
+      expect(await image.getAttribute('alt')).toBeTruthy();
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+});
+
 test('mobile layout scrolls code and tables without overflowing the page', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 });
-  for (const url of ['/blog/', `/blog/${slug}/`, '/blog/synthetic-syntax/']) {
+  for (const url of ['/blog/', `/blog/${slug}/`, '/blog/inside-nishad-ai-terminal/', '/blog/synthetic-syntax/']) {
     await page.goto(url);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
@@ -132,6 +156,7 @@ test('empty listing and unknown or draft URLs are explicit; private sources are 
   await page.goto('/empty.html');
   await expect(page.getByRole('heading', { name: 'No posts published yet' })).toBeVisible();
   for (const path of ['/blog/does-not-exist/', '/blog/post-template/', '/posts/post-template.md', '/worker/ai-proxy.js',
+    '/inference/gateway.py', '/inference/nishad-gemma.service',
     '/dashboard/config.go', '/dashboard/schema.sql', '/dashboard/go.mod', '/dashboard/README.md']) {
     const response = await page.goto(path);
     expect(response.status()).toBe(404);
