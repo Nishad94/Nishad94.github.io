@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="850" viewBox="0 0 1400 850" role="img" aria-labelledby="title desc">
+<title id="title">Two ways to game through a MacBook Air</title>
+<desc id="desc">The upper path runs Counter-Strike locally through a Steam bottle, CrossOver and Wine, macOS and Metal. The lower path renders GTA V on a PS5, streams compressed video through the home network to the Mac, and displays it on a 4K monitor while controller input returns to the console.</desc>
+<defs><style>
+.bg{fill:#0d0f1b}.lane{fill:#121528;stroke:#343754;stroke-width:2}.local{fill:#171d30;stroke:#9fffd2;stroke-width:2}.stream{fill:#201a35;stroke:#b9a4ff;stroke-width:2}.edge{fill:#18182c;stroke:#ff9bd6;stroke-width:2}.screen{fill:#241f25;stroke:#f4cf57;stroke-width:2}.ttl{fill:#f7f4ff;font:700 30px system-ui,sans-serif}.sub{fill:#aba8c8;font:18px system-ui,sans-serif}.h{fill:#f7f4ff;font:700 18px system-ui,sans-serif}.p{fill:#cfcbe5;font:15px system-ui,sans-serif}.mono{fill:#9fffd2;font:700 15px ui-monospace,monospace}.violet{fill:#b9a4ff}.yellow{fill:#f4cf57}.wire{fill:none;stroke:#7380a8;stroke-width:3;marker-end:url(#arrow)}.return{fill:none;stroke:#ff9bd6;stroke-width:3;stroke-dasharray:9 8;marker-end:url(#arrowPink)}
+</style><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0L9 3L0 6Z" fill="#7380a8"/></marker><marker id="arrowPink" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0L9 3L0 6Z" fill="#ff9bd6"/></marker></defs>
+<rect class="bg" width="1400" height="850" rx="28"/>
+<text class="ttl" x="54" y="58">MacBook Air gaming — two execution paths</text><text class="sub" x="54" y="90">Local API translation for classic Counter-Strike; low-latency video streaming for PS5 games.</text>
+<rect class="lane" x="40" y="125" width="1320" height="278" rx="24"/><text class="mono" x="68" y="164">PATH A · GAME RUNS ON THE MAC</text>
+<path class="wire" d="M292 268H348"/><path class="wire" d="M588 268H644"/><path class="wire" d="M884 268H940"/><path class="wire" d="M1166 268H1212"/>
+<rect class="local" x="68" y="202" width="224" height="132" rx="18"/><text class="h" x="94" y="244">Counter-Strike</text><text class="p" x="94" y="275">CZ + Source</text><text class="p" x="94" y="300">Windows binaries</text>
+<rect class="local" x="348" y="202" width="240" height="132" rx="18"/><text class="h" x="374" y="244">Steam bottle</text><text class="p" x="374" y="275">isolated C: drive</text><text class="p" x="374" y="300">registry + runtimes</text>
+<rect class="local" x="644" y="202" width="240" height="132" rx="18"/><text class="h" x="670" y="244">CrossOver + Wine</text><text class="p" x="670" y="275">Win32 API translation</text><text class="p" x="670" y="300">graphics compatibility</text>
+<rect class="edge" x="940" y="202" width="226" height="132" rx="18"/><text class="h" x="966" y="244">macOS + Metal</text><text class="p" x="966" y="275">host services</text><text class="p" x="966" y="300">Apple GPU</text>
+<rect class="screen" x="1212" y="202" width="120" height="132" rx="18"/><rect x="1234" y="226" width="76" height="52" rx="4" fill="#0d0f1b" stroke="#f4cf57"/><path d="M1272 278v16m-24 0h48" stroke="#f4cf57" stroke-width="4"/><text class="h" x="1232" y="319">Frames</text>
+<text class="p" x="68" y="373">Best fit: compatible, lighter Windows titles where local input latency matters.</text>
+<rect class="lane" x="40" y="432" width="1320" height="354" rx="24"/><text class="mono violet" x="68" y="471">PATH B · GAME RUNS ON THE PS5</text>
+<path class="wire" d="M292 588H370"/><path class="wire" d="M610 588H688"/><path class="wire" d="M928 588H1006"/><path class="wire" d="M1206 588H1240"/>
+<rect class="stream" x="68" y="514" width="224" height="148" rx="18"/><text class="h" x="94" y="557">PS5 + GTA V</text><text class="p" x="94" y="588">render game frame</text><text class="p" x="94" y="614">encode video</text>
+<rect class="stream" x="370" y="514" width="240" height="148" rx="18"/><text class="h" x="396" y="557">Home network</text><text class="p" x="396" y="588">Ethernet / Wi-Fi</text><text class="p" x="396" y="614">bitrate + jitter</text>
+<rect class="stream" x="688" y="514" width="240" height="148" rx="18"/><text class="h" x="714" y="557">PS Remote Play</text><text class="p" x="714" y="588">hardware video decode</text><text class="p" x="714" y="614">controller forwarding</text>
+<rect class="edge" x="1006" y="514" width="200" height="148" rx="18"/><text class="h" x="1032" y="557">MacBook Air</text><text class="p" x="1032" y="588">scale + present</text><text class="p" x="1032" y="614">native macOS app</text>
+<rect class="screen" x="1240" y="514" width="92" height="148" rx="18"/><rect x="1255" y="542" width="62" height="48" rx="4" fill="#0d0f1b" stroke="#f4cf57"/><path d="M1286 590v14m-20 0h40" stroke="#f4cf57" stroke-width="4"/><text class="h" x="1258" y="635">4K</text>
+<path class="return" d="M1090 688C835 753 396 753 178 670"/><text class="p" x="577" y="740">DualSense input returns to the PS5</text>
+<text class="p" x="68" y="758">Best fit: console-native games where the PS5 does the heavy rendering and the Mac becomes the endpoint.</text>
+</svg>
