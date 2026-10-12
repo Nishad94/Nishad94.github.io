@@ -189,7 +189,7 @@ ${date(post)}<h2><a href="/blog/${post.slug}/">${escape(post.title)}</a></h2>
     title: 'Page not found', description: 'This page is not available.', path: '/404.html', notFound: true,
     body: '<div class="page-heading"><p class="eyebrow">404</p><h1>Page not found</h1><p>This URL does not match a published page. The post may be unpublished, removed, or the link may be incorrect.</p><p><a href="/blog/">Browse published posts</a> or <a href="/">go home</a>.</p></div>'
   }));
-  files.set('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${['/', '/blog/', ...posts.map(post => `/blog/${post.slug}/`)].map(path => `<url><loc>${origin}${path}</loc></url>`).join('')}</urlset>\n`);
+  files.set('sitemap.xml', `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${['/', '/blog/', '/metrics/', ...posts.map(post => `/blog/${post.slug}/`)].map(path => `<url><loc>${origin}${path}</loc></url>`).join('')}</urlset>\n`);
   return files;
 }
 
@@ -239,7 +239,7 @@ export async function buildSite() {
   await mkdir(output, { recursive: true });
   for (const path of ['index.html', 'ontology.js', 'spotify.js', 'spotify-ui.js',
     'spotify-callback.html', 'spotify-privacy.html', 'preview.html', 'assets', 'CNAME', '.nojekyll',
-    'deployment.js', 'analytics.js', 'analytics.css', 'analytics-privacy.html']) {
+    'deployment.js', 'analytics.js', 'analytics.css', 'analytics-privacy.html', 'metrics']) {
     await cp(join(root, path), join(output, path), { recursive: true });
   }
   await writePages(pages, output);
