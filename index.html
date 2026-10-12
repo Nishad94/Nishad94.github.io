@@ -321,7 +321,7 @@ import { createSpotifyTerminal } from './spotify-ui.js';
   const HOSTED_MODEL = 'gpt-4o';
   const HOSTED_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
   // Self-hosted Gemma gateway. Empty = visitors bring their own key or use local WebGPU.
-  const AI_PROXY_DEFAULT = 'https://20-81-160-204.sslip.io';
+  const AI_PROXY_DEFAULT = 'https://nishad-ai-proxy.nishad-dawkhar94.workers.dev';
   const AI_PROXY_URL = (() => {
     const loopback = ['127.0.0.1', '[::1]'].includes(location.hostname);
     try {
@@ -355,7 +355,7 @@ import { createSpotifyTerminal } from './spotify-ui.js';
   function updateHUD() {
     const musicStatus = document.getElementById('music-ai-status');
     if (musicStatus) musicStatus.textContent = AI_PROXY_URL
-      ? 'Self-hosted Gemma 4 enabled · no key needed · daily limits apply'
+      ? 'Mac-hosted Gemma 4 enabled · no key needed · daily limits apply'
       : hostedKey
       ? 'OpenAI key ready · shared spend ' + fmtUSD(spendTotal) + ' / ' + fmtUSD(SPEND_CAP) + ' soft cap'
       : 'No OpenAI key · raw music views work without AI';
@@ -716,16 +716,16 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     let response;
     try {
       response = await fetch(AI_PROXY_URL, {
-        method: 'POST', signal: AbortSignal.timeout(180000), credentials: 'omit', cache: 'no-store',
+        method: 'POST', signal: AbortSignal.timeout(45000), credentials: 'omit', cache: 'no-store',
         referrerPolicy: 'no-referrer', redirect: 'error',
         headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: 'chat', messages })
       });
     } catch {
-      answerLine.textContent = 'nishad.ai◆> [self-hosted Gemma unavailable; switching to local WebGPU]';
+      answerLine.textContent = 'nishad.ai◆> [Mac-hosted Gemma unavailable; switching to local WebGPU]';
       return false;
     }
     if (!response.ok) {
-      answerLine.textContent = 'nishad.ai◆> [self-hosted Gemma unavailable (' + response.status + '); switching to local WebGPU]';
+      answerLine.textContent = 'nishad.ai◆> [Mac-hosted Gemma unavailable (' + response.status + '); switching to local WebGPU]';
       return false;
     }
     const type = response.headers.get('content-type') || '';
@@ -900,7 +900,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
           addLine('  lockdown              wipe your key + return to self-hosted Gemma');
           addLine('');
         }
-        addLine(AI_PROXY_URL ? 'Anything else is sent to self-hosted Gemma 4, with local WebGPU fallback.' : 'Anything else is sent to the AI (hosted gpt-4o if unlocked, else local WebGPU model).', 'yellow');
+        addLine(AI_PROXY_URL ? 'Anything else is sent to Mac-hosted Gemma 4, with local WebGPU fallback.' : 'Anything else is sent to the AI (hosted gpt-4o if unlocked, else local WebGPU model).', 'yellow');
         addLine('Example: what did Nishad build at Twitter?', 'dim');
         addLine('Example: explain transformers like I am rusty', 'dim');
         break;
@@ -1116,8 +1116,8 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
 
   addLine('nishad://multiverse shell v2.1', 'yellow');
   if (AI_PROXY_URL) {
-    addLine('◆ self-hosted Gemma 4 is on, no key needed. Ask me anything.', 'yellow');
-    addLine('if the inference host is unavailable, the browser-local model takes over.', 'dim');
+    addLine('◆ Mac-hosted Gemma 4 is on, no key needed. Ask me anything.', 'yellow');
+    addLine('if the Mac inference service is unavailable, the browser-local model takes over.', 'dim');
   } else {
     addLine('For the FULL experience, unlock hosted gpt-4o: type  key  and paste your', 'yellow');
     addLine('OpenAI API key (sk-...). It stays in THIS browser only and goes straight to OpenAI.', 'dim');
