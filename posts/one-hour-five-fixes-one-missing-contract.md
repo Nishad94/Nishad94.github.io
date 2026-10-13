@@ -30,7 +30,7 @@ That last part was useful: the system failed without inventing a report.
 
 The rest of the work was about identifying the first broken boundary rather than changing every layer that looked suspicious.
 
-> **Try or inspect it:** [open the guided Spotify report webapp](/#music), [open the synthetic Firefox PDF](/assets/demos/spotify-gemma-synthetic-report.pdf), or [view the full report screenshot](/assets/demos/spotify-gemma-synthetic-report.png). The downloadable demo uses invented artist and track names—no personal Spotify data. The webapp keeps Spotify connection and AI consent explicit.
+> **Try or inspect it:** [open the guided Spotify report webapp](/#music), [open the themed synthetic PDF](/assets/demos/spotify-gemma-synthetic-report.pdf), [preview its first page](/assets/demos/spotify-gemma-synthetic-report-pdf.png), or [view the full web report](/assets/demos/spotify-gemma-synthetic-report.png). The downloadable demo uses invented artist and track names—no personal Spotify data. The webapp keeps Spotify connection and AI consent explicit.
 
 ![Synthetic Spotify report rendered in Firefox after the Worker, Mac gateway, Gemma validation, and PDF pipeline completed.](/assets/demos/spotify-gemma-synthetic-report.png)
 
@@ -368,6 +368,23 @@ The PDF styling did not need a redesign.
 The text needed structural boundaries.
 
 A regression now places headings and paragraphs directly next to each other in the DOM and verifies that extraction preserves separation.
+
+### Then make the PDF belong to the site
+
+Readable was necessary, but the first exporter still looked like a plain document printed by a backend nobody had met.
+
+The redesigned PDF uses the same visual language as the webapp:
+
+- deep navy pages instead of white paper;
+- mint, purple, yellow, and pink section rails;
+- terminal-style report labels and continuation headers;
+- high-contrast cards for each report section;
+- consistent page numbers and entertainment disclaimers;
+- selectable text and dependency-free browser generation.
+
+The content and validation contract did not change. Only hierarchy and presentation did.
+
+![First page of the themed synthetic Spotify/Gemma PDF, rendered by macOS Quick Look.](/assets/demos/spotify-gemma-synthetic-report-pdf.png)
 
 The final Firefox acceptance:
 
