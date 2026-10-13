@@ -47,8 +47,10 @@ the owner has accepted launching without backups.
 ## Technical blog: write Markdown, publish through GitHub
 
 The blog lives at `/blog/` (`/blog` redirects there), with durable article URLs at
-`/blog/<filename-without-md>/`. Home has a visible Blog link; the terminal's `blog`
-command and command palette open it too. Posts render as complete HTML, including
+`/blog/<filename-without-md>/`. **Blog** sits beside Home in the primary navigation,
+including the mobile bottom bar and Builder Mode, and labels the homepage post
+collection. The terminal's `blog` command and command palette open it too.
+Posts render as complete HTML, including
 their table of contents, heading anchors, and code highlighting, without JavaScript.
 JavaScript only adds copy buttons. Articles have canonical/description/social metadata
 and appear in `/sitemap.xml`; unknown or unpublished URLs return a custom 404.
@@ -413,4 +415,8 @@ BYOK/browser-local mode; a temporary HTTP(S) URL can select a mock gateway.
 
 ## Layout
 
-The site has six tabs (Home, Story, Lore, Music, Work, Terminal) with a hash router, a mobile bottom bar, a daily branch and a visit streak. Existing `#section` links still work.
+The primary navigation links to Blog (`/blog/`) alongside Home, Story, Lore,
+Music, Work, Terminal and the runtime-added Control room. Blog uses normal page
+navigation, not the hash router, and keeps its text label visible at every
+breakpoint. The mobile bottom bar includes all destinations. Existing `#section`
+links, Builder Mode, the daily branch and visit streak still work.
