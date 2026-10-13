@@ -1,7 +1,31 @@
-function cleanReportText(report) {
+const PDF_BLOCK_TAGS = new Set([
+  'ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'BR', 'DD', 'DETAILS', 'DIV', 'DL', 'DT',
+  'FIGCAPTION', 'FIGURE', 'FOOTER', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER',
+  'HR', 'LI', 'MAIN', 'NAV', 'OL', 'P', 'PRE', 'SECTION', 'SUMMARY', 'TABLE', 'TBODY',
+  'TD', 'TFOOT', 'TH', 'THEAD', 'TR', 'UL'
+]);
+
+function appendReportText(node, parts) {
+  if (node.nodeType === Node.TEXT_NODE) {
+    parts.push(node.nodeValue || '');
+    return;
+  }
+  if (node.nodeType !== Node.ELEMENT_NODE) return;
+  const block = PDF_BLOCK_TAGS.has(node.tagName);
+  if (block) parts.push('\n');
+  for (const child of node.childNodes) appendReportText(child, parts);
+  if (block) parts.push('\n');
+}
+
+export function cleanReportText(report) {
   const clone = report.cloneNode(true);
   clone.querySelectorAll('[data-pdf-export], button, input, meter').forEach(el => el.remove());
-  return (clone.innerText || clone.textContent || '')
+  const parts = [];
+  appendReportText(clone, parts);
+  return parts.join('')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n[ \t]+/g, '\n')
+    .replace(/[ \t]{2,}/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }

@@ -301,6 +301,7 @@ test('full synthetic profile: consent, safe output, spend HUD, tarot, snark with
     expect(JSON.stringify(body.messages)).not.toMatch(/synthetic-access|synthetic-refresh|sk-synthetic|syntheticTrack/);
     return route.fulfill({ json: { choices: [{ finish_reason: 'stop', message: { content: JSON.stringify(profile) } }], usage: { prompt_tokens: 1000, completion_tokens: 1000 } } });
   });
+
   await command(page, 'vibe');
   await expect(page.locator('.vibe-consent')).toBeVisible();
   expect(calls).toBe(0);
@@ -317,6 +318,32 @@ test('full synthetic profile: consent, safe output, spend HUD, tarot, snark with
   expect(calls).toBe(1);
   await command(page, 'spotify disconnect');
   expect(await page.evaluate(() => localStorage.getItem('nishad_hosted_key'))).toBe('sk-synthetic-test-only');
+});
+
+test('PDF extraction preserves adjacent report block boundaries', async ({ page }) => {
+  await page.goto('/#music');
+  const extracted = await page.evaluate(async () => {
+    const { cleanReportText } = await import('./assets/report-pdf.js');
+    const report = document.createElement('section');
+    report.innerHTML = [
+      '<p>Entertainment state.</p>',
+      '<h3>Music personality / fictional write-up</h3>',
+      '<p>Dive into the synthetic signal.</p>',
+      '<h3>AI-inferred genres / guesses, not Spotify metadata</h3>',
+      '<p>synthetic dream-pop</p>',
+      '<h3>Music MBTI / invented axes and scores</h3>',
+      '<p>ENFP</p>',
+      '<h3>Music tarot / fictional card</h3>',
+      '<p>The signal is beautifully broken.</p>',
+      '<h3>Basic vs niche shuffle roast / made-up score</h3>'
+    ].join('');
+    return cleanReportText(report);
+  });
+  expect(extracted).toMatch(/Entertainment state\.\n+Music personality/);
+  expect(extracted).toMatch(/fictional write-up\n+Dive into/);
+  expect(extracted).toMatch(/Spotify metadata\n+synthetic dream-pop/);
+  expect(extracted).toMatch(/axes and scores\n+ENFP/);
+  expect(extracted).toMatch(/beautifully broken\.\n+Basic vs niche/);
 });
 
 test('timeline and comparison request and render their structured reports', async ({ page }) => {

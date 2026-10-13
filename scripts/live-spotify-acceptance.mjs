@@ -102,8 +102,10 @@ try {
     'normalized=" ".join(text.split())',
     'required=["Music Intelligence Report","Music personality / fictional write-up","Music MBTI / invented axes and scores","Music tarot / fictional card","Basic vs niche shuffle roast / made-up score"]',
     'missing=[value for value in required if value not in normalized]',
+    'joined=["state.Music","write-upDive","metadatasynthetic","scoresENFP","broken.Basic"]',
+    'bad=[value for value in joined if value in text]',
     'print(text[:500])',
-    'raise SystemExit(1 if missing else 0)'
+    'raise SystemExit(1 if missing or bad else 0)'
   ].join(';') , automaticPath], { encoding: 'utf8' });
   if (pdfCheck.status !== 0) throw new Error('Saved PDF was unreadable or missing expected report text: ' + pdfCheck.stderr);
   await writeFile(join(output, 'guided-report-pdf-text.txt'), pdfCheck.stdout);
