@@ -146,12 +146,12 @@ export const ARCHITECTURE_RECEIPTS = [
   'Consent-first private analytics built in Go and PostgreSQL with immutable GitHub owner authorization.'
 ];
 
-export const VC_DOSSIER = `================================================================================
-NISHAD DAWKHAR // EXECUTIVE DOSSIER
+export const TECHNICAL_BRIEF = `================================================================================
+NISHAD DAWKHAR // TECHNICAL SUMMARY
 ================================================================================
 [Core]     MS in AI/NLP @ Carnegie Mellon School of Computer Science
 [Impact]   Distributed systems: Twitter Kafka platform -> Microsoft Azure Edge
-[Agency]   Built nishad.ai: Gemma 4/Ollama gateway, WebGPU fallback, Go/Postgres analytics
+[Build]    nishad.ai: Gemma 4/Ollama gateway, WebGPU fallback, Go/Postgres analytics
 [Systems]  Kafka Observer, tenant rate limiting, streaming ML ingestion, real-time reporting
 [Tech]     Scala, Java, C++, Python, Kafka, Spark, Kubernetes, Azure, AI/ML infrastructure
 ================================================================================
