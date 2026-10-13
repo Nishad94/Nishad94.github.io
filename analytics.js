@@ -1,3 +1,4 @@
+import './ads.js';
 import { ANALYTICS_ENDPOINT, PRIVATE_DASHBOARD_ORIGIN } from './deployment.js';
 
 const CONSENT = 'nishad_metrics_consent';
