@@ -198,6 +198,13 @@ The script securely prompts for the Threads app secret and does not print the
 user access token when `--set-github-secrets` is used. Authorization codes are
 short-lived and single-use; generate a new one if it has been shared.
 
+The Pages workflow also performs a non-publishing Threads API health check at
+minute 17 every three hours. It publishes only status, check time and API latency
+to `/metrics/threads-status.json`; credentials, user IDs and post content never
+enter the public snapshot. The homepage control room reads that snapshot and
+shows the current pipeline state. A failed scheduled probe still deploys the
+degraded status, then marks the Actions run failed for notification.
+
 The small build uses pinned `markdown-it` and `highlight.js` only at build time.
 It is preferable here to browser-side Markdown because articles are readable,
 linkable and indexable in their initial HTML and drafts are absent from the artifact.
