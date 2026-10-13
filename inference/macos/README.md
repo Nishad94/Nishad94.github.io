@@ -17,6 +17,9 @@ model is left alone. Maintenance uses the same nonblocking semaphore as visitor
 requests: it skips a busy gateway; a visitor arriving during an actual reload
 gets the existing explicit `busy` response, not a hidden queue. Failed checks or
 loads log a sanitized `warmup` event and retry after 60 seconds.
+If another local model is resident and Gemma is absent, maintenance defers
+instead of repeatedly evicting that model. It resumes preloading once the
+other model unloads; an explicit visitor request can still load Gemma normally.
 
 Install the updated `gateway.py` in the existing private runtime directory,
 then restart **only** `com.nishad.ai.gateway` after confirming no generation is
@@ -28,6 +31,7 @@ and diagnostic artifacts out of the Pages output.
 Warmth is best-effort: sleep, restarts, memory pressure, or another model can
 still evict Gemma. In particular, `OLLAMA_MAX_LOADED_MODELS=1` allows another
 local model to replace it; the next maintenance check preloads it again.
+Maintenance reloads Gemma once the other model unloads, rather than fighting it.
 Do not increase shared model slots/parallelism or pin every model merely to
 hide this limitation. Persistent residency consumes memory even when idle.
 

@@ -131,8 +131,7 @@ class WarmModelTests(unittest.TestCase):
 
     def test_absent_expiring_or_wrong_context_model_is_preloaded_without_a_prompt(self):
         for state in [
-            {"models": []}, self.state(), self.state(context=2048),
-            self.state(name="another-local-model")
+            {"models": []}, self.state(), self.state(context=2048)
         ]:
             with self.subTest(state=state), patch.object(gateway.urllib.request, "urlopen", side_effect=[
                 self.response(state), self.response({"done": True, "done_reason": "load"})
@@ -154,6 +153,20 @@ class WarmModelTests(unittest.TestCase):
             gateway.keep_model_warm()
             upstream.assert_called_once_with(gateway.OLLAMA + "/api/ps", timeout=5)
             log.assert_not_called()
+
+    def test_maintenance_does_not_displace_another_local_model(self):
+        with patch.object(gateway.urllib.request, "urlopen", side_effect=[
+            self.response(self.state(name="another-local-model")),
+            self.response(self.state(name="another-local-model"))
+        ]) as upstream, patch("builtins.print") as log:
+            gateway.keep_model_warm()
+            gateway.keep_model_warm()
+            self.assertEqual(upstream.call_count, 2)
+            self.assertTrue(all(call.args[0] == gateway.OLLAMA + "/api/ps" for call in upstream.call_args_list))
+            self.assertEqual(json.loads(log.call_args.args[0]), {
+                "event": "warmup", "status": "deferred",
+                "reason": "other_model_resident", "retry_seconds": 60
+            })
 
     def test_visitor_request_has_priority_over_maintenance(self):
         gateway.SEM.acquire()

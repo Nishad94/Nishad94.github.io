@@ -22,14 +22,20 @@ def keep_model_warm():
   with urllib.request.urlopen(OLLAMA+'/api/ps',timeout=5) as r:state=json.load(r)
   if not isinstance(state,dict) or not isinstance(state.get('models'),list):
    raise ValueError('invalid model state')
+  target_loaded=False
   for model in state['models']:
    if not isinstance(model,dict):raise ValueError('invalid model state')
-   if model.get('name')!=MODEL or model.get('context_length')!=CONTEXT:continue
+   if model.get('name')!=MODEL:continue
+   target_loaded=True
+   if model.get('context_length')!=CONTEXT:continue
    expires=model.get('expires_at')
    if not isinstance(expires,str):raise ValueError('invalid model expiry')
    expiry=datetime.fromisoformat(expires.replace('Z','+00:00'))
    if expiry.tzinfo is None:raise ValueError('invalid model expiry')
    if expiry>datetime.now(timezone.utc)+timedelta(days=1):return
+  if state['models'] and not target_loaded:
+   print(json.dumps({'event':'warmup','status':'deferred','reason':'other_model_resident','retry_seconds':WARM_CHECK_SECONDS}),flush=True)
+   return
   # Never queue a maintenance load behind a visitor's generation.
   acquired=SEM.acquire(False)
   if not acquired:return
