@@ -9,6 +9,89 @@ test.beforeEach(async ({ page }) => {
   await page.route('https://**/*', route => route.abort());
 });
 
+for (const width of [1280, 1201, 1024, 800, 701, 375, 320]) {
+  for (const builderMode of [false, true]) {
+    test(`primary Blog navigation at ${width}px in ${builderMode ? 'Builder' : 'normal'} mode`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/');
+      const navigation = page.getByRole('navigation', { name: 'Primary', exact: true });
+      if (builderMode) {
+        await page.locator('#hero-vc-view').click();
+        await expect(page.locator('body')).toHaveClass(/impact-mode/);
+        await expect(page.locator('#term-input')).toHaveValue('brief');
+        await navigation.getByRole('link', { name: 'Home', exact: true }).click();
+      }
+      const blog = navigation.getByRole('link', { name: 'Blog', exact: true });
+      await expect(blog).toHaveAttribute('href', '/blog/');
+      await expect(blog.locator('span')).toBeVisible();
+      await expect(blog).not.toHaveAttribute('data-view', /./);
+      await expect(navigation.getByRole('link')).toHaveCount(8);
+      for (const link of await navigation.getByRole('link').all()) {
+        await expect(link).toBeInViewport({ ratio: 1 });
+      }
+      await expect(page.getByRole('heading', { name: 'Blog / 7 build notes' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'all blog posts' })).toHaveAttribute('href', '/blog/');
+      const posts = await page.locator('.writing-card').evaluateAll(links => links.map(link => link.getAttribute('href')));
+      expect(posts).toHaveLength(7);
+      const response = page.waitForResponse(response => response.request().isNavigationRequest() && response.url().endsWith('/blog/'));
+      await blog.click();
+      expect((await response).status()).toBe(200);
+      await expect(page).toHaveURL(/\/blog\/$/);
+      await expect(page.getByRole('heading', { name: 'Technical blog', exact: true })).toBeVisible();
+      await expect(navigation.getByRole('link', { name: 'Blog', exact: true })).toHaveAttribute('aria-current', 'page');
+      for (const path of posts) await expect(page.locator(`.post-list a[href="${path}"]`)).toHaveCount(1);
+      await navigation.getByRole('link', { name: 'Home', exact: true }).click();
+      await expect(page).toHaveURL(/\/$/);
+      await expect(navigation.getByRole('link', { name: 'Home', exact: true })).toHaveAttribute('aria-current', 'page');
+    });
+  }
+}
+
+test('hash tabs and legacy anchors remain separate from keyboard Blog navigation', async ({ page }) => {
+  for (const width of [1280, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    await page.evaluate(() => { window.navigationDocument = 'same homepage'; });
+    const navigation = page.getByRole('navigation', { name: 'Primary', exact: true });
+    const blog = navigation.getByRole('link', { name: 'Blog', exact: true });
+    for (const [label, view, hash] of [
+      ['Home', 'home', 'home'], ['Story', 'story', 'story'], ['Lore', 'lore', 'lore'],
+      ['Music', 'music', 'music'], ['Work', 'work', 'recruiter'], ['Terminal', 'shell', 'shell'],
+      ['Control', 'control', 'control']
+    ]) {
+      await navigation.getByRole('link', { name: label, exact: true }).click();
+      await expect(page).toHaveURL(new RegExp(`/#${hash}$`));
+      await expect(page.locator('body')).toHaveAttribute('data-view', view);
+      await expect(navigation.locator('[aria-current="page"]')).toHaveAttribute('data-view', view);
+      await expect(blog).not.toHaveAttribute('aria-current', /./);
+      expect(await page.evaluate(() => window.navigationDocument)).toBe('same homepage');
+    }
+    await page.goto('/#timeline');
+    await expect(page.locator('body')).toHaveAttribute('data-view', 'story');
+    await page.goto('/#writing');
+    await expect(page.locator('body')).toHaveAttribute('data-view', 'home');
+    await expect(page.getByRole('heading', { name: 'Blog / 7 build notes' })).toBeInViewport();
+    await blog.focus();
+    await expect(blog).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/\/blog\/$/);
+  }
+});
+
+test.describe('static primary navigation', () => {
+  test.use({ javaScriptEnabled: false });
+  test('Blog is visible and reachable without JavaScript', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 812 });
+    await page.goto('/');
+    const blog = page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: 'Blog', exact: true });
+    await expect(blog.locator('span')).toBeVisible();
+    await expect(blog).toBeInViewport({ ratio: 1 });
+    await blog.click();
+    await expect(page).toHaveURL(/\/blog\/$/);
+    await expect(page.getByRole('heading', { name: 'Technical blog', exact: true })).toBeVisible();
+  });
+});
+
 test('homepage link, help, terminal command, and palette reach the blog', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('link', { name: 'Read the technical blog' }).click();

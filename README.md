@@ -47,8 +47,10 @@ the owner has accepted launching without backups.
 ## Technical blog: write Markdown, publish through GitHub
 
 The blog lives at `/blog/` (`/blog` redirects there), with durable article URLs at
-`/blog/<filename-without-md>/`. Home has a visible Blog link; the terminal's `blog`
-command and command palette open it too. Posts render as complete HTML, including
+`/blog/<filename-without-md>/`. **Blog** sits beside Home in the primary navigation,
+including the mobile bottom bar and Builder Mode, and labels the homepage post
+collection. The terminal's `blog` command and command palette open it too.
+Posts render as complete HTML, including
 their table of contents, heading anchors, and code highlighting, without JavaScript.
 JavaScript only adds copy buttons. Articles have canonical/description/social metadata
 and appear in `/sitemap.xml`; unknown or unpublished URLs return a custom 404.
@@ -156,6 +158,35 @@ build but do not deploy; only `master` can deploy. The artifact includes `CNAME`
 `.nojekyll`, the existing homepage/Spotify public assets, generated blog and 404;
 it excludes source Markdown, tests, development dependencies and Worker source.
 There is **no DNS change**, backend, CMS or homepage framework migration.
+
+### Publish a test post to Threads
+
+The manual **Publish test post to Threads** workflow validates the publisher in
+dry-run mode by default. To enable a real post:
+
+1. Add `THREADS_USER_ID` and `THREADS_ACCESS_TOKEN` under
+   **Settings → Secrets and variables → Actions**. Use a current token and never
+   commit it to the repository.
+2. Open **Actions → Publish test post to Threads → Run workflow**.
+3. Edit the post text, enable **Publish to Threads**, and run the workflow.
+
+The workflow calls `test_threads_post.py`, which creates a text container and
+then publishes it through `graph.threads.net`. Leave **Publish to Threads**
+disabled to verify the workflow without making an API request.
+
+After authorizing the Threads app, exchange the temporary OAuth code and write
+the returned credentials directly to GitHub Actions secrets:
+
+```bash
+python3 scripts/threads_oauth.py \
+  --app-id YOUR_THREADS_APP_ID \
+  --code YOUR_FRESH_AUTHORIZATION_CODE \
+  --set-github-secrets Nishad94/Nishad94.github.io
+```
+
+The script securely prompts for the Threads app secret and does not print the
+user access token when `--set-github-secrets` is used. Authorization codes are
+short-lived and single-use; generate a new one if it has been shared.
 
 The small build uses pinned `markdown-it` and `highlight.js` only at build time.
 It is preferable here to browser-side Markdown because articles are readable,
@@ -415,4 +446,8 @@ BYOK/browser-local mode; a temporary HTTP(S) URL can select a mock gateway.
 
 ## Layout
 
-The site has six tabs (Home, Story, Lore, Music, Work, Terminal) with a hash router, a mobile bottom bar, a daily branch and a visit streak. Existing `#section` links still work.
+The primary navigation links to Blog (`/blog/`) alongside Home, Story, Lore,
+Music, Work, Terminal and the runtime-added Control room. Blog uses normal page
+navigation, not the hash router, and keeps its text label visible at every
+breakpoint. The mobile bottom bar includes all destinations. Existing `#section`
+links, Builder Mode, the daily branch and visit streak still work.

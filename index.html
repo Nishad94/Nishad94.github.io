@@ -57,7 +57,7 @@ body.chaos-mode .card{animation:chaosPulse 2.8s ease-in-out infinite alternate}b
 .view[hidden],[data-view][hidden]{display:none!important}
 .view{animation:viewIn .22s ease both}@keyframes viewIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .nav{gap:14px}.tabs{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:14px;background:#12142a}
-.tab{display:flex;align-items:center;gap:7px;padding:8px 13px;border-radius:10px;font-size:13px;font-weight:700;color:var(--muted);text-decoration:none;transition:.15s}
+.tab{display:flex;align-items:center;gap:7px;padding:8px 9px;border-radius:10px;font-size:13px;font-weight:700;color:var(--muted);text-decoration:none;transition:.15s}
 .tab i{font-style:normal}.tab:hover{color:var(--ink);background:#1d2040}.tab.active{color:#0d0f1b;background:var(--mint)}
 .nav-tools{display:flex;gap:8px;align-items:center}.nav-tools .btn{padding:8px 11px}
 main{padding:28px 0 90px}.section{margin-top:34px}.section-head{margin-bottom:14px}.section-head h2{font-size:22px;letter-spacing:-.02em}.section-head p{font-size:13px}
@@ -84,13 +84,16 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 .music-controls{margin:10px 0 0}.seg{display:inline-flex;padding:4px;border:1px solid var(--line);border-radius:12px;background:#101225}.seg .btn{border:0;background:transparent}.seg .btn:hover{background:#20233e;transform:none}
 .lens-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.lens{padding:13px;border:1px dashed #3a3e5f;border-radius:12px}.lens b{display:block;font-size:14px}.lens span{display:block;margin-top:3px;color:var(--muted);font-size:12.5px}
 #music-ai-status{margin:14px 2px 0;color:var(--muted);font-size:12.5px}
-@media(max-width:1000px){.launcher{grid-template-columns:1fr 1fr}.nav-tools .btn:last-child{display:none}.tab span{display:none}.tab{padding:9px 12px}}
+@media(max-width:1200px){.nav{gap:8px}.tabs{gap:2px}.nav-tools .btn:last-child{display:none}.tab span{display:none}.tab-blog span{display:block}.tab{padding:9px 8px}}
+@media(max-width:1000px){.launcher{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){
+ /* A filtered header would contain and clip the fixed bottom navigation. */
+ header{backdrop-filter:none}
  .launcher,.lens-grid,.proof-grid,.proof-links,.writing-grid{grid-template-columns:1fr}.writing-card.featured{grid-column:auto}.daily{flex-direction:column;align-items:flex-start}
  .blog-cta{align-items:flex-start}.blog-cta .blog-arrow{font-size:22px}
  .nav-tools{display:none}.signalbar{display:none}.cat{display:none}
- .tabs{position:fixed;left:10px;right:10px;bottom:10px;z-index:60;justify-content:space-between;padding:6px;border-radius:18px;background:rgba(18,20,42,.96);backdrop-filter:blur(14px);box-shadow:0 10px 40px rgba(0,0,0,.5)}
- .tab{flex:1;flex-direction:column;gap:2px;font-size:10px;padding:7px 4px;text-align:center}.tab span{display:block}.tab i{font-size:18px}
+ .tabs{position:fixed;left:10px;right:10px;bottom:10px;z-index:60;justify-content:space-between;gap:0;padding:6px;border-radius:18px;background:rgba(18,20,42,.96);backdrop-filter:blur(14px);box-shadow:0 10px 40px rgba(0,0,0,.5)}
+ .tab{flex:1;flex-direction:column;gap:2px;font-size:10px;padding:7px 2px;text-align:center}.tab span{display:block}.tab i{font-size:18px}
  .music-step{grid-template-columns:1fr}.step-n{display:none}.seg{display:flex;width:100%}.seg .btn{flex:1;padding-inline:6px}
  main{padding-bottom:110px}
 }
@@ -101,12 +104,13 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 <header><div class="wrap nav">
 <a class="brand" href="#home" aria-label="Home"><span class="orb"></span><span>nishad://multiverse</span></a>
 <nav class="tabs" aria-label="Primary">
-<a class="tab" data-view="home" href="#home"><i aria-hidden="true">🏠</i><span>Home</span></a>
-<a class="tab" data-view="story" href="#story"><i aria-hidden="true">🧭</i><span>Story</span></a>
-<a class="tab" data-view="lore" href="#lore"><i aria-hidden="true">👽</i><span>Lore</span></a>
-<a class="tab" data-view="music" href="#music"><i aria-hidden="true">🎧</i><span>Music</span></a>
-<a class="tab" data-view="work" href="#recruiter"><i aria-hidden="true">👔</i><span>Work</span></a>
-<a class="tab" data-view="shell" href="#shell"><i aria-hidden="true">⌨️</i><span>Terminal</span></a>
+<a class="tab" data-view="home" href="#home" aria-label="Home"><i aria-hidden="true">🏠</i><span>Home</span></a>
+<a class="tab tab-blog" href="/blog/" aria-label="Blog"><i aria-hidden="true">📝</i><span>Blog</span></a>
+<a class="tab" data-view="story" href="#story" aria-label="Story"><i aria-hidden="true">🧭</i><span>Story</span></a>
+<a class="tab" data-view="lore" href="#lore" aria-label="Lore"><i aria-hidden="true">👽</i><span>Lore</span></a>
+<a class="tab" data-view="music" href="#music" aria-label="Music"><i aria-hidden="true">🎧</i><span>Music</span></a>
+<a class="tab" data-view="work" href="#recruiter" aria-label="Work"><i aria-hidden="true">👔</i><span>Work</span></a>
+<a class="tab" data-view="shell" href="#shell" aria-label="Terminal"><i aria-hidden="true">⌨️</i><span>Terminal</span></a>
 </nav>
 <div class="nav-tools"><button class="btn vc-toggle" id="nav-vc-view" type="button" aria-pressed="false">⚡ Builder Mode</button><button class="btn" id="nav-palette" type="button" aria-label="Open command palette">⌘K</button><a class="btn" href="https://www.linkedin.com/in/nishaddawkhar" target="_blank" rel="noreferrer">LinkedIn ↗</a></div>
 </div></header>
@@ -138,7 +142,7 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 </aside></section>
 
 <section class="section writing-section" id="writing" aria-labelledby="writing-title">
-<div class="section-head"><div><h2 id="writing-title">writing / 7 build notes</h2><p>systems, privacy, AI infrastructure, experiments, and the occasional game that needed too much engineering</p></div><a class="writing-all" href="/blog/">all writing →</a></div>
+<div class="section-head"><div><h2 id="writing-title">Blog / 7 build notes</h2><p>systems, privacy, AI infrastructure, experiments, and the occasional game that needed too much engineering</p></div><a class="writing-all" href="/blog/">all blog posts →</a></div>
 <div class="writing-grid">
 <a class="card writing-card featured" href="/blog/one-hour-five-fixes-one-missing-contract/"><div class="writing-meta">new · debugging / Gemma / Firefox</div><h3>One Hour, Five Fixes, and One Missing Contract</h3><p>How a Spotify-to-Gemma report failed before PDF generation, why plausible fixes missed the live protocol mismatch, and what the final browser acceptance actually proved.</p><div class="writing-tags">SSE · JSON contracts · synthetic fixtures · readable PDFs</div></a>
 <a class="card writing-card" href="/blog/inside-nishad-ai-terminal/"><div class="writing-meta">AI systems</div><h3>Inside the nishad.ai Terminal</h3><p>The browser shell, ontology, Gemma inference boundary, streaming path, fallbacks, and operational tradeoffs.</p></a>
