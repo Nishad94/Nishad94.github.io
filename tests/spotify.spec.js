@@ -1,6 +1,5 @@
 import { test, expect } from '@playwright/test';
 import { createHash } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
 
 const artist = { id: 'syntheticArtist', name: 'Synthetic Artist', genres: [] };
 const track = { id: 'syntheticTrack', name: '<img src=x onerror=alert(1)> Synthetic Song', artists: [artist], explicit: true };
@@ -338,32 +337,6 @@ test('full synthetic profile: consent, safe output, spend HUD, tarot, snark with
   expect(await page.evaluate(() => localStorage.getItem('nishad_hosted_key'))).toBe('sk-synthetic-test-only');
 });
 
-test('PDF extraction preserves adjacent report block boundaries', async ({ page }) => {
-  await page.goto('/#music');
-  const extracted = await page.evaluate(async () => {
-    const { cleanReportText } = await import('./assets/report-pdf.js');
-    const report = document.createElement('section');
-    report.innerHTML = [
-      '<p>Entertainment state.</p>',
-      '<h3>Music personality / fictional write-up</h3>',
-      '<p>Dive into the synthetic signal.</p>',
-      '<h3>AI-inferred genres / guesses, not Spotify metadata</h3>',
-      '<p>synthetic dream-pop</p>',
-      '<h3>Music MBTI / invented axes and scores</h3>',
-      '<p>ENFP</p>',
-      '<h3>Music tarot / fictional card</h3>',
-      '<p>The signal is beautifully broken.</p>',
-      '<h3>Basic vs niche shuffle roast / made-up score</h3>'
-    ].join('');
-    return cleanReportText(report);
-  });
-  expect(extracted).toMatch(/Entertainment state\.\n+Music personality/);
-  expect(extracted).toMatch(/fictional write-up\n+Dive into/);
-  expect(extracted).toMatch(/Spotify metadata\n+synthetic dream-pop/);
-  expect(extracted).toMatch(/axes and scores\n+ENFP/);
-  expect(extracted).toMatch(/beautifully broken\.\n+Basic vs niche/);
-});
-
 test('timeline and comparison request and render their structured reports', async ({ page }) => {
   await seed(page, { key: true });
   await mockSpotify(page);
@@ -378,7 +351,7 @@ test('timeline and comparison request and render their structured reports', asyn
   await expect(page.locator('.vibe-consent')).toBeVisible();
   await page.getByRole('checkbox').check();
   await page.getByRole('button', { name: 'Generate AI report', exact: true }).click();
-  await expect(page.locator('.vibe-report')).toContainText('Chill (AI guess)');
+  await expect(page.locator('.vibe-report .report-mood')).toHaveText('Chill');
   await command(page, 'vibe compare');
   await expect(page.locator('.vibe-consent')).toBeVisible();
   await page.getByRole('checkbox').check();
@@ -705,8 +678,8 @@ for (const outcome of ['ok', 'visitor_limit', 'global_limit', 'down']) {
       expect(calls).toBe(2);
     });
 
-    test.describe('Firefox report and PDF', () => {
-      test('production report renders and saves both automatic and manual PDFs', async ({ page }, testInfo) => {
+    test.describe('Firefox music report', () => {
+      test('production report renders the complete interactive HTML readout', async ({ page }) => {
         await seed(page);
         await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:18888/report'));
         await page.reload();
@@ -717,32 +690,27 @@ for (const outcome of ['ok', 'visitor_limit', 'global_limit', 'down']) {
         await page.getByRole('button', { name: 'Last 4 weeks', exact: true }).click();
         await page.getByRole('checkbox').check();
         await page.getByRole('button', { name: 'Generate AI report', exact: true }).click();
-        await expect(page.locator('.vibe-report meter')).toHaveCount(4);
+        const report = page.locator('.vibe-report');
+        await expect(report.locator('.report-hero')).toContainText('MUSIC READOUT');
+        await expect(report.locator('.report-stat')).toHaveCount(3);
+        await expect(report.locator('[role="meter"]')).toHaveCount(4);
+        await expect(report.locator('.report-tags span')).toContainText(['Imaginary pop']);
+        await expect(report.getByRole('heading', { name: 'Signal summary' })).toBeVisible();
+        await expect(report.getByRole('heading', { name: 'Genre constellation' })).toBeVisible();
+        await expect(report.getByRole('heading', { name: 'Music MBTI' })).toBeVisible();
+        await expect(report.getByRole('heading', { name: 'Music tarot' })).toBeVisible();
+        await expect(report.getByRole('heading', { name: 'Shuffle compatibility' })).toBeVisible();
         await page.getByRole('button', { name: 'Reveal tarot card' }).click();
-        const downloaded = page.waitForEvent('download');
-        await page.getByRole('button', { name: 'Download PDF' }).click();
-        const automatic = await downloaded;
-        const path = testInfo.outputPath('automatic-report.pdf');
-        await automatic.saveAs(path);
-        const bytes = await readFile(path);
-        expect(bytes.subarray(0, 8).toString()).toBe('%PDF-1.4');
-        const pdfSource = bytes.toString();
-        expect(pdfSource).toContain('Synthetic fictional music profile.');
-        expect(pdfSource).toContain('The Test Fixture');
-        expect(pdfSource).toContain('0.051 0.059 0.106 rg');
-        expect(pdfSource).toContain('0.624 1.000 0.824 rg');
-        expect(pdfSource).toContain('NISHAD.AI // MUSIC DOSSIER');
-        await expect(page.getByRole('button', { name: 'Download PDF' })).toBeEnabled();
-        const manualDownload = page.waitForEvent('download');
-        await page.getByRole('link', { name: 'Save PDF manually' }).click();
-        const manual = await manualDownload;
-        const manualPath = testInfo.outputPath('manual-report.pdf');
-        await manual.saveAs(manualPath);
-        expect(await readFile(manualPath)).toEqual(bytes);
-        await expect(page.locator('[data-pdf-export]')).toContainText('PDF ready');
+        await expect(report.locator('.vibe-tarot')).toContainText('The Test Fixture');
+        await report.getByRole('slider', { name: 'Snark level' }).fill('2');
+        await expect(report.locator('.report-roast')).toContainText('Spicy fixture');
+        await report.locator('.report-curious').click();
+        await expect(report.locator('.report-curious')).toContainText('generated fiction');
+        await expect(report.getByRole('button', { name: /Download PDF/ })).toHaveCount(0);
+        await expect(report.locator('[data-pdf-export]')).toHaveCount(0);
       });
 
-      test('smoke page shares production consent, request, validation and PDF controls', async ({ page }) => {
+      test('smoke page shares production consent, validation and HTML renderer', async ({ page }) => {
         let calls = 0;
         await page.route('https://nishad-ai-proxy.nishad-dawkhar94.workers.dev/', route => {
           calls++;
@@ -760,8 +728,9 @@ for (const outcome of ['ok', 'visitor_limit', 'global_limit', 'down']) {
         expect(calls).toBe(0);
         await page.getByRole('checkbox').check();
         await page.getByRole('button', { name: 'Generate AI report', exact: true }).click();
-        await expect(page.locator('.vibe-report meter')).toHaveCount(4);
-        await expect(page.getByRole('button', { name: 'Download PDF' })).toBeVisible();
+        await expect(page.locator('.vibe-report [role="meter"]')).toHaveCount(4);
+        await expect(page.locator('.vibe-report .report-hero')).toBeVisible();
+        await expect(page.getByRole('button', { name: /Download PDF/ })).toHaveCount(0);
         expect(calls).toBe(1);
       });
     });

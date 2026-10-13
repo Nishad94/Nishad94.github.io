@@ -6,8 +6,8 @@ export default defineConfig({
   fullyParallel: true,
   workers: 3,
   projects: [
-    { name: 'chromium', use: { browserName: 'chromium' }, grepInvert: /Firefox report and PDF/ },
-    { name: 'firefox', use: { browserName: 'firefox' }, grep: /Firefox report and PDF/ }
+    { name: 'chromium', use: { browserName: 'chromium' }, grepInvert: /Firefox music report/ },
+    { name: 'firefox', use: { browserName: 'firefox' }, grep: /Firefox music report/ }
   ],
   globalTeardown: './tests/cleanup-test-site.mjs',
   use: { baseURL: 'http://127.0.0.1:18765', headless: true },

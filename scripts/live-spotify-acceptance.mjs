@@ -1,7 +1,6 @@
 import { firefox } from '@playwright/test';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { spawnSync } from 'node:child_process';
 import { syntheticSpotifySample } from '../assets/spotify-synthetic.js';
 
 const output = resolve(process.argv[2] || '');
@@ -12,10 +11,7 @@ const trace = [];
 const mark = (event, detail = {}) => trace.push({ at: new Date().toISOString(), event, ...detail });
 const sample = syntheticSpotifySample(50);
 const browser = await firefox.launch({ headless: true });
-const context = await browser.newContext({
-  acceptDownloads: true,
-  extraHTTPHeaders: { DNT: '1' }
-});
+const context = await browser.newContext({ extraHTTPHeaders: { DNT: '1' } });
 await context.addInitScript(auth => {
   Object.defineProperty(navigator, 'globalPrivacyControl', { value: true });
   sessionStorage.setItem('nishad_spotify_auth', JSON.stringify(auth));
@@ -67,49 +63,19 @@ try {
   await page.locator('#spotify-result-output .vibe-report').waitFor({ state: 'visible', timeout: 180000 });
   mark('report_rendered', { duration_ms: Date.now() - requestStarted });
   const report = page.locator('#spotify-result-output .vibe-report');
-  if (await report.locator('meter').count() !== 4) throw new Error('Expected exactly four MBTI meters.');
+  if (await report.locator('[role="meter"]').count() !== 4) throw new Error('Expected exactly four MBTI score bars.');
   for (const heading of [
-    'Music personality / fictional write-up', 'AI-inferred genres / guesses, not Spotify metadata',
-    'Music MBTI / invented axes and scores', 'Music tarot / fictional card',
-    'Basic vs niche shuffle roast / made-up score'
+    'Signal summary', 'Genre constellation', 'Music MBTI', 'Music tarot', 'Shuffle compatibility'
   ]) await report.getByRole('heading', { name: heading }).waitFor();
   await report.getByRole('button', { name: 'Reveal tarot card' }).click();
+  await report.getByRole('slider', { name: 'Snark level' }).fill('2');
+  await report.locator('.report-curious').click();
+  if (await report.getByRole('button', { name: /Download PDF/ }).count()) throw new Error('Live report still exposes a PDF control.');
+  if (await report.locator('[data-pdf-export]').count()) throw new Error('Live report still installs PDF export controls.');
+  await writeFile(join(output, 'guided-report-text.txt'), await report.innerText());
+  mark('interactions_verified');
   await page.screenshot({ path: join(output, 'guided-report-firefox.png'), fullPage: true });
   mark('screenshot_saved');
-
-  const automaticEvent = page.waitForEvent('download');
-  await report.getByRole('button', { name: 'Download PDF' }).click();
-  const automatic = await automaticEvent;
-  const automaticPath = join(output, 'guided-report-automatic.pdf');
-  await automatic.saveAs(automaticPath);
-  mark('automatic_pdf_saved');
-
-  const manualEvent = page.waitForEvent('download');
-  await report.getByRole('link', { name: 'Save PDF manually' }).click();
-  const manual = await manualEvent;
-  const manualPath = join(output, 'guided-report-manual.pdf');
-  await manual.saveAs(manualPath);
-  mark('manual_pdf_saved');
-  const automaticBytes = await readFile(automaticPath);
-  const manualBytes = await readFile(manualPath);
-  if (!automaticBytes.equals(manualBytes)) throw new Error('Automatic and manual PDF downloads differ.');
-
-  const reader = process.env.PDF_READER_PYTHON || 'python3';
-  const pdfCheck = spawnSync(reader, ['-c', [
-    'from pypdf import PdfReader',
-    'import sys',
-    'text="\\n".join((p.extract_text() or "") for p in PdfReader(sys.argv[1]).pages)',
-    'normalized=" ".join(text.split())',
-    'required=["Music Intelligence Report","Music personality / fictional write-up","Music MBTI / invented axes and scores","Music tarot / fictional card","Basic vs niche shuffle roast / made-up score"]',
-    'missing=[value for value in required if value not in normalized]',
-    'joined=["state.Music","write-upDive","metadatasynthetic","scoresENFP","broken.Basic"]',
-    'bad=[value for value in joined if value in text]',
-    'print(text[:500])',
-    'raise SystemExit(1 if missing or bad else 0)'
-  ].join(';') , automaticPath], { encoding: 'utf8' });
-  if (pdfCheck.status !== 0) throw new Error('Saved PDF was unreadable or missing expected report text: ' + pdfCheck.stderr);
-  await writeFile(join(output, 'guided-report-pdf-text.txt'), pdfCheck.stdout);
-  mark('pdf_opened_and_read');
 
   if (pageErrors.length || consoleErrors.length) throw new Error('Browser errors were recorded.');
   if (analyticsAttempts.length) throw new Error('A production analytics request was attempted.');
