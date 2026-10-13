@@ -182,7 +182,8 @@ dry-run mode by default. To enable a real post:
 
 The workflow calls `test_threads_post.py`, which creates a text container and
 then publishes it through `graph.threads.net`. Leave **Publish to Threads**
-disabled to verify the workflow without making an API request.
+disabled to verify the workflow without making an API request. An optional
+public HTTPS image URL publishes an image container instead of a text-only one.
 
 After authorizing the Threads app, exchange the temporary OAuth code and write
 the returned credentials directly to GitHub Actions secrets:

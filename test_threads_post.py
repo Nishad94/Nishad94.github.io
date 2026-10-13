@@ -42,14 +42,18 @@ def post_form(url, payload):
     return response_data
 
 
-def publish_text_post(user_id, access_token, post_text):
+def publish_post(user_id, access_token, post_text, image_url=None):
+    container_payload = {
+        "media_type": "IMAGE" if image_url else "TEXT",
+        "text": post_text,
+        "access_token": access_token,
+    }
+    if image_url:
+        container_payload["image_url"] = image_url
+
     container_data = post_form(
         f"{THREADS_API_BASE}/{parse.quote(user_id, safe='')}/threads",
-        {
-            "media_type": "TEXT",
-            "text": post_text,
-            "access_token": access_token,
-        },
+        container_payload,
     )
     creation_id = container_data.get("id")
     if not creation_id:
@@ -87,6 +91,10 @@ def parse_args():
         action="store_true",
         help="Validate configuration and print the post without calling Threads",
     )
+    parser.add_argument(
+        "--image-url",
+        help="Public HTTPS image URL to attach",
+    )
     return parser.parse_args()
 
 
@@ -99,7 +107,13 @@ def main():
 
     if args.dry_run:
         print(f"Dry run: would publish to Threads:\n{post_text}")
+        if args.image_url:
+            print(f"Image: {args.image_url}")
         return 0
+
+    if args.image_url and not args.image_url.startswith("https://"):
+        print("Error: image URL must use HTTPS.", file=sys.stderr)
+        return 2
 
     user_id = os.getenv("THREADS_USER_ID")
     access_token = os.getenv("THREADS_ACCESS_TOKEN")
@@ -110,9 +124,10 @@ def main():
         )
         return 2
 
-    print(f"Creating Threads text container for:\n{post_text}")
+    media_label = "image" if args.image_url else "text"
+    print(f"Creating Threads {media_label} container for:\n{post_text}")
     try:
-        post_id = publish_text_post(user_id, access_token, post_text)
+        post_id = publish_post(user_id, access_token, post_text, args.image_url)
     except ThreadsAPIError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1

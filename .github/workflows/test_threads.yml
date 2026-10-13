@@ -13,6 +13,10 @@ on:
         required: true
         default: false
         type: boolean
+      image_url:
+        description: Optional public HTTPS image URL
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -35,10 +39,14 @@ jobs:
         env:
           POST_TEXT: ${{ inputs.post_text }}
           PUBLISH: ${{ inputs.publish }}
+          IMAGE_URL: ${{ inputs.image_url }}
           THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
           THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
         run: |
           args=(--text "$POST_TEXT")
+          if [[ -n "$IMAGE_URL" ]]; then
+            args+=(--image-url "$IMAGE_URL")
+          fi
           if [[ "$PUBLISH" != "true" ]]; then
             args+=(--dry-run)
           fi
