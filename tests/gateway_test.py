@@ -1,6 +1,8 @@
 import http.client
 import importlib.util
+import io
 import json
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import threading
 import unittest
@@ -70,6 +72,9 @@ class GatewayTests(unittest.TestCase):
             self.assertEqual(events[-1], {"done": True, "finish_reason": "stop"})
             self.assertEqual(payload["stream"], True)
             self.assertEqual(payload["think"], False)
+            self.assertEqual(payload["keep_alive"], -1)
+            self.assertEqual(payload["model"], gateway.MODEL)
+            self.assertEqual(payload["options"]["num_ctx"], 4096)
             if mode == "chat":
                 self.assertNotIn("format", payload)
                 self.assertEqual(payload["options"]["num_predict"], 256)
@@ -112,6 +117,107 @@ class GatewayTests(unittest.TestCase):
         status, _, events, _ = self.request([{"message": {"content": "{}"}}, {"done": True, "done_reason": "stop"}])
         self.assertEqual(status, 200)
         self.assertEqual(events[-1]["finish_reason"], "stop")
+
+class WarmModelTests(unittest.TestCase):
+    def state(self, *, seconds=600, context=4096, name=None):
+        return {"models": [{
+            "name": name or gateway.MODEL,
+            "context_length": context,
+            "expires_at": (datetime.now(timezone.utc) + timedelta(seconds=seconds)).isoformat()
+        }]}
+
+    def response(self, value):
+        return io.BytesIO(json.dumps(value).encode())
+
+    def test_absent_expiring_or_wrong_context_model_is_preloaded_without_a_prompt(self):
+        for state in [
+            {"models": []}, self.state(), self.state(context=2048)
+        ]:
+            with self.subTest(state=state), patch.object(gateway.urllib.request, "urlopen", side_effect=[
+                self.response(state), self.response({"done": True, "done_reason": "load"})
+            ]) as upstream, patch("builtins.print") as log:
+                gateway.keep_model_warm()
+                self.assertEqual(upstream.call_count, 2)
+                request = upstream.call_args.args[0]
+                self.assertEqual(request.full_url, gateway.OLLAMA + "/api/chat")
+                self.assertEqual(json.loads(request.data), {
+                    "model": gateway.MODEL, "messages": [], "stream": False,
+                    "think": False, "keep_alive": -1, "options": {"num_ctx": 4096}
+                })
+                self.assertEqual(json.loads(log.call_args.args[0])["status"], "ready")
+
+    def test_resident_model_is_not_reloaded_or_evaluated(self):
+        with patch.object(gateway.urllib.request, "urlopen", return_value=self.response(
+            self.state(seconds=10 * 365 * 86400)
+        )) as upstream, patch("builtins.print") as log:
+            gateway.keep_model_warm()
+            upstream.assert_called_once_with(gateway.OLLAMA + "/api/ps", timeout=5)
+            log.assert_not_called()
+
+    def test_maintenance_does_not_displace_another_local_model(self):
+        with patch.object(gateway.urllib.request, "urlopen", side_effect=[
+            self.response(self.state(name="another-local-model")),
+            self.response(self.state(name="another-local-model"))
+        ]) as upstream, patch("builtins.print") as log:
+            gateway.keep_model_warm()
+            gateway.keep_model_warm()
+            self.assertEqual(upstream.call_count, 2)
+            self.assertTrue(all(call.args[0] == gateway.OLLAMA + "/api/ps" for call in upstream.call_args_list))
+            self.assertEqual(json.loads(log.call_args.args[0]), {
+                "event": "warmup", "status": "deferred",
+                "reason": "other_model_resident", "retry_seconds": 60
+            })
+
+    def test_visitor_request_has_priority_over_maintenance(self):
+        gateway.SEM.acquire()
+        try:
+            with patch.object(gateway.urllib.request, "urlopen", return_value=self.response(
+                {"models": []}
+            )) as upstream:
+                gateway.keep_model_warm()
+                self.assertEqual(upstream.call_count, 1)
+                self.assertFalse(gateway.SEM.acquire(False))
+        finally:
+            gateway.SEM.release()
+
+    def test_failed_preload_is_logged_without_private_details_and_releases_capacity(self):
+        failures = [
+            TimeoutError("private network detail"),
+            self.response({"done": True, "done_reason": "stop"}),
+            self.response({"done": True, "done_reason": "load", "error": "private model detail"}),
+            io.BytesIO(b"invalid JSON")
+        ]
+        for failure in failures:
+            with self.subTest(failure=failure), patch.object(gateway.urllib.request, "urlopen", side_effect=[
+                self.response({"models": []}), failure
+            ]), patch("builtins.print") as log:
+                gateway.keep_model_warm()
+                event = json.loads(log.call_args.args[0])
+                self.assertEqual(event["status"], "unavailable")
+                self.assertEqual(event["retry_seconds"], 60)
+                self.assertNotIn("private", log.call_args.args[0])
+                self.assertTrue(gateway.SEM.acquire(False))
+                gateway.SEM.release()
+
+    def test_invalid_model_state_is_reported_not_treated_as_warm(self):
+        for state in [{"models": None}, {"models": [None]}, {
+            "models": [{"name": gateway.MODEL, "context_length": 4096, "expires_at": "invalid"}]
+        }]:
+            with self.subTest(state=state), patch.object(
+                gateway.urllib.request, "urlopen", return_value=self.response(state)
+            ) as upstream, patch("builtins.print") as log:
+                gateway.keep_model_warm()
+                self.assertEqual(upstream.call_count, 1)
+                self.assertEqual(json.loads(log.call_args.args[0])["status"], "unavailable")
+
+    def test_maintenance_waits_between_attempts_and_stops(self):
+        stop = threading.Event()
+        with patch.object(gateway, "keep_model_warm") as warm, patch.object(
+            stop, "wait", side_effect=lambda seconds: stop.set()
+        ) as wait:
+            gateway.maintain_warm_model(stop)
+            warm.assert_called_once_with()
+            wait.assert_called_once_with(60)
 
 
 if __name__ == "__main__":

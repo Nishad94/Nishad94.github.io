@@ -1,15 +1,59 @@
 #!/usr/bin/env python3
 import http.client, json, os, threading, time, urllib.request, urllib.error
+from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 LISTEN=os.getenv('LISTEN','127.0.0.1:8094')
 OLLAMA=os.getenv('OLLAMA_BASE_URL','http://127.0.0.1:11434').rstrip('/')
 MODEL=os.getenv('GEMMA_MODEL','gemma4:e2b')
+CONTEXT=4096
+KEEP_ALIVE=-1
+WARM_CHECK_SECONDS=60
 ORIGINS={x for x in os.getenv('ALLOWED_ORIGINS','https://nishad.ai').split(',') if x}
 MAX_BODY=32768
 SEM=threading.BoundedSemaphore(int(os.getenv('MAX_CONCURRENT_REQUESTS','1')))
 TIMEOUT=int(os.getenv('UPSTREAM_TIMEOUT_SECONDS','120'))
 counts={}; lock=threading.Lock()
+
+def keep_model_warm():
+ started=time.monotonic()
+ acquired=False
+ try:
+  with urllib.request.urlopen(OLLAMA+'/api/ps',timeout=5) as r:state=json.load(r)
+  if not isinstance(state,dict) or not isinstance(state.get('models'),list):
+   raise ValueError('invalid model state')
+  target_loaded=False
+  for model in state['models']:
+   if not isinstance(model,dict):raise ValueError('invalid model state')
+   if model.get('name')!=MODEL:continue
+   target_loaded=True
+   if model.get('context_length')!=CONTEXT:continue
+   expires=model.get('expires_at')
+   if not isinstance(expires,str):raise ValueError('invalid model expiry')
+   expiry=datetime.fromisoformat(expires.replace('Z','+00:00'))
+   if expiry.tzinfo is None:raise ValueError('invalid model expiry')
+   if expiry>datetime.now(timezone.utc)+timedelta(days=1):return
+  if state['models'] and not target_loaded:
+   print(json.dumps({'event':'warmup','status':'deferred','reason':'other_model_resident','retry_seconds':WARM_CHECK_SECONDS}),flush=True)
+   return
+  # Never queue a maintenance load behind a visitor's generation.
+  acquired=SEM.acquire(False)
+  if not acquired:return
+  payload={'model':MODEL,'messages':[],'stream':False,'think':False,'keep_alive':KEEP_ALIVE,'options':{'num_ctx':CONTEXT}}
+  req=urllib.request.Request(OLLAMA+'/api/chat',data=json.dumps(payload).encode(),headers={'Content-Type':'application/json'},method='POST')
+  with urllib.request.urlopen(req,timeout=TIMEOUT) as r:result=json.load(r)
+  if not isinstance(result,dict) or result.get('done') is not True or result.get('done_reason')!='load' or result.get('error'):
+   raise ValueError('incomplete model preload')
+  print(json.dumps({'event':'warmup','status':'ready','duration_ms':round((time.monotonic()-started)*1000)}),flush=True)
+ except (OSError,urllib.error.URLError,http.client.HTTPException,ValueError):
+  print(json.dumps({'event':'warmup','status':'unavailable','retry_seconds':WARM_CHECK_SECONDS,'duration_ms':round((time.monotonic()-started)*1000)}),flush=True)
+ finally:
+  if acquired:SEM.release()
+
+def maintain_warm_model(stop):
+ while not stop.is_set():
+  keep_model_warm()
+  stop.wait(WARM_CHECK_SECONDS)
 
 def allowed_messages(v):
  return isinstance(v,list) and 1<=len(v)<=4 and all(isinstance(x,dict) and x.get('role') in {'system','user'} and isinstance(x.get('content'),str) and len(x['content'])<=20000 for x in v)
@@ -67,10 +111,11 @@ class H(BaseHTTPRequestHandler):
    'messages':msgs,
    'stream':True,
    'think':False,
+   'keep_alive':KEEP_ALIVE,
    'options':{
     'temperature':0.2 if is_report else 0.7,
     'num_predict':1200 if is_report else 256,
-    'num_ctx':4096
+    'num_ctx':CONTEXT
    }
   }
   if is_report:payload['format']='json'
@@ -119,5 +164,10 @@ class H(BaseHTTPRequestHandler):
    print(json.dumps({'event':'generation','mode':'report' if is_report else 'chat','duration_ms':round((time.monotonic()-started)*1000),'input_bytes':n,'finish_reason':finish_reason,'error':failure,'prompt_tokens':prompt_tokens,'output_tokens':output_tokens}),flush=True)
    SEM.release()
 def main():
- h,p=LISTEN.rsplit(':',1);ThreadingHTTPServer((h,int(p)),H).serve_forever()
+ h,p=LISTEN.rsplit(':',1);server=ThreadingHTTPServer((h,int(p)),H)
+ stop=threading.Event()
+ threading.Thread(target=maintain_warm_model,args=(stop,),daemon=True).start()
+ try:server.serve_forever()
+ finally:
+  stop.set();server.server_close()
 if __name__=='__main__':main()
