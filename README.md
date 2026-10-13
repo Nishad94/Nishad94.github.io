@@ -210,6 +210,12 @@ the terminal lazy-loads **SmolLM2-360M-Instruct** through WebLLM and runs it ent
 inside the visitor's browser using WebGPU. Local fallback works best in current
 Chrome/Edge on hardware with WebGPU.
 
+The gateway keeps Gemma resident indefinitely between requests and preloads it
+asynchronously at startup or after eviction, without generating or caching a
+report. This avoids idle reload delays; it does not make full generation finish
+in under 10 seconds. Residency still depends on available memory and the Mac
+remaining awake. See [warm residency and rollback](inference/macos/README.md#warm-model-residency).
+
 The AI's knowledge (Nishad's career, projects, skills, lore, persona) lives in
 **`ontology.js`** — a single, heavily-commented source of truth. `buildSystemPrompt()`
 assembles it into the system prompt used by both the local and hosted models. To change
