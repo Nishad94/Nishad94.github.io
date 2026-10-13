@@ -61,26 +61,28 @@ async function collectSSE(response) {
   });
 }
 
-const nativeFetch = window.fetch.bind(window);
-window.fetch = async function patchedFetch(input, init) {
-  if (!isReportRequest(input, init)) return nativeFetch(input, init);
+if (typeof window !== 'undefined' && typeof Response !== 'undefined') {
+  const nativeFetch = window.fetch.bind(window);
+  window.fetch = async function patchedFetch(input, init) {
+    if (!isReportRequest(input, init)) return nativeFetch(input, init);
 
-  const body = JSON.parse(init.body);
-  const response = await nativeFetch(input, {
-    ...init,
-    body: JSON.stringify({ ...body, mode: 'chat' })
-  });
+    const body = JSON.parse(init.body);
+    const response = await nativeFetch(input, {
+      ...init,
+      body: JSON.stringify({ ...body, mode: 'chat' })
+    });
 
-  const type = response.headers.get('content-type') || '';
-  if (!response.ok || !type.includes('text/event-stream')) return response;
-  return collectSSE(response);
-};
+    const type = response.headers.get('content-type') || '';
+    if (!response.ok || !type.includes('text/event-stream')) return response;
+    return collectSSE(response);
+  };
 
-// Defensive fallback: if a report response reaches existing code as raw SSE and it calls
-// response.json(), decode the event stream rather than throwing on the leading `data:` token.
-const nativeResponseJson = Response.prototype.json;
-Response.prototype.json = async function patchedResponseJson() {
-  const type = this.headers.get('content-type') || '';
-  if (type.includes('text/event-stream')) return readSSEBody(this);
-  return nativeResponseJson.call(this);
-};
+  // Defensive fallback: if a report response reaches existing code as raw SSE and it calls
+  // response.json(), decode the event stream rather than throwing on the leading `data:` token.
+  const nativeResponseJson = Response.prototype.json;
+  Response.prototype.json = async function patchedResponseJson() {
+    const type = this.headers.get('content-type') || '';
+    if (type.includes('text/event-stream')) return readSSEBody(this);
+    return nativeResponseJson.call(this);
+  };
+}
