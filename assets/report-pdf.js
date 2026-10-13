@@ -8,7 +8,7 @@ function cleanReportText(report) {
     .trim();
 }
 
-async function downloadReport(report, button, status) {
+export async function downloadReport(report, button, status) {
   button.disabled = true;
   status.textContent = 'Building PDF…';
   try {
@@ -61,6 +61,7 @@ async function downloadReport(report, button, status) {
   } catch (error) {
     console.error('PDF export failed', error);
     status.textContent = 'PDF export failed. Refresh and try again.';
+    throw error;
   } finally {
     button.disabled = false;
   }
