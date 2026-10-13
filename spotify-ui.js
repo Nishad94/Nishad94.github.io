@@ -374,11 +374,12 @@ export function createSpotifyTerminal({ output, connectionOutput = output, repor
           if (recent.length) reports.consent(panel, mode, { tracks: recent.map(e => compactTrack(e.track)) }, recent);
           else node(panel, 'p', 'No usable recent tracks; no AI request available.');
         } else if (mode === 'compare') {
-          const past = await spotifyTop('artists', 'long');
+          const [past, current] = await Promise.all([
+            spotifyTop('artists', 'long'),
+            spotifyTop('artists', 'short')
+          ]);
           if (view !== version || !panel.isConnected) return;
           itemsView(panel, past, 'artist', 'Past / approximately the last year (not all-time)');
-          const current = await spotifyTop('artists', 'short');
-          if (view !== version || !panel.isConnected) return;
           itemsView(panel, current, 'artist', 'Now / approximately the last 4 weeks');
           node(panel, 'p', 'These are overlapping top-artist samples, not complete histories. Presence or absence does not prove when you started or stopped listening.');
           const key = a => typeof a.id === 'string' ? a.id : a.name;
@@ -398,11 +399,12 @@ export function createSpotifyTerminal({ output, connectionOutput = output, repor
           if (p.length && c.length) reports.consent(panel, mode, data);
           else node(panel, 'p', 'Both ranges need usable artists for AI comparison.');
         } else {
-          const tracks = await spotifyTop('tracks', mode);
+          const [tracks, artists] = await Promise.all([
+            spotifyTop('tracks', mode),
+            spotifyTop('artists', mode)
+          ]);
           if (view !== version || !panel.isConnected) return;
           itemsView(panel, tracks, 'track', 'Top tracks / ' + SPOTIFY_RANGES[mode].label);
-          const artists = await spotifyTop('artists', mode);
-          if (view !== version || !panel.isConnected) return;
           itemsView(panel, artists, 'artist', 'Top artists / Spotify’s order, not play counts');
           const data = topReportData(mode, tracks, artists);
           node(panel, 'p', 'Artist genres, when supplied by Spotify, are included in the data preview. Missing genres remain unavailable until an explicitly labeled AI guess. Audio features and popularity are not fetched or treated as facts.');

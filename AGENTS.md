@@ -26,7 +26,7 @@ Use `window.history` (a local `history` variable shadows the global). Tests must
 | file | purpose |
 | --- | --- |
 | `index.html` | The entire UI + terminal + AI wiring (HTML, CSS, JS all inline). |
-| `ontology.js` | **Single source of truth** about Nishad: profile, career, education, skills, projects, awards, fictional branches, lore, persona, and `buildSystemPrompt()`. |
+| `ontology.js` | **Single source of truth** about Nishad: profile, career, education, skills, projects, awards, fictional branches, lore, persona, and full/compact prompt builders. |
 | `README.md` | Human-facing overview and feature docs. |
 | `AGENTS.md` | This file. |
 | `CNAME` | Pins the custom domain `nishad.ai` for GitHub Pages. |
@@ -57,14 +57,16 @@ There are **three** model paths behind the terminal, in precedence order:
    to OpenAI. A remembered key is not automatically activated.
 3. **Browser fallback:** `SmolLM2-360M-Instruct` via **WebLLM + WebGPU**, loaded
    lazily when the self-hosted path is unavailable. It runs fully in the browser.
-   Its context window is 2048, so keep the shared system prompt reasonably tight.
+   Its context window is 2048, so keep the compact terminal prompt reasonably tight.
 
-All paths are fed the **same system prompt**, produced by `buildSystemPrompt()` in
-`ontology.js`. The prompt = `PERSONA` + structured facts.
+Terminal model paths share the concise `buildChatSystemPrompt()` output so the
+self-hosted, BYOK and browser-fallback answers use the same factual grounding.
+`buildSystemPrompt()` remains the complete reference prompt. Structured Spotify
+reports use their own strict prompt/schema in `spotify-ui.js`.
 
 ### Key functions in `index.html`
 
-- `buildSystemPrompt()` (imported from `ontology.js`) → the system prompt string.
+- `buildChatSystemPrompt()` (imported from `ontology.js`) → the concise terminal prompt.
 - `askAI(query, extra?)` → routes to Gemma, explicit hosted override, or local fallback; `extra` is an optional mode
   instruction appended to the system prompt (used by the fun commands).
 - `hostedAskAI(query, extra?)` → streams from OpenAI, requests
@@ -82,8 +84,8 @@ Edit the exported data objects in `ontology.js`:
   is instructed never to present them as real.
 - `LORE`, `PERSONA` — tone, jokes, and voice.
 
-`buildSystemPrompt()` will automatically fold your changes into the prompt. No
-other edits needed.
+Update the structured facts and the concise chat highlights in `ontology.js`
+together when career evidence changes.
 
 **Privacy rule:** do NOT add Nishad's phone number. Email is intentionally public
 (owner consent). Don't add other people's private data.

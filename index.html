@@ -356,7 +356,7 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 
 
 <script type="module">
-import { ARCHITECTURE_RECEIPTS, buildSystemPrompt, PROFILE, PROJECTS, TECHNICAL_BRIEF } from './ontology.js';
+import { ARCHITECTURE_RECEIPTS, buildChatSystemPrompt, PROFILE, PROJECTS, TECHNICAL_BRIEF } from './ontology.js';
 import { createSpotifyTerminal } from './spotify-ui.js';
 import { REPORT_ENDPOINT, requestReport } from './report-client.js';
 (async () => {
@@ -483,10 +483,8 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     architecture: '#architecture'
   };
 
-  // The system prompt (persona + full ontology) is built from ontology.js,
+  // The latency-sensitive chat prompt is built from ontology.js,
   // the single source of truth about Nishad. Edit facts there, not here.
-  const systemPrompt = buildSystemPrompt();
-
   function addLine(text = '', cls = '') {
     const line = document.createElement('div');
     line.className = 'termline' + (cls ? ' ' + cls : '');
@@ -713,6 +711,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
   async function hostedAskAI(query, extra) {
     const answerLine = addLine('nishad.ai✨> ', 'yellow');
     let accumulated = '';
+    const systemPrompt = buildChatSystemPrompt(query);
     const messages = [
       { role: 'system', content: extra ? systemPrompt + '\n\n=== MODE ===\n' + extra : systemPrompt },
       { role: 'user', content: query }
@@ -788,6 +787,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
   async function proxyAskAI(query, extra) {
     const answerLine = addLine('nishad.ai◆> ', 'yellow');
     answerLine.textContent = 'nishad.ai◆> Gemma is thinking…';
+    const systemPrompt = buildChatSystemPrompt(query);
     const messages = [
       { role: 'system', content: extra ? systemPrompt + '\n\n=== MODE ===\n' + extra : systemPrompt },
       { role: 'user', content: query }
@@ -900,6 +900,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       const answerLine = addLine('nishad.ai> ', 'yellow');
       let accumulated = '';
 
+      const systemPrompt = buildChatSystemPrompt(query);
       const messages = [
         { role: 'system', content: extra ? systemPrompt + '\n\n=== MODE ===\n' + extra : systemPrompt },
         { role: 'user', content: query }

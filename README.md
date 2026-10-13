@@ -247,8 +247,10 @@ remaining awake. See [warm residency and rollback](inference/macos/README.md#war
 
 The AI's knowledge (Nishad's career, projects, skills, lore, persona) lives in
 **`ontology.js`** — a single, heavily-commented source of truth. `buildSystemPrompt()`
-assembles it into the system prompt used by both the local and hosted models. To change
-what the AI knows, edit `ontology.js`, not `index.html`.
+assembles the complete reference prompt; `buildChatSystemPrompt()` produces the
+latency-sensitive terminal summary used by Gemma, BYOK and browser fallback. Structured
+Spotify reports keep their separate schema prompt. To change what the AI knows, edit
+`ontology.js`, not `index.html`.
 
 ### AI-powered fun modes
 Beyond free-form questions, the terminal has playful modes that steer the model:
