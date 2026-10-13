@@ -135,8 +135,30 @@ export const PROJECTS = [
   { name: 'RBAC parser microservice', blurb: 'Java Spring, Dockerized YAML→MySQL RBAC sync with Jenkins PR validation (Cisco Webex).' },
   { name: 'SEPC reporting framework', blurb: 'Metadata-driven report generation + Apache Storm real-time ETL (Symantec).' },
   { name: 'Fusion 360 Toolbox & Replicate', blurb: 'C++ command search/pin and parametric command reuse (Autodesk).' },
-  { name: 'nishad://multiverse (this site)', blurb: 'A static personal site framing life as a git graph, with an in-browser LLM (WebLLM + WebGPU) and an optional BYOK OpenAI mode with a live spend HUD.' }
+  { name: 'nishad://multiverse (this site)', blurb: 'A static personal site framing life as a git graph, with Mac-hosted Gemma 4, a WebLLM/WebGPU fallback, optional BYOK OpenAI, and a private Go/PostgreSQL analytics engine.' }
 ];
+
+export const ARCHITECTURE_RECEIPTS = [
+  'Static GitHub Pages shell with deterministic browser commands and a curated ontology.',
+  'Cloudflare Worker adapter preserving chat SSE while requiring confirmed JSON completion for structured reports.',
+  'Loopback-only Python gateway to Ollama/Gemma 4 on the owner’s Mac, with origin, payload, quota, timeout, and concurrency controls.',
+  'In-browser WebGPU fallback with no visitor API key required.',
+  'Consent-first private analytics built in Go and PostgreSQL with immutable GitHub owner authorization.'
+];
+
+export const VC_DOSSIER = `================================================================================
+NISHAD DAWKHAR // EXECUTIVE DOSSIER
+================================================================================
+[Core]     MS in AI/NLP @ Carnegie Mellon School of Computer Science
+[Impact]   Distributed systems: Twitter Kafka platform -> Microsoft Azure Edge
+[Agency]   Built nishad.ai: Gemma 4/Ollama gateway, WebGPU fallback, Go/Postgres analytics
+[Systems]  Kafka Observer, tenant rate limiting, streaming ML ingestion, real-time reporting
+[Tech]     Scala, Java, C++, Python, Kafka, Spark, Kubernetes, Azure, AI/ML infrastructure
+================================================================================
+> Type 'projects' for shipped technical receipts.
+> Type 'architecture' for the live nishad.ai system boundary.
+> Type 'contact' for email, LinkedIn, and GitHub.
+================================================================================`;
 
 // ---- Honors / awards (REAL) ------------------------------------------------
 export const AWARDS = [
@@ -160,7 +182,7 @@ export const LORE = {
   motto: 'One life. Many branches.',
   gmailHypothesis: 'A running joke that Nishad\'s Gmail inbox behaves like a Monte Carlo simulator for career/geography — recruiter pings, offers, and relocation threads appear right when life hits equilibrium, as if the universe keeps offering new git branches.',
   toffee: 'Toffee is the site\'s mascot: a cat who serves as the least-qualified site-reliability engineer.',
-  siteFacts: 'The site is a single static page (HTML/CSS/JS) on GitHub Pages at nishad.ai. It has an interactive terminal, a branch-topology graph, alternate-timeline write-ups, a recruiter mode, and a WebGPU in-browser LLM. "main is protected; force push disabled" is a running gag.'
+  siteFacts: 'The site is a static HTML/CSS/JS application on GitHub Pages at nishad.ai. It has an interactive terminal, a branch-topology graph, alternate-timeline write-ups, Mac-hosted Gemma 4 through a narrow Cloudflare/gateway boundary, a WebGPU fallback, Spotify report experiments, and a private Go/PostgreSQL analytics engine. "main is protected; force push disabled" is a running gag.'
 };
 
 // The AI's voice. Keep it fun but honest.
@@ -172,6 +194,7 @@ Rules:
 - The "alternate branches" are explicitly FICTIONAL what-ifs; have fun with them but never present them as Nishad's real history.
 - Do not reveal Nishad's phone number (you don't have it). Email and public profiles are fine to share.
 - You are a small in-browser/hosted model demo — don't claim to be ChatGPT, and don't claim live internet/Gmail/file access.
+- For questions about investment, YC, founder potential, technical background, or why to hire/invest: lead with 4-6 concise evidence-based bullets covering technical depth, shipped systems, scale, and execution. Distinguish employment work, side projects, and experiments. Never invent startup traction, fundraising, user counts, revenue, or a founder title.
 - Stay playful and in-universe: git metaphors, timelines, branches, commits.`;
 
 // ---- Prompt assembler ------------------------------------------------------
@@ -217,6 +240,9 @@ ${skills}
 
 === SELECTED PROJECTS ===
 ${projects}
+
+=== CURRENT SITE ARCHITECTURE RECEIPTS ===
+${ARCHITECTURE_RECEIPTS.map(receipt => `- ${receipt}`).join('\n')}
 
 === HONORS / AWARDS ===
 ${awards}

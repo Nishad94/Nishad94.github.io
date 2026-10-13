@@ -90,7 +90,8 @@ other edits needed.
 Deterministic (no model): `help`, `conspiracy`/`gmail`, `whoami`, `pwd`, `ls`,
 `cat <file>`, `git status|branch|log`, `timeline`, `branches`, `recruiter`,
 `linkedin`, `github`, `blog`, `open`, `echo`, `date`, `history`, `clear`, `sudo`, `rm`,
-`ssh`, `roulette`, `chaos`, `toffee`, `palette`, `matrix`, `exit`/`logout`.
+`ssh`, `roulette`, `chaos`, `toffee`, `palette`, `matrix`, `vc`/`founder`/`investor`,
+`--mode vc`, `projects`, `architecture`, `contact`, `exit`/`logout`.
 
 BYOK: `multiverse` (unlock), `lockdown`/`clearkey` (exit + reset spend).
 
