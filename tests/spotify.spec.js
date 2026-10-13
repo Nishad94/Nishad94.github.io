@@ -422,6 +422,17 @@ test('existing deterministic commands, palette, local failure, BYOK streaming an
     await command(page, cmd);
     await expect(page.locator('#term-output')).toContainText(output);
   }
+  await command(page, 'vc');
+  await expect(page.locator('#term-output')).toContainText('NISHAD DAWKHAR // EXECUTIVE DOSSIER');
+  await expect(page.locator('#term-output')).toContainText('Twitter Kafka platform -> Microsoft Azure Edge');
+  await command(page, '--mode vc');
+  await command(page, 'founder');
+  await command(page, 'projects');
+  await expect(page.locator('#term-output')).toContainText('Kafka Observer');
+  await command(page, 'architecture');
+  await expect(page.locator('#term-output')).toContainText('Cloudflare Worker adapter');
+  await command(page, 'contact');
+  await expect(page.locator('#term-output')).toContainText('nishad.dawkhar94@gmail.com');
   await command(page, 'palette');
   await page.locator('#palette-input').fill('Spotify');
   await expect(page.locator('.palette-item')).toHaveCount(5);
@@ -446,6 +457,44 @@ test('existing deterministic commands, palette, local failure, BYOK streaming an
   await command(page, 'clear');
   await expect(page.locator('#term-output')).toBeEmpty();
   expect(errors).toEqual([]);
+});
+
+test('VC founder shortcut, proof callouts and palette form a fast high-intent path', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'proof of work / live architecture' })).toBeVisible();
+  await expect(page.locator('#architecture')).toContainText('Gemma 4 via Ollama on Mac');
+  await expect(page.locator('#architecture')).toContainText('Go + PostgreSQL');
+  await expect(page.locator('#architecture .blog-cta')).toContainText('Read the technical build log');
+  await expect(page.locator('.proof-link')).toHaveCount(3);
+  await expect(page.locator('.proof-link').nth(0)).toHaveAttribute('href', '/blog/inside-nishad-ai-terminal/');
+  await page.getByRole('button', { name: /VC \/ Founder View/ }).last().click();
+  await expect(page.locator('body')).toHaveClass(/impact-mode/);
+  await expect(page.locator('.commit[data-impact-milestone]')).toHaveCount(4);
+  await expect(page.locator('#term-input')).toHaveValue('vc', { timeout: 3000 });
+  await expect(page.locator('#term-input')).toBeVisible();
+  await page.locator('#term-input').press('Enter');
+  await expect(page.locator('#term-output')).toContainText('EXECUTIVE DOSSIER');
+
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+k' : 'Control+k');
+  await page.locator('#palette-input').fill('System Architecture Diagram');
+  await expect(page.locator('.palette-item')).toHaveCount(1);
+  await page.locator('#palette-input').press('Enter');
+  await expect(page.getByRole('heading', { name: 'proof of work / live architecture' })).toBeVisible();
+
+  await page.keyboard.press(process.platform === 'darwin' ? 'Meta+k' : 'Control+k');
+  await page.locator('#palette-input').fill('Run VC Pitch');
+  await page.locator('#palette-input').press('Enter');
+  await expect(page.locator('#term-output')).toContainText('EXECUTIVE DOSSIER');
+  await page.goto('/#story');
+  await expect(page.locator('#story > .blog-cta')).toContainText('Technical blog / implementation receipts');
+});
+
+test('VC proof path stays within a mobile viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: /VC \/ Founder View/ }).last()).toBeVisible();
+  await expect(page.locator('.proof-card')).toHaveCount(3);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
 });
 
 test('remembered OpenAI key stays inactive until explicit session activation', async ({ page }) => {

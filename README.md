@@ -178,6 +178,8 @@ A faux zsh at the bottom of the page. Type `help` for the full list. Highlights:
 | `git status` / `git branch` / `git log` | inspect the "life" repo |
 | `timeline`, `branches`, `recruiter`, `linkedin`, `github` | jump around / open links |
 | `blog` | open the technical blog |
+| `vc`, `founder`, `investor`, `--mode vc` | render the deterministic executive dossier with no model latency |
+| `projects`, `architecture`, `contact` | inspect technical receipts, the current system boundary, and public contact links |
 | `roulette`, `chaos`, `toffee`, `palette` | trigger the multiverse controls |
 | `spotify [connect\|status\|disconnect]` | optional Spotify login, consent, status, or local disconnect |
 | `vibe [short\|medium\|long]` | top items and optional music personality, genre guesses, Music MBTI, tarot, shuffle roast |
@@ -189,10 +191,12 @@ A faux zsh at the bottom of the page. Type `help` for the full list. Highlights:
 Anything that isn't a known command is sent to the **AI** (see below).
 
 ### Multiverse controls
+- **VC / Founder View** — switch homepage metrics to impact/scale, highlight core milestones, and prefill the deterministic `vc` dossier.
 - **branch roulette** — generate a random alternate-timeline blurb.
 - **chaos mode** — bump the visual entropy.
 - **summon Toffee** — deploy the site's least-qualified SRE (a cat 🐈).
 - **command palette** — `⌘K` / `Ctrl+K` fuzzy navigation.
+- **proof-of-work architecture** — the homepage shows the real Gemma, WebGPU, and Go/PostgreSQL boundaries before any AI request.
 
 ### Self-hosted AI with a browser-local fallback
 Keyless terminal questions and structured music reports go first to **Gemma 4**,

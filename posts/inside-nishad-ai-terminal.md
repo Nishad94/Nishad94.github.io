@@ -3,30 +3,33 @@
   "title": "Inside the nishad.ai Terminal: A Self-Hosted AI Shell with Gemma 4",
   "date": "2026-10-11",
   "description": "An implementable high-level design of the browser shell, knowledge pipeline, Gemma 4 inference stack, streaming gateway, security boundary, MLOps workflow, and future RAG path behind nishad.ai.",
-  "tags": ["AI", "system design", "Gemma", "llama.cpp", "MLOps", "Azure"],
+  "tags": ["AI", "system design", "Gemma", "Ollama", "llama.cpp", "MLOps"],
   "draft": false
 }
 ---
 
 The Terminal tab on [nishad.ai](https://nishad.ai/#shell) looks like a tiny Unix shell that wandered into a neon multiverse. It understands `ls`, `git log`, and `conspiracy`; it can also answer questions about my work. Underneath, it is neither a real Linux login nor a wrapper around one magical API.
 
-It is a deliberately layered system:
+It is a deliberately layered system. The current production path is:
 
 - a static browser application classifies commands;
 - a curated JavaScript ontology supplies facts and personality;
-- a narrow HTTPS gateway protects the inference machine;
-- `llama.cpp` runs a quantized Gemma 4 model on an Azure ARM64 CPU VM;
+- a Cloudflare Worker preserves chat streaming and completed report contracts;
+- a tunnel reaches a loopback-only Python gateway on my Mac;
+- Ollama runs Gemma 4 locally;
 - Server-Sent Events stream tokens back to the browser;
 - OpenAI is an explicit, temporary override—not the default;
 - a small WebGPU model is the last-resort browser fallback.
 
-This post is the high-level design I wish I had before building it. It explains the current implementation, the operational edges, and enough detail to reproduce the pattern. No private credentials, owner addresses, or management endpoints are included.
+This post also preserves the earlier Azure ARM64 + `llama.cpp` production revision as an architecture and operations retrospective. The browser routing, ontology, security-boundary, streaming, and fallback lessons still apply; runtime-specific sections are labeled below. No private credentials, owner addresses, or management endpoints are included.
+
+> **Production update — 13 October 2026:** the live route is now Browser → Cloudflare Worker → quick tunnel → Python gateway → Ollama/Gemma on Mac. The Azure/Caddy/`llama.cpp` sections below document the previous deployed revision, not the current host.
 
 ![A polished neon blueprint of the nishad.ai Terminal: a browser routes deterministic commands locally and AI questions through Caddy, a validating gateway, llama.cpp, and Gemma, with explicit OpenAI and WebGPU alternate paths.](/assets/blog/terminal-system-blueprint.svg)
 
 *The whole machine: one static shell, one default self-hosted route, and two deliberate escape hatches. No actual foxes are on call.*
 
-## The five-minute mental model
+## Previous production revision: the Azure/llama.cpp mental model
 
 If you remember only one diagram, remember this chain:
 
