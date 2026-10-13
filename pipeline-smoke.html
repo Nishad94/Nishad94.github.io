@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>nishad.ai pipeline smoke test</title>
+<style>
+:root{color-scheme:dark;--bg:#0d0f1b;--panel:#17192d;--ink:#f7f4ff;--muted:#aba8c8;--mint:#9fffd2;--pink:#ff9bd6;--line:#343754}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.wrap{max-width:900px;margin:0 auto;padding:36px 20px}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;margin:16px 0}.btn{border:1px solid var(--line);background:#20233d;color:var(--ink);border-radius:12px;padding:11px 14px;font:inherit;cursor:pointer}.btn:disabled{opacity:.55;cursor:wait}.mint{color:var(--mint)}.pink{color:var(--pink)}.muted{color:var(--muted)}pre{white-space:pre-wrap;overflow-wrap:anywhere}.vibe-report h2,.vibe-report h3{margin-bottom:8px}.vibe-report p{line-height:1.65}.step{padding:9px 0;border-bottom:1px dashed var(--line)}
+</style>
+</head>
+<body>
+<main class="wrap">
+<h1>Spotify → Mac Gemma → PDF</h1>
+<p class="muted">End-to-end POC smoke test. This page uses Spotify-derived source data from the current prototype session, calls the live nishad.ai AI proxy, parses the streamed Mac-hosted Gemma response, renders the report, then invokes the production PDF generator.</p>
+
+<section class="card">
+<h2>Source fixture</h2>
+<p>Time range: last 4 weeks</p>
+<ul>
+<li>Tame Impala</li>
+<li>Linkin Park</li>
+<li>A.R. Rahman</li>
+<li>Shankar Mahadevan</li>
+<li>Vishal-Shekhar</li>
+</ul>
+<p class="muted">This fixture came from the Spotify-connected data available during this session. It is intentionally small so the infrastructure path is easy to verify.</p>
+</section>
+
+<section class="card">
+<h2>Pipeline</h2>
+<div class="step">1. Browser → Cloudflare Worker</div>
+<div class="step">2. Worker → MacBook gateway.py → Ollama/Gemma</div>
+<div class="step">3. SSE deltas → structured JSON</div>
+<div class="step">4. Report DOM → assets/report-pdf.js → jsPDF</div>
+<br>
+<button id="run" class="btn">Run live pipeline & download PDF</button>
+<p id="status" class="mint" role="status">Idle.</p>
+</section>
+
+<section id="output" class="card" hidden></section>
+</main>
+
+<script type="module">
+import { downloadReport } from './assets/report-pdf.js';
+
+const PROXY='https://nishad-ai-proxy.nishad-dawkhar94.workers.dev';
+const SOURCE={range:'last 4 weeks',artists:['Tame Impala','Linkin Park','A.R. Rahman','Shankar Mahadevan','Vishal-Shekhar']};
+const run=document.getElementById('run');
+const status=document.getElementById('status');
+const output=document.getElementById('output');
+
+function reportMessages(){
+  return [
+    {role:'system',content:`Return ONLY valid JSON, no markdown fences. Shape: {"writeUp":"150-220 playful words","genres":["up to 8 speculative genre labels"],"mbti":{"type":"four uppercase letters","axes":[{"letter":"matching type letter","label":"invented music-taste trait","opposite":"opposite trait","score":50}],"summary":"one sentence"},"tarot":{"name":"invented card name","emoji":"one symbol","tagline":"short line","flavorText":"2-3 fictional sentences"},"compatibility":{"score":50,"label":"playful niche/mainstream label","roasts":{"gentle":"kind tease","cheeky":"witty roast","spicy":"snarky but affectionate roast"}}}. Exactly four MBTI axes. Scores 0-100. This is music entertainment only, not psychology or diagnosis. Ground observations in supplied Spotify metadata and explicitly label speculation.`},
+    {role:'user',content:JSON.stringify(SOURCE)}
+  ];
+}
+
+async function readSSE(response){
+  const reader=response.body?.getReader();
+  if(!reader) throw new Error('Streaming response body unavailable.');
+  const decoder=new TextDecoder();
+  let buffer='',content='',finishReason=null;
+  const consume=event=>{
+    for(const line of event.split('\n')){
+      if(!line.startsWith('data:')) continue;
+      const raw=line.slice(5).trim();
+      if(!raw||raw==='[DONE]') continue;
+      const data=JSON.parse(raw);
+      if(typeof data.delta==='string') content+=data.delta;
+      if(typeof data.finish_reason==='string') finishReason=data.finish_reason;
+    }
+  };
+  while(true){
+    const {done,value}=await reader.read();
+    if(done) break;
+    buffer+=decoder.decode(value,{stream:true});
+    const events=buffer.split('\n\n');
+    buffer=events.pop()||'';
+    for(const event of events) consume(event);
+  }
+  buffer+=decoder.decode();
+  if(buffer.trim()) consume(buffer);
+  return {content,finish_reason:finishReason||'stop'};
+}
+
+function parseModelJSON(raw){
+  let text=raw.trim();
+  text=text.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'').trim();
+  return JSON.parse(text);
+}
+
+function add(parent,tag,text){const el=document.createElement(tag);el.textContent=text;parent.appendChild(el);return el;}
+function renderReport(report){
+  output.replaceChildren();
+  output.hidden=false;
+  const section=document.createElement('section');
+  section.className='vibe-report';
+  add(section,'h2','Music intelligence report');
+  add(section,'p','Source: Spotify-derived top-artist sample · '+SOURCE.range);
+  add(section,'p',report.writeUp);
+  add(section,'h3','Genre signals');
+  add(section,'p',Array.isArray(report.genres)&&report.genres.length?report.genres.join(' · '):'No additional genre labels returned.');
+  add(section,'h3','Music MBTI / fictional');
+  add(section,'p',(report.mbti?.type||'????')+' — '+(report.mbti?.summary||''));
+  for(const axis of report.mbti?.axes||[]) add(section,'p',`${axis.letter} · ${axis.label} vs ${axis.opposite} · ${axis.score}/100`);
+  add(section,'h3','Music tarot / fictional');
+  add(section,'p',`${report.tarot?.emoji||'✦'} ${report.tarot?.name||''} — ${report.tarot?.tagline||''}`);
+  add(section,'p',report.tarot?.flavorText||'');
+  add(section,'h3','Niche shuffle / invented score');
+  add(section,'p',`${report.compatibility?.score ?? '?'} / 100 · ${report.compatibility?.label||''}`);
+  add(section,'p',report.compatibility?.roasts?.cheeky||'');
+  output.appendChild(section);
+  return section;
+}
+
+run.addEventListener('click',async()=>{
+  run.disabled=true;
+  output.hidden=true;
+  status.textContent='Calling Cloudflare Worker → MacBook/Gemma…';
+  try{
+    const response=await fetch(PROXY,{method:'POST',credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer',redirect:'error',headers:{'Content-Type':'application/json'},body:JSON.stringify({mode:'chat',messages:reportMessages()})});
+    if(!response.ok){
+      const text=await response.text();
+      throw new Error(`AI proxy HTTP ${response.status}: ${text.slice(0,180)}`);
+    }
+    const type=response.headers.get('content-type')||'';
+    let payload;
+    if(type.includes('text/event-stream')) payload=await readSSE(response);
+    else payload=await response.json();
+    if(typeof payload.content!=='string'||!payload.content.trim()) throw new Error('Model returned no content.');
+    status.textContent='Gemma response received. Parsing structured report…';
+    const report=parseModelJSON(payload.content);
+    const section=renderReport(report);
+    status.textContent='Report rendered. Building PDF with production exporter…';
+    await downloadReport(section,run,status);
+  }catch(error){
+    console.error(error);
+    status.textContent='Pipeline failed: '+(error?.message||String(error));
+    status.className='pink';
+  }finally{
+    run.disabled=false;
+  }
+});
+</script>
+</body>
+</html>
