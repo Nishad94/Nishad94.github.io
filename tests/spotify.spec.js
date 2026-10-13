@@ -692,7 +692,8 @@ for (const outcome of ['ok', 'visitor_limit', 'global_limit', 'down']) {
         await page.getByRole('button', { name: 'Generate AI report', exact: true }).click();
         const report = page.locator('.vibe-report');
         await expect(report.locator('.report-hero')).toContainText('MUSIC READOUT');
-        await expect(report.locator('.report-stat')).toHaveCount(3);
+        await expect(report.locator('.report-stat')).toHaveCount(4);
+        await expect(report.locator('.report-hero')).toContainText('AI sample of 1 tracks and 1 artists');
         await expect(report.locator('[role="meter"]')).toHaveCount(4);
         await expect(report.locator('.report-tags span')).toContainText(['Imaginary pop']);
         await expect(report.getByRole('heading', { name: 'Signal summary' })).toBeVisible();
@@ -717,8 +718,8 @@ for (const outcome of ['ok', 'visitor_limit', 'global_limit', 'down']) {
           const body = route.request().postDataJSON();
           expect(Object.keys(body)).toEqual(['messages']);
           const data = JSON.parse(body.messages[1].content);
-          expect(data.artists).toHaveLength(50);
-          expect(data.tracks).toHaveLength(50);
+          expect(data.artists).toHaveLength(12);
+          expect(data.tracks).toHaveLength(12);
           expect(data.artists.every(artist => artist.name.startsWith('Synthetic '))).toBe(true);
           expect(body.messages[0].content).toContain('exactly four MBTI axes');
           return route.fulfill({ json: { content: JSON.stringify(profile), finish_reason: 'stop' } });

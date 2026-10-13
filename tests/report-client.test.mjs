@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { requestReport } from '../report-client.js';
 import { handle } from '../worker/ai-proxy.js';
-import { reportMessages, topReportData, validateReport } from '../spotify-ui.js';
+import { REPORT_SAMPLE_LIMIT, reportMessages, topReportData, validateReport } from '../spotify-ui.js';
 import { syntheticSpotifySample } from '../assets/spotify-synthetic.js';
 
 const messages = [{ role: 'user', content: 'Synthetic diagnostic only.' }];
@@ -86,8 +86,8 @@ test('synthetic normal and maximum fixtures use production compaction and prompt
   for (const count of [5, 50]) {
     const sample = syntheticSpotifySample(count);
     const data = topReportData('short', sample.tracks, sample.artists);
-    assert.equal(data.artists.length, count);
-    assert.equal(data.tracks.length, count);
+    assert.equal(data.artists.length, Math.min(count, REPORT_SAMPLE_LIMIT));
+    assert.equal(data.tracks.length, Math.min(count, REPORT_SAMPLE_LIMIT));
     const prompt = reportMessages('short', data);
     assert.equal(prompt.length, 2);
     assert.ok(Buffer.byteLength(JSON.stringify({ messages: prompt })) <= 32768);
