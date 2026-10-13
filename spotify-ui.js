@@ -44,6 +44,14 @@ function compactTrack(item) {
   return { name: item.name, artists: Array.isArray(item.artists) ? item.artists.filter(named).map(a => a.name).slice(0, 10) : [] };
 }
 
+export function topReportData(mode, tracks, artists) {
+  return {
+    range: SPOTIFY_RANGES[mode].label,
+    tracks: tracks.filter(named).map(compactTrack),
+    artists: artists.filter(named).map(compactArtist)
+  };
+}
+
 function itemsView(parent, items, type, title) {
   const details = node(parent, 'details');
   node(details, 'summary', title + ' · view Spotify items');
@@ -96,7 +104,7 @@ export function validateReport(report, mode, count = 0) {
       score(c?.score) && text(c?.label, 120) &&
       ['gentle', 'cheeky', 'spicy'].every(level => text(c?.roasts?.[level], 1000));
   }
-  if (!valid) throw new Error('AI returned an incomplete or invalid report. Usage was recorded; no result was invented. Retry manually.');
+  if (!valid) throw new Error('AI returned an incomplete or invalid report. No result was invented. The request may still count toward usage; retry manually.');
   return report;
 }
 
@@ -187,45 +195,17 @@ function reportView(parent, report, mode, recent = []) {
   node(section, 'p', 'Slider changes use the same generated report; no extra AI request.', 'dim');
 }
 
-export function createSpotifyTerminal({ output, addLine, aiAvailable, aiProvider = () => 'byok', generateAI }) {
-  let busy = false;
+export function createReportFlow({ output, reportOutput, addLine, aiAvailable, aiProvider = () => 'byok', generateAI, isBusy = () => false, onStateChange = () => {} }) {
+  let active = null;
   let version = 0;
-  let aiController = new AbortController();
 
-  function clearViews() {
+  function cancel() {
     version++;
-    aiController.abort();
-    aiController = new AbortController();
-    output.querySelectorAll('.spotify-data').forEach(el => el.remove());
+    active?.abort();
   }
 
   function errorLine(error) {
-    addLine(error instanceof Error ? error.message : 'Spotify action failed. Try again manually.', 'pink');
-  }
-
-  function help(mode = 'short') {
-    output.querySelectorAll('.spotify-connect').forEach(el => el.remove());
-    addLine(spotifyStatus(), 'yellow');
-    addLine('spotify connect [timeline] | status | disconnect · vibe [short|medium|long|timeline|compare]', 'dim');
-    const panel = addLine('', 'spotify-data spotify-connect');
-    node(panel, 'h3', 'Review connection consent');
-    if (mode === 'timeline') node(panel, 'p', 'Mood timeline needs optional recent-play access. Approve the connection below to enable it; the timeline opens automatically afterward.');
-    node(panel, 'p', 'Connect to read your Spotify top tracks/artists' + (mode === 'timeline' ? ' and recent plays' : '') + '. Your browser sends authorization and API requests directly to Spotify. Tokens stay in this tab’s session storage; results stay in page memory. Nothing goes to AI automatically. A separate confirmation is required for each paid BYOK report.');
-    node(panel, 'p', POLICY_NOTICE, 'yellow');
-    link(panel, 'Privacy, data flow, and permission prerequisites', './spotify-privacy.html');
-    node(panel, 'p', 'Development mode: app owner needs Premium; your Spotify account must be allowlisted. Not intended for children.');
-    button(panel, 'Agree & continue to Spotify', async () => {
-      if (busy) return addLine('A Spotify/report request is running; wait or use spotify disconnect.', 'pink');
-      busy = true;
-      try {
-        clearViews();
-        await connectSpotify(mode);
-      } catch (error) {
-        errorLine(error);
-      } finally { busy = false; }
-    });
-    button(panel, 'Disconnect Spotify', () => run('spotify', ['disconnect']));
-    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    addLine(error instanceof Error ? error.message : 'AI report failed. Try again manually.', 'pink');
   }
 
   function aiConsent(panel, mode, data, recent = []) {
@@ -233,9 +213,10 @@ export function createSpotifyTerminal({ output, addLine, aiAvailable, aiProvider
     const proxied = aiProvider() === 'proxy';
     node(box, 'h3', proxied ? 'Optional AI report / site AI service' : 'Optional AI report / your OpenAI key');
     node(box, 'p', POLICY_NOTICE, 'yellow');
-    if (proxied) node(box, 'p', 'This sends the music metadata below from your browser to this site’s AI service, which forwards it to OpenAI gpt-4o using the site owner’s account. Names, supplied genres, and range labels leave the device; tokens, Spotify IDs, and play timestamps do not. The service applies daily limits, and the owner’s key never reaches your browser. No local-model fallback.');
+    if (proxied) node(box, 'p', 'This sends the music metadata below from your browser through this site’s Cloudflare Worker and tunnel to Mac-hosted Gemma via Ollama. Names, supplied genres, and range labels leave your device; tokens, Spotify IDs, and play timestamps do not. This route does not use OpenAI or an API key. The service applies daily limits and processes one request at a time. No browser-local fallback.');
     else node(box, 'p', 'This sends the music metadata below directly from your browser to OpenAI gpt-4o using your own key. Names, supplied genres, and range labels leave the device; tokens, Spotify IDs, play timestamps, and your OpenAI key are not included in the prompt. OpenAI receives the key only as API authorization and processes prompts under its policies. Spend counts toward the existing $0.50 soft cap. No local-model fallback: SmolLM2-360M’s 2048-token context is not sufficient for these reliable structured reports.');
-    link(box, 'OpenAI API data-use information', 'https://platform.openai.com/docs/guides/your-data');
+    if (!proxied) link(box, 'OpenAI API data-use information', 'https://platform.openai.com/docs/guides/your-data');
+    link(box, 'Privacy, data flow, and permission prerequisites', './spotify-privacy.html');
     node(box, 'p', ENTERTAINMENT);
     const preview = node(box, 'details');
     node(preview, 'summary', 'Review the exact music data to send');
@@ -243,33 +224,109 @@ export function createSpotifyTerminal({ output, addLine, aiAvailable, aiProvider
     const label = node(box, 'label');
     const consent = node(label, 'input');
     consent.type = 'checkbox';
-    label.append(' I confirm Spotify permission has been resolved for this use (or I am using synthetic test data), and consent to sending this data to OpenAI' + (proxied ? '.' : ' at my expense.'));
+    label.append(' I confirm Spotify permission has been resolved for this use (or I am using synthetic test data), and consent to sending this data ' + (proxied ? 'through Cloudflare to Mac-hosted Gemma.' : 'to OpenAI at my expense.'));
     if (!aiAvailable()) node(box, 'p', 'AI reports require a key. Use “Add or remove your OpenAI key” above, then return to this report button. Local AI is intentionally not invoked.', 'yellow');
     const view = version;
     const generate = button(box, 'Generate AI report', async () => {
-      if (!consent.checked) return addLine('Review the data flow and permission prerequisite, then check the confirmation before generating.', 'pink');
-      if (busy) return addLine('A Spotify/report request is already running.', 'pink');
+      if (!consent.checked) {
+        consent.focus();
+        return addLine('Review the data flow and permission prerequisite, then check the confirmation before generating.', 'pink');
+      }
+      if (active || isBusy()) return addLine('A Spotify/report request is already running.', 'pink');
       if (view !== version || !panel.isConnected) return;
       if (!aiAvailable()) return addLine('No OpenAI key. Use “Add or remove your OpenAI key” above. No local model was loaded and no report was invented.', 'pink');
-      busy = true;
+      const controller = new AbortController();
+      active = controller;
+      consent.checked = false;
       generate.disabled = true;
-      const pending = node(box, 'p', (proxied ? 'Generating with the site AI service...' : 'Generating with your OpenAI key...'));
+      onStateChange({ phase: 'generating', mode, busy: true });
+      const pending = node(box, 'p', proxied ? 'Waiting for Mac-hosted Gemma to finish the complete report. This can take around two minutes...' : 'Generating with your OpenAI key...', 'report-progress');
+      pending.setAttribute('role', 'status');
+      const cancelButton = button(box, 'Cancel AI report', () => {
+        controller.abort();
+        cancelButton.disabled = true;
+        pending.textContent = 'Cancelling AI report...';
+      });
       try {
-        const report = validateReport(await generateAI(reportMessages(mode, data), aiController.signal), mode, recent.length);
+        const result = await generateAI(reportMessages(mode, data), controller.signal, stage => {
+          if (stage === 'validating' && !controller.signal.aborted) pending.textContent = 'Validating every required report field...';
+        });
+        if (controller.signal.aborted) throw new Error('AI report cancelled.');
+        const report = validateReport(result, mode, recent.length);
         if (view !== version || !panel.isConnected) return;
-        panel.querySelector('.vibe-report')?.remove();
-        reportView(panel, report, mode, recent);
-        generate.textContent = 'Generate again (another paid request)';
-        consent.checked = false;
+        const destination = reportOutput || panel;
+        destination.querySelector('.vibe-report')?.remove();
+        reportView(destination, report, mode, recent);
+        generate.textContent = proxied ? 'Generate again (uses daily quota)' : 'Generate again (another paid request)';
+        onStateChange({ phase: 'ready', mode, busy: false });
+        destination.scrollIntoView({ behavior: 'smooth', block: 'start' });
         output.scrollTop = output.scrollHeight;
       } catch (error) {
         errorLine(error);
+        if (view === version && panel.isConnected) onStateChange({
+          phase: 'review', mode, busy: false, message: error.message
+        });
       } finally {
         pending.remove();
+        cancelButton.remove();
         generate.disabled = false;
-        busy = false;
+        if (active === controller) active = null;
       }
     });
+    onStateChange({ phase: 'review', mode, busy: false });
+  }
+
+  return { consent: aiConsent, cancel, get busy() { return active !== null; } };
+}
+
+export function createSpotifyTerminal({ output, connectionOutput = output, reportOutput, addLine, aiAvailable, aiProvider = () => 'byok', generateAI, onStateChange = () => {} }) {
+  let busy = false;
+  let version = 0;
+  let state = { connected: false, phase: 'connect', mode: null, busy: false, message: '' };
+  function update(change) {
+    state = { ...state, message: '', ...change };
+    onStateChange(state);
+  }
+  const reports = createReportFlow({ output, reportOutput, addLine, aiAvailable, aiProvider, generateAI, isBusy: () => busy, onStateChange: update });
+
+  function clearViews() {
+    version++;
+    reports.cancel();
+    output.replaceChildren();
+    connectionOutput.querySelectorAll('.spotify-connect').forEach(el => el.remove());
+    reportOutput?.querySelectorAll('.vibe-report').forEach(el => el.remove());
+  }
+
+  function errorLine(error) {
+    const message = error instanceof Error ? error.message : 'Spotify action failed. Try again manually.';
+    addLine(message, 'pink');
+    update({ busy: false, message });
+  }
+
+  function help(mode = 'short') {
+    connectionOutput.querySelectorAll('.spotify-connect').forEach(el => el.remove());
+    const panel = node(connectionOutput, 'div', undefined, 'spotify-data spotify-connect');
+    update({ phase: 'connection-consent', mode, busy: false });
+    node(panel, 'h3', 'Review connection consent');
+    node(panel, 'p', spotifyStatus(), 'yellow');
+    if (mode === 'timeline') node(panel, 'p', 'Mood timeline needs optional recent-play access. Approve the connection below to enable it; the timeline opens automatically afterward.');
+    node(panel, 'p', 'Connect to read your Spotify top tracks/artists' + (mode === 'timeline' ? ' and recent plays' : '') + '. Your browser sends authorization and API requests directly to Spotify. Tokens stay in this tab’s session storage; results stay in page memory. Nothing goes to AI automatically. A separate confirmation is required for every AI report.');
+    node(panel, 'p', POLICY_NOTICE, 'yellow');
+    link(panel, 'Privacy, data flow, and permission prerequisites', './spotify-privacy.html');
+    node(panel, 'p', 'Development mode: app owner needs Premium; your Spotify account must be allowlisted. Not intended for children.');
+    button(panel, 'Agree & continue to Spotify', async () => {
+      if (busy || reports.busy) return addLine('A Spotify/report request is running; wait or use spotify disconnect.', 'pink');
+      busy = true;
+      update({ phase: 'connection-consent', busy: true, message: 'Opening Spotify authorization...' });
+      try {
+        clearViews();
+        await connectSpotify(mode);
+      } catch (error) {
+        errorLine(error);
+      } finally { busy = false; update({ busy: false, message: state.message }); }
+    });
+    if (connectionOutput === output) button(panel, 'Disconnect Spotify', () => run('spotify', ['disconnect']));
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
   async function run(cmd, args) {
@@ -286,17 +343,21 @@ export function createSpotifyTerminal({ output, addLine, aiAvailable, aiProvider
         if (mode === 'disconnect' || mode === 'logout') {
           clearViews();
           disconnectSpotify();
+          update({ connected: false, phase: 'connect', mode: null, busy: false });
           addLine('Spotify disconnected. This tab’s tokens, pending login, and results cleared; requests cancelled. Other tabs must disconnect separately. Revoke the grant at https://www.spotify.com/account/apps/. AI requests already sent cannot be recalled and may still be charged.', 'yellow');
+        } else if (mode === 'status' && spotifyStatus() !== 'Spotify is disconnected.') {
+          addLine(spotifyStatus(), 'yellow');
         } else {
           help(extra === 'timeline' ? 'timeline' : 'short');
         }
         return;
       }
-      if (busy) return addLine('A Spotify/report request is running; wait or use spotify disconnect.', 'pink');
+      if (busy || reports.busy) return addLine('A Spotify/report request is running; wait or use spotify disconnect.', 'pink');
       if (spotifyStatus() === 'Spotify is disconnected.') return help(mode);
       if (mode === 'timeline' && !spotifyHasRecentAccess()) return help('timeline');
       busy = true;
       clearViews();
+      update({ connected: true, phase: 'loading', mode, busy: true });
       const view = version;
       const panel = addLine('', 'spotify-data');
       const brand = link(panel, '', 'https://open.spotify.com/', 'spotify-brand');
@@ -310,7 +371,7 @@ export function createSpotifyTerminal({ output, addLine, aiAvailable, aiProvider
           const recent = raw.filter(e => named(e?.track)).slice(0, 20);
           itemsView(panel, raw.map(e => e?.track), 'track', 'Recent plays / newest first');
           node(panel, 'p', 'Timeline uses up to 20 returned plays, not a complete listening history. Times are shown in your browser’s time zone. No audio-features endpoint is called.');
-          if (recent.length) aiConsent(panel, mode, { tracks: recent.map(e => compactTrack(e.track)) }, recent);
+          if (recent.length) reports.consent(panel, mode, { tracks: recent.map(e => compactTrack(e.track)) }, recent);
           else node(panel, 'p', 'No usable recent tracks; no AI request available.');
         } else if (mode === 'compare') {
           const past = await spotifyTop('artists', 'long');
@@ -334,7 +395,7 @@ export function createSpotifyTerminal({ output, addLine, aiAvailable, aiProvider
             node(panel, 'h3', title);
             node(panel, 'p', values.join(' · ') || 'None in the returned samples.');
           }
-          if (p.length && c.length) aiConsent(panel, mode, data);
+          if (p.length && c.length) reports.consent(panel, mode, data);
           else node(panel, 'p', 'Both ranges need usable artists for AI comparison.');
         } else {
           const tracks = await spotifyTop('tracks', mode);
@@ -343,22 +404,30 @@ export function createSpotifyTerminal({ output, addLine, aiAvailable, aiProvider
           const artists = await spotifyTop('artists', mode);
           if (view !== version || !panel.isConnected) return;
           itemsView(panel, artists, 'artist', 'Top artists / Spotify’s order, not play counts');
-          const data = {
-            range: SPOTIFY_RANGES[mode].label,
-            tracks: tracks.filter(named).map(compactTrack), artists: artists.filter(named).map(compactArtist)
-          };
+          const data = topReportData(mode, tracks, artists);
           node(panel, 'p', 'Artist genres, when supplied by Spotify, are included in the data preview. Missing genres remain unavailable until an explicitly labeled AI guess. Audio features and popularity are not fetched or treated as facts.');
-          if (data.tracks.length || data.artists.length) aiConsent(panel, mode, data);
+          if (data.tracks.length || data.artists.length) reports.consent(panel, mode, data);
           else node(panel, 'p', 'No usable music metadata; no AI report available.');
         }
       } finally {
         loading.remove();
         busy = false;
+        if (view === version) {
+          if (state.phase === 'loading') update({ phase: 'choose', busy: false, message: 'No usable data for this report. Choose another period or report type.' });
+          else update({ busy: false, message: state.message });
+        }
       }
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
       output.scrollTop = output.scrollHeight;
     } catch (error) {
+      try { update({ connected: spotifyStatus() !== 'Spotify is disconnected.', busy: false }); }
+      catch { update({ connected: false, busy: false }); }
       errorLine(error instanceof SpotifyError ? error : new Error('Spotify view failed. Try reconnecting; no report was generated.'));
     }
   }
+  try {
+    const connected = spotifyStatus() !== 'Spotify is disconnected.';
+    update({ connected, phase: connected ? 'choose' : 'connect' });
+  } catch (error) { errorLine(error); }
   return run;
 }

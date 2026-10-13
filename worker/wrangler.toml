@@ -1,13 +1,10 @@
 name = "nishad-ai-proxy"
 main = "ai-proxy.js"
-compatibility_date = "2025-01-01"
+compatibility_date = "2026-10-01"
 
 [vars]
-ALLOWED_ORIGINS = "https://nishad.ai,http://127.0.0.1:8000"
-PER_IP_DAILY = "5"
-GLOBAL_DAILY = "200"
+ALLOWED_ORIGIN = "https://nishad.ai"
 
-# Optional shared counters: wrangler kv namespace create RATE, then uncomment.
-# [[kv_namespaces]]
-# binding = "RATE"
-# id = "<namespace id>"
+# MAC_UPSTREAM is the current ephemeral tunnel and is managed by the installed
+# bridge supervisor. Deploy only with --keep-vars so the route and unrelated
+# remote secret bindings survive.
