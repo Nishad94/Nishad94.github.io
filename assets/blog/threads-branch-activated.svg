@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" role="img" aria-labelledby="title desc">
+  <title id="title">New branch activated in the simulation</title>
+  <desc id="desc">A neon cyberpunk system map with a bright branching signal emerging from a central node.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#080a14"/>
+      <stop offset=".55" stop-color="#11152b"/>
+      <stop offset="1" stop-color="#080912"/>
+    </linearGradient>
+    <radialGradient id="pulse">
+      <stop offset="0" stop-color="#9fffd2" stop-opacity=".48"/>
+      <stop offset=".42" stop-color="#b9a4ff" stop-opacity=".14"/>
+      <stop offset="1" stop-color="#080a14" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="13" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="grid" width="54" height="54" patternUnits="userSpaceOnUse">
+      <path d="M54 0H0V54" fill="none" stroke="#7580b0" stroke-opacity=".12"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#bg)"/>
+  <rect width="1200" height="1200" fill="url(#grid)"/>
+  <circle cx="600" cy="590" r="500" fill="url(#pulse)"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M170 850H390L505 735V570" stroke="#5d668f" stroke-width="7"/>
+    <path d="M505 735H675L795 615H1040" stroke="#5d668f" stroke-width="7"/>
+    <path d="M505 570L650 425H980" stroke="#9fffd2" stroke-width="10" filter="url(#glow)"/>
+    <path d="M650 425L745 330V205" stroke="#b9a4ff" stroke-width="10" filter="url(#glow)"/>
+    <path d="M650 425L810 520H1090" stroke="#ff9bd6" stroke-width="10" filter="url(#glow)"/>
+  </g>
+  <g filter="url(#glow)">
+    <circle cx="505" cy="570" r="24" fill="#9fffd2"/>
+    <circle cx="650" cy="425" r="18" fill="#fff"/>
+    <circle cx="745" cy="205" r="16" fill="#b9a4ff"/>
+    <circle cx="1090" cy="520" r="16" fill="#ff9bd6"/>
+    <circle cx="980" cy="425" r="16" fill="#9fffd2"/>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    <text x="84" y="104" fill="#7f87ad" font-size="28" letter-spacing="7">NISHAD.AI // SIGNAL 001</text>
+    <text x="84" y="980" fill="#ffffff" font-size="72" font-weight="800" letter-spacing="-3">NEW BRANCH</text>
+    <text x="84" y="1058" fill="#9fffd2" font-size="72" font-weight="800" letter-spacing="-3" filter="url(#glow)">ACTIVATED</text>
+    <text x="88" y="1122" fill="#969cbd" font-size="25" letter-spacing="4">THE SIMULATION HAS A NEW OUTPUT CHANNEL</text>
+    <text x="780" y="260" fill="#b9a4ff" font-size="24" letter-spacing="3">CREATIVITY BURST</text>
+    <text x="830" y="570" fill="#ff9bd6" font-size="24" letter-spacing="3">MORE NODES</text>
+    <text x="710" y="390" fill="#9fffd2" font-size="24" letter-spacing="3">ACTIVATE</text>
+  </g>
+</svg>

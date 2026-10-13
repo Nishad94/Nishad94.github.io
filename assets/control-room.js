@@ -23,6 +23,14 @@ function makePanel(title, cls='cr-span-4') {
   return panel;
 }
 
+function renderThreadsHealth(panel, health) {
+  const status = health?.status === 'ok' ? 'operational' : health?.status === 'down' ? 'degraded' : 'unknown';
+  const statusClass = health?.status === 'ok' ? 'cr-ok' : health?.status === 'down' ? 'cr-pink' : 'cr-warn';
+  const latency = Number.isFinite(health?.latency_ms) ? `${Math.round(health.latency_ms)} ms` : '—';
+  const checked = health?.checked_at ? new Date(health.checked_at).toLocaleString() : 'awaiting first check';
+  panel.innerHTML = `<h3>Threads publishing</h3><div class="cr-row"><span>pipeline</span><b class="${statusClass}">${status}</b></div><div class="cr-row"><span>API latency</span><b>${latency}</b></div><div class="cr-row"><span>last check</span><b>${checked}</b></div><div class="cr-mini">automated probe every three hours · no test post created</div>`;
+}
+
 function initializeControlRoom() {
   if (document.querySelector('[data-view="control"]')) return;
   injectControlRoomStyles();
@@ -59,6 +67,16 @@ function initializeControlRoom() {
   const ads = makePanel('ad uplink');
   ads.innerHTML += '<div class="cr-big">OFFLINE</div><div class="cr-mini">waiting for AdSense client + slot</div><div class="cr-row"><span>placement</span><b>Toffee cache</b></div><div class="cr-row"><span>policy mode</span><b class="cr-ok">stationary</b></div>';
 
+  const threads = makePanel('Threads publishing');
+  renderThreadsHealth(threads, null);
+  fetch('/metrics/threads-status.json', { cache: 'no-store' })
+    .then(response => {
+      if (!response.ok) throw new Error('Threads health snapshot unavailable');
+      return response.json();
+    })
+    .then(health => renderThreadsHealth(threads, health))
+    .catch(() => renderThreadsHealth(threads, { status: 'unknown' }));
+
   const map = makePanel('mansion systems map','cr-span-8');
   map.innerHTML += '<div class="cr-map"><span class="cr-node n1"></span><span class="cr-node n2"></span><span class="cr-node n3"></span><span class="cr-node n4"></span><div class="cr-ghost">unindexed corridor</div></div>';
 
@@ -77,7 +95,7 @@ function initializeControlRoom() {
   logBody.textContent = '[16:02] patrol resumed\n[16:04] sponsored relay warming up\n[16:07] corridor count mismatch: expected 7, observed 8\n[16:08] auto-corrected by unknown process\n[16:09] no action required';
   log.append(logBody);
 
-  grid.append(infra, deploy, ads, map, toffee, terminal, log);
+  grid.append(infra, deploy, ads, threads, map, toffee, terminal, log);
   room.append(grid);
   view.append(room);
   main.append(view);

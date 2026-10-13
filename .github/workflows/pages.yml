@@ -5,6 +5,8 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  schedule:
+    - cron: '17 */3 * * *'
   workflow_dispatch:
 
 permissions:
@@ -17,6 +19,8 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      threads_health: ${{ steps.threads_health.outcome }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -26,6 +30,14 @@ jobs:
       - run: npm ci
       - run: npm run test:syntax
       - run: node --test tests/*.test.mjs
+      - name: Check Threads publishing health
+        id: threads_health
+        if: github.event_name != 'pull_request'
+        continue-on-error: true
+        env:
+          THREADS_USER_ID: ${{ secrets.THREADS_USER_ID }}
+          THREADS_ACCESS_TOKEN: ${{ secrets.THREADS_ACCESS_TOKEN }}
+        run: python3 scripts/check_threads_health.py --output metrics/threads-status.json
       - run: npm run build
       - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
@@ -46,3 +58,13 @@ jobs:
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+
+  threads-health:
+    if: always() && github.event_name == 'schedule'
+    needs: [build, deploy]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report Threads health
+        env:
+          THREADS_HEALTH: ${{ needs.build.outputs.threads_health }}
+        run: test "$THREADS_HEALTH" = success

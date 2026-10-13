@@ -182,7 +182,8 @@ dry-run mode by default. To enable a real post:
 
 The workflow calls `test_threads_post.py`, which creates a text container and
 then publishes it through `graph.threads.net`. Leave **Publish to Threads**
-disabled to verify the workflow without making an API request.
+disabled to verify the workflow without making an API request. An optional
+public HTTPS image URL publishes an image container instead of a text-only one.
 
 After authorizing the Threads app, exchange the temporary OAuth code and write
 the returned credentials directly to GitHub Actions secrets:
@@ -197,6 +198,13 @@ python3 scripts/threads_oauth.py \
 The script securely prompts for the Threads app secret and does not print the
 user access token when `--set-github-secrets` is used. Authorization codes are
 short-lived and single-use; generate a new one if it has been shared.
+
+The Pages workflow also performs a non-publishing Threads API health check at
+minute 17 every three hours. It publishes only status, check time and API latency
+to `/metrics/threads-status.json`; credentials, user IDs and post content never
+enter the public snapshot. The homepage control room reads that snapshot and
+shows the current pipeline state. A failed scheduled probe still deploys the
+degraded status, then marks the Actions run failed for notification.
 
 The small build uses pinned `markdown-it` and `highlight.js` only at build time.
 It is preferable here to browser-side Markdown because articles are readable,
