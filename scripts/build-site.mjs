@@ -97,35 +97,7 @@ export async function loadPosts(directory) {
 
 function layout({ title, description, path, body, article = false, notFound = false }) {
   const url = origin + path;
-  return `<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0d0f1b">
-<title>${escape(title)} | Nishad Dawkhar</title>
-<meta name="description" content="${escape(description)}">
-${notFound ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${url}">`}
-<meta property="og:title" content="${escape(title)}">
-<meta property="og:description" content="${escape(description)}">
-<meta property="og:type" content="${article ? 'article' : 'website'}">
-${notFound ? '' : `<meta property="og:url" content="${url}">`}
-<meta name="twitter:card" content="summary">
-<link rel="stylesheet" href="/blog/blog.css">
-<script src="/blog/blog.js" defer></script>
-${notFound ? '' : '<link rel="stylesheet" href="/analytics.css">\n<script type="module" src="/analytics.js"></script>'}
-</head>
-<body class="blog">
-<a class="skip-link" href="#content">Skip to content</a>
-<header class="site-header"><nav aria-label="Primary">
-<a class="brand" href="/">nishad://multiverse</a>
-<div><a href="/">Home</a><a href="/blog/"${path === '/blog/' ? ' aria-current="page"' : ''}>Blog</a></div>
-</nav></header>
-<main id="content" tabindex="-1">${body}</main>
-<footer>Technical writing by Nishad Dawkhar. <a href="/">Back to the multiverse</a></footer>
-</body>
-</html>
-`;
+  return `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<meta name="theme-color" content="#0d0f1b">\n<title>${escape(title)} | Nishad Dawkhar</title>\n<meta name="description" content="${escape(description)}">\n${notFound ? '<meta name="robots" content="noindex">' : `<link rel="canonical" href="${url}">`}\n<meta property="og:title" content="${escape(title)}">\n<meta property="og:description" content="${escape(description)}">\n<meta property="og:type" content="${article ? 'article' : 'website'}">\n${notFound ? '' : `<meta property="og:url" content="${url}">`}\n<meta name="twitter:card" content="summary">\n<link rel="stylesheet" href="/blog/blog.css">\n<script src="/blog/blog.js" defer></script>\n${notFound ? '' : '<link rel="stylesheet" href="/analytics.css">\n<script type="module" src="/analytics.js"></script>'}\n</head>\n<body class="blog">\n<a class="skip-link" href="#content">Skip to content</a>\n<header class="site-header"><nav aria-label="Primary">\n<a class="brand" href="/">nishad://multiverse</a>\n<div><a href="/">Home</a><a href="/blog/"${path === '/blog/' ? ' aria-current="page"' : ''}>Blog</a></div>\n</nav></header>\n<main id="content" tabindex="-1">${body}</main>\n<footer>Technical writing by Nishad Dawkhar. <a href="/">Back to the multiverse</a></footer>\n</body>\n</html>\n`;
 }
 
 function tags(post) {
@@ -165,10 +137,7 @@ export function renderBlog(allPosts) {
   files.set('analytics-pages.json', JSON.stringify(publicPageCatalog(posts)) + '\n');
   files.set('dashboard_metrics/index.html', renderMetricsEntry(PRIVATE_DASHBOARD_ORIGIN));
   const listing = posts.length
-    ? `<ol class="post-list">${posts.map(post => `<li><article>
-${date(post)}<h2><a href="/blog/${post.slug}/">${escape(post.title)}</a></h2>
-<p>${escape(post.description)}</p>${tags(post)}
-</article></li>`).join('\n')}</ol>`
+    ? `<ol class="post-list">${posts.map(post => `<li><article>\n${date(post)}<h2><a href="/blog/${post.slug}/">${escape(post.title)}</a></h2>\n<p>${escape(post.description)}</p>${tags(post)}\n</article></li>`).join('\n')}</ol>`
     : '<section class="empty-state" aria-labelledby="empty-title"><h2 id="empty-title">No posts published yet</h2><p>This is the home for Nishad\'s technical writing. Check back for the first article.</p></section>';
   files.set('blog/index.html', layout({
     title: 'Technical blog',
@@ -177,10 +146,7 @@ ${date(post)}<h2><a href="/blog/${post.slug}/">${escape(post.title)}</a></h2>
     body: `<div class="page-heading"><p class="eyebrow">Notes from the main branch</p><h1>Technical blog</h1><p>Ideas, implementation details, and lessons from building software.</p></div>${listing}`
   }));
   for (const post of posts) {
-    const body = `<article><header class="article-header">
-<a href="/blog/">All posts</a><p class="byline">Nishad Dawkhar &middot; ${date(post)}</p>
-<h1>${escape(post.title)}</h1><p class="description">${escape(post.description)}</p>${tags(post)}
-</header>${renderArticle(post.body)}</article>`;
+    const body = `<article><header class="article-header">\n<a href="/blog/">All posts</a><p class="byline">Nishad Dawkhar &middot; ${date(post)}</p>\n<h1>${escape(post.title)}</h1><p class="description">${escape(post.description)}</p>${tags(post)}\n</header>${renderArticle(post.body)}</article>`;
     files.set(`blog/${post.slug}/index.html`, layout({
       title: post.title, description: post.description, path: `/blog/${post.slug}/`, body, article: true
     }));
@@ -208,14 +174,7 @@ export function renderMetricsEntry(privateOrigin) {
     }
   }
   const target = privateOrigin ? `${privateOrigin}/dashboard_metrics` : '';
-  return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
-<title>Private website metrics</title>
-${target ? `<meta http-equiv="refresh" content="0;url=${escape(target)}">` : ''}
-</head><body><h1>Private website metrics</h1>
-${target ? `<p>Continue to the <a href="${escape(target)}" rel="noreferrer">sign-in-protected dashboard</a>.</p>` : '<p>The private dashboard is not configured yet. No analytics results are published here.</p>'}
-<p><a href="/">Back to nishad.ai</a></p></body></html>\n`;
+  return `<!doctype html>\n<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">\n<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">\n<title>Private website metrics</title>\n${target ? `<meta http-equiv="refresh" content="0;url=${escape(target)}">` : ''}\n</head><body><h1>Private website metrics</h1>\n${target ? `<p>Continue to the <a href="${escape(target)}" rel="noreferrer">sign-in-protected dashboard</a>.</p>` : '<p>The private dashboard is not configured yet. No analytics results are published here.</p>'}\n<p><a href="/">Back to nishad.ai</a></p></body></html>\n`;
 }
 
 export async function writePages(files, output) {
@@ -238,7 +197,7 @@ export async function buildSite() {
   await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
   for (const path of ['index.html', 'ontology.js', 'spotify.js', 'spotify-ui.js',
-    'spotify-callback.html', 'spotify-privacy.html', 'preview.html', 'assets', 'CNAME', '.nojekyll',
+    'spotify-callback.html', 'spotify-privacy.html', 'preview.html', 'pipeline-smoke.html', 'assets', 'CNAME', '.nojekyll',
     'deployment.js', 'analytics.js', 'analytics.css', 'analytics-privacy.html', 'metrics', 'shell']) {
     await cp(join(root, path), join(output, path), { recursive: true });
   }
