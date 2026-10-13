@@ -107,7 +107,7 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 <a class="tab" data-view="work" href="#recruiter"><i aria-hidden="true">👔</i><span>Work</span></a>
 <a class="tab" data-view="shell" href="#shell"><i aria-hidden="true">⌨️</i><span>Terminal</span></a>
 </nav>
-<div class="nav-tools"><button class="btn vc-toggle" id="nav-vc-view" type="button" aria-pressed="false">⚡ VC / Founder View</button><button class="btn" id="nav-palette" type="button" aria-label="Open command palette">⌘K</button><a class="btn" href="https://www.linkedin.com/in/nishaddawkhar" target="_blank" rel="noreferrer">LinkedIn ↗</a></div>
+<div class="nav-tools"><button class="btn vc-toggle" id="nav-vc-view" type="button" aria-pressed="false">⚡ Builder Mode</button><button class="btn" id="nav-palette" type="button" aria-label="Open command palette">⌘K</button><a class="btn" href="https://www.linkedin.com/in/nishaddawkhar" target="_blank" rel="noreferrer">LinkedIn ↗</a></div>
 </div></header>
 <div class="signalbar" aria-label="Live site diagnostics"><span class="signal-dot"></span><span>build <b>2026.09+</b></span><span>·</span><span>HEAD <b>main</b></span><span>·</span><span>local time <b id="live-clock">--:--:--</b></span><span>·</span><span>entropy <b id="live-entropy">68%</b></span><span>·</span><span>visit streak <b id="live-streak">1</b></span><span>·</span><span>⌘K command palette</span></div>
 
@@ -115,12 +115,12 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 <div class="view" data-view="home" id="home">
 <section class="hero" aria-labelledby="hero-title">
 <div class="card hero-main">
-<div class="eyebrow">personal operating system / build 2026.09</div>
+<div class="eyebrow" data-default="personal operating system / build 2026.09" data-impact="systems engineer / builder / independent experiments">personal operating system / build 2026.09</div>
 <h1 id="hero-title">one life.<br><span class="gradient">many branches.</span></h1>
-<p class="lede">A nerdy little archive of the timelines that happened, the ones that almost happened, and the suspicious recruiter emails that keep trying to fork the repository.</p>
+<p class="lede" data-default="A nerdy little archive of the timelines that happened, the ones that almost happened, and the suspicious recruiter emails that keep trying to fork the repository." data-impact="Distributed systems, AI infrastructure, and small products built end to end — with source, tests, telemetry, and the failure modes left visible.">A nerdy little archive of the timelines that happened, the ones that almost happened, and the suspicious recruiter emails that keep trying to fork the repository.</p>
 <div class="actions">
 <a class="btn primary" href="#music">🎧 Decode my music taste</a>
-<button class="btn vc-toggle" id="hero-vc-view" type="button" aria-pressed="false">⚡ VC / Founder View</button>
+<button class="btn vc-toggle" id="hero-vc-view" type="button" aria-pressed="false">⚡ Builder Mode</button>
 <a class="btn" href="#shell" id="hero-ask">💬 Ask the AI about Nishad</a>
 <a class="btn" href="#story">🧭 Read the story</a>
 <a class="btn" href="/blog/">Read the technical blog</a>
@@ -338,7 +338,7 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 
 
 <script type="module">
-import { ARCHITECTURE_RECEIPTS, buildSystemPrompt, PROFILE, PROJECTS, VC_DOSSIER } from './ontology.js';
+import { ARCHITECTURE_RECEIPTS, buildSystemPrompt, PROFILE, PROJECTS, TECHNICAL_BRIEF } from './ontology.js';
 import { createSpotifyTerminal } from './spotify-ui.js';
 import { REPORT_ENDPOINT, requestReport } from './report-client.js';
 (async () => {
@@ -482,8 +482,8 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     addLine('guest@nishad.ai:~$ ' + command, 'cmd');
   }
 
-  function renderVCDossier() {
-    for (const line of VC_DOSSIER.split('\n')) {
+  function renderTechnicalBrief() {
+    for (const line of TECHNICAL_BRIEF.split('\n')) {
       addLine(line, line.startsWith('=') ? 'dim' : line.startsWith('[') ? 'yellow' : line.startsWith('>') ? 'mint' : '');
     }
   }
@@ -940,7 +940,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
         addLine('  recruiter             jump to recruiter mode');
         addLine('  linkedin | github     open profile');
         addLine('  blog                  read technical posts');
-        addLine('  vc | founder          deterministic executive dossier');
+        addLine('  brief | summary       deterministic builder notes');
         addLine('  projects              shipped technical receipts');
         addLine('  architecture          current nishad.ai system boundary');
         addLine('  contact               public contact links');
@@ -977,13 +977,15 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
 
       case '--mode':
         if (args[0]?.toLowerCase() !== 'vc') addLine('usage: --mode vc', 'pink');
-        else renderVCDossier();
+        else renderTechnicalBrief();
         break;
 
+      case 'brief':
+      case 'summary':
       case 'vc':
       case 'founder':
       case 'investor':
-        renderVCDossier();
+        renderTechnicalBrief();
         break;
 
       case 'projects':
@@ -1271,7 +1273,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     });
     vcButtons.forEach(button => {
       button.setAttribute('aria-pressed', String(active));
-      button.textContent = active ? '⚡ VC View active' : '⚡ VC / Founder View';
+      button.textContent = active ? '⚡ Builder Mode active' : '⚡ Builder Mode';
     });
   }
   function activateVCView() {
@@ -1287,7 +1289,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     setTimeout(() => {
       if (sequence !== vcSequence || !document.body.classList.contains('impact-mode')) return;
       reveal('#shell');
-      input.value = 'vc';
+      input.value = 'brief';
       input.setSelectionRange(input.value.length, input.value.length);
     }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 900);
   }
@@ -1454,7 +1456,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
 
   const paletteActions = [
     ['Jump to System Architecture Diagram','#architecture'],
-    ['Run VC Pitch & Technical Summary','vc'],
+    ['Run Builder Summary','brief'],
     ['Read Blog: Gemma 4 Terminal Design','/blog/inside-nishad-ai-terminal/'],
     ['View GitHub / Open Source Repos','github'],
     ['technical blog','blog'],
@@ -1496,7 +1498,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     else if(target.startsWith('/')) window.location.assign(target);
     else if(target==='github') window.open(PROFILE.github,'_blank','noopener,noreferrer');
     else if(target==='roulette') rouletteBtn?.click();
-    else if(target==='vc'||target==='spotify'||target.startsWith('vibe')||target==='spotify disconnect'){
+    else if(target==='brief'||target==='spotify'||target.startsWith('vibe')||target==='spotify disconnect'){
       reveal('#shell');
       run(target);
     }

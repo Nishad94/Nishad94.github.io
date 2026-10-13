@@ -178,7 +178,7 @@ A faux zsh at the bottom of the page. Type `help` for the full list. Highlights:
 | `git status` / `git branch` / `git log` | inspect the "life" repo |
 | `timeline`, `branches`, `recruiter`, `linkedin`, `github` | jump around / open links |
 | `blog` | open the technical blog |
-| `vc`, `founder`, `investor`, `--mode vc` | render the deterministic executive dossier with no model latency |
+| `brief`, `summary` (`vc`, `founder`, `investor`, `--mode vc` aliases) | render a deterministic technical summary with no model latency |
 | `projects`, `architecture`, `contact` | inspect technical receipts, the current system boundary, and public contact links |
 | `roulette`, `chaos`, `toffee`, `palette` | trigger the multiverse controls |
 | `spotify [connect\|status\|disconnect]` | optional Spotify login, consent, status, or local disconnect |
@@ -191,7 +191,7 @@ A faux zsh at the bottom of the page. Type `help` for the full list. Highlights:
 Anything that isn't a known command is sent to the **AI** (see below).
 
 ### Multiverse controls
-- **VC / Founder View** — switch homepage metrics to impact/scale, highlight core milestones, and prefill the deterministic `vc` dossier.
+- **Builder Mode** — switch homepage copy to implementation evidence, highlight core milestones, and prefill the deterministic `brief` summary.
 - **branch roulette** — generate a random alternate-timeline blurb.
 - **chaos mode** — bump the visual entropy.
 - **summon Toffee** — deploy the site's least-qualified SRE (a cat 🐈).
