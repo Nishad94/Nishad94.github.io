@@ -136,27 +136,36 @@ function buildPdf(reportText) {
 
 export async function downloadReport(report, button, status) {
   button.disabled = true;
-  status.textContent = 'Building PDF…';
+  status.textContent = 'Preparing PDF…';
+  // Yield so the browser paints progress before synchronous PDF serialization.
+  await new Promise(resolve => setTimeout(resolve, 0));
   try {
     const text = cleanReportText(report);
     if (!text) throw new Error('Report is empty.');
-
     const blob = buildPdf(text);
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
     const stamp = new Date().toISOString().slice(0, 10);
+    const filename = `nishad-ai-music-report-${stamp}.pdf`;
+    // Keep a visible, user-clickable fallback; browsers can block synthetic downloads.
+    const oldLink = status.querySelector('a');
+    if (oldLink?.dataset.blobUrl) URL.revokeObjectURL(oldLink.dataset.blobUrl);
+    status.replaceChildren();
+    const link = document.createElement('a');
     link.href = url;
-    link.download = `nishad-ai-music-report-${stamp}.pdf`;
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 30_000);
-    status.textContent = 'PDF downloaded ✓';
+    link.download = filename;
+    link.dataset.blobUrl = url;
+    link.textContent = 'Save PDF manually';
+    link.style.cssText = 'text-decoration:underline;color:inherit';
+    status.append('PDF ready · ', link);
+    // Attempt automatic download, but never claim it succeeded: browsers don't confirm saves.
+    const auto = link.cloneNode(true);
+    auto.style.display = 'none';
+    document.body.appendChild(auto);
+    auto.click();
+    auto.remove();
   } catch (error) {
     console.error('PDF export failed', error);
     status.textContent = `PDF export failed: ${error?.message || String(error)}`;
-    throw error;
   } finally {
     button.disabled = false;
   }
