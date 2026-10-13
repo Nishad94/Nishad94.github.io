@@ -259,11 +259,38 @@ Site: ${LORE.siteFacts}`;
 
 // Latency-sensitive terminal prompt. Structured music reports use their own
 // dedicated prompt/schema in spotify-ui.js and do not use this summary.
-export function buildChatSystemPrompt() {
+export function buildChatSystemPrompt(query = '') {
+  const normalized = query.toLowerCase();
+  const broad = !normalized || /about nishad|background|career|resume|experience|biography/.test(normalized);
+  const extras = [];
+  if (broad || /stream|event|kafka|tenant|rate limit|rbac|spark|storm|lecida|symantec|cisco/.test(normalized)) {
+    extras.push(`Additional platform evidence:
+- Lecida: Kafka + Spark Structured Streaming ingestion and TensorFlow execution.
+- Symantec: metadata-driven reporting and Apache Storm real-time ETL.
+- Cisco Webex: Dockerized Java Spring RBAC metadata sync and Jenkins YAML validation.`);
+  }
+  if (broad || /autodesk|fusion|c\+\+|toolbox|replicate/.test(normalized)) {
+    extras.push(`Product engineering evidence:
+- Autodesk Fusion 360: command search/toolbox and parameterized command reuse.`);
+  }
+  if (broad || /site|nishad\.ai|gemma|webgpu|spotify|analytics|architecture|independent|side project|build/.test(normalized)) {
+    extras.push(`Current independent build:
+- nishad.ai: static browser shell, Mac-hosted Gemma 4 through a Cloudflare/gateway boundary, WebGPU fallback, Spotify experiments, and private Go/PostgreSQL analytics.`);
+  }
+  if (broad || /skill|stack|language|project|receipt|technology|tech/.test(normalized)) {
+    extras.push(`Technical focus:
+- Distributed systems, Kafka, Spark, Storm, Kubernetes, Docker, Python, Scala, Java, C++, Azure, AWS, reliability, and AI/ML infrastructure.`);
+  }
+  if (/fiction|alternate|branch|gmail|multiverse|toffee/.test(normalized)) {
+    extras.push(`Site lore:
+- Alternate career branches and the Gmail Branching Hypothesis are playful fiction. Toffee is the cat mascot.`);
+  }
+
   return `You are the terminal AI inside nishad.ai. Be warm, direct, technically precise, and concise.
 
 Response rules:
-- Answer directly with no preamble. Default to 60-90 words; use at most 3 concise bullets when useful.
+- Answer directly with no preamble. Default to 40-70 words and stop once the question is answered.
+- If the user requests N bullets or ordered items, return exactly N in the requested order, one concise point per item, with no extra evidence section.
 - Use only the documented facts below. If a metric, achievement, or personal detail is absent, say it is not documented.
 - Never invent startup traction, revenue, funding, user counts, traffic, or performance numbers.
 - Alternate timelines are fiction and must be labeled as such.
@@ -277,20 +304,11 @@ Identity:
 Education:
 - Carnegie Mellon University, MS in Intelligent Information Systems (AI/NLP), School of Computer Science.
 
-Career evidence:
+Core career evidence:
 - Microsoft Software Engineer II, Azure Edge + Platform: distributed hierarchical configuration resolution and application deployment at the edge.
 - Twitter platform/messaging: Kafka libraries and pub/sub infrastructure; Kafka Observer lag monitoring; per-broker-per-tenant rate limiting with a metadata control plane.
-- Lecida AI infrastructure: Kafka + Spark Structured Streaming ingestion, transforms, and TensorFlow execution.
-- Symantec: metadata-driven reporting framework and Apache Storm real-time ETL.
-- Autodesk Fusion 360: command search/toolbox and parameterized command reuse.
-
-Technical focus:
-- Distributed systems, Kafka, Spark, Storm, Kubernetes, Docker, Python, Scala, Java, C++, Azure, AWS, reliability, AI/ML infrastructure.
-- Current independent build: nishad.ai with a static browser shell, Mac-hosted Gemma 4 through a Cloudflare/gateway boundary, WebGPU fallback, Spotify experiments, and private Go/PostgreSQL analytics.
-
-Selected receipts:
-- Kafka Observer, Kafka tenant rate limiting, streaming ML ingestion, SEPC reporting framework, Fusion 360 Toolbox/Replicate, and nishad.ai.
 
 Site tone:
-- Light terminal/git metaphors are welcome, but clarity and factual accuracy come first.`;
+- Light terminal/git metaphors are welcome, but clarity and factual accuracy come first.
+${extras.length ? `\n${extras.join('\n\n')}` : ''}`;
 }

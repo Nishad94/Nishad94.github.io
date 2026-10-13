@@ -26,6 +26,18 @@ test('latency-sensitive chat prompt keeps core evidence in a smaller context', (
   assert.match(prompt, /Kafka Observer/);
   assert.match(prompt, /per-broker-per-tenant rate limiting/);
   assert.match(prompt, /Azure Edge/);
-  assert.match(prompt, /Default to 60-90 words/);
+  assert.match(prompt, /Default to 40-70 words/);
+  assert.match(prompt, /return exactly N in the requested order/);
   assert.match(prompt, /Never invent startup traction, revenue, funding, user counts/);
+});
+
+test('chat prompt includes only query-relevant supporting evidence', () => {
+  const twitter = buildChatSystemPrompt('Compare Kafka tenant controls and Azure Edge');
+  assert.match(twitter, /Lecida/);
+  assert.doesNotMatch(twitter, /Autodesk Fusion 360/);
+  const site = buildChatSystemPrompt('How is nishad.ai built?');
+  assert.match(site, /Go\/PostgreSQL analytics/);
+  assert.doesNotMatch(site, /Cisco Webex/);
+  const generic = buildChatSystemPrompt('What revenue is documented?');
+  assert.ok(generic.length < 1800, `generic prompt is ${generic.length} characters`);
 });
