@@ -44,6 +44,16 @@ the owner has accepted launching without backups.
 
 ---
 
+## AdSense ownership verification
+
+The homepage includes the owner's public `google-adsense-account` meta tag, and
+the build publishes the matching `/ads.txt`. These verify ownership/authorized
+selling; they do not mean Google has approved the site or that ads are enabled.
+`ADSENSE_CLIENT` and `ADSENSE_SLOT` in `deployment.js` remain empty. After these
+files are live, select **Meta tag** in AdSense, confirm placement, click **Verify**,
+then **Request review**. Actual ads require approval, an ad unit, appropriate
+advertising consent/privacy handling, and a placement review before activation.
+
 ## Technical blog: write Markdown, publish through GitHub
 
 The blog lives at `/blog/` (`/blog` redirects there), with durable article URLs at

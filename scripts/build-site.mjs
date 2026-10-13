@@ -198,7 +198,7 @@ export async function buildSite() {
   await mkdir(output, { recursive: true });
   for (const path of ['index.html', 'ontology.js', 'spotify.js', 'spotify-ui.js', 'report-client.js',
     'spotify-callback.html', 'spotify-privacy.html', 'preview.html', 'pipeline-smoke.html', 'assets', 'CNAME', '.nojekyll',
-    'deployment.js', 'analytics.js', 'analytics.css', 'analytics-privacy.html', 'metrics', 'shell']) {
+    'deployment.js', 'analytics.js', 'analytics.css', 'analytics-privacy.html', 'ads.txt', 'metrics', 'shell']) {
     await cp(join(root, path), join(output, path), { recursive: true });
   }
   await writePages(pages, output);

@@ -9,6 +9,26 @@ test.beforeEach(async ({ page }) => {
   await page.route('https://**/*', route => route.abort());
 });
 
+test('AdSense ownership verification is published without enabling advertising', async ({ page, request }) => {
+  const adRequests = [];
+  page.on('request', request => {
+    if (/googlesyndication\.com|doubleclick\.net/.test(request.url())) adRequests.push(request.url());
+  });
+  await page.goto('/');
+  await expect(page.locator('head meta[name="google-adsense-account"]')).toHaveAttribute('content', 'ca-pub-2525457839764099');
+  const adsTxt = await request.get('/ads.txt');
+  expect(adsTxt.status()).toBe(200);
+  expect(await adsTxt.text()).toBe('google.com, pub-2525457839764099, DIRECT, f08c47fec0942fa0\n');
+  const settings = await page.evaluate(async () => {
+    const { ADSENSE_CLIENT, ADSENSE_SLOT } = await import('/deployment.js');
+    return { ADSENSE_CLIENT, ADSENSE_SLOT };
+  });
+  expect(settings).toEqual({ ADSENSE_CLIENT: '', ADSENSE_SLOT: '' });
+  await expect(page.locator('.toffee-ad-placeholder')).toBeVisible();
+  await expect(page.locator('script[data-nishad-adsense], ins.adsbygoogle')).toHaveCount(0);
+  expect(adRequests).toEqual([]);
+});
+
 for (const width of [1280, 1201, 1024, 800, 701, 375, 320]) {
   for (const builderMode of [false, true]) {
     test(`primary Blog navigation at ${width}px in ${builderMode ? 'Builder' : 'normal'} mode`, async ({ page }) => {
