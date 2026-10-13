@@ -19,7 +19,7 @@ def bump(k,n):
   if counts.get(key,0)>=n:return False
   counts[key]=counts.get(key,0)+1; return True
 class H(BaseHTTPRequestHandler):
- server_version='nishad-mac-gemma/1'
+ server_version='nishad-mac-gemma/2'
  def log_message(self,fmt,*args): print(json.dumps({'event':'request','status':args[1] if len(args)>1 else 'unknown'}),flush=True)
  def origin(self):
   x=self.headers.get('Origin',''); return x if x in ORIGINS else None
@@ -54,7 +54,25 @@ class H(BaseHTTPRequestHandler):
   client=self.headers.get('CF-Connecting-IP') or self.headers.get('X-Real-IP') or 'unknown'
   if not bump('ip:'+client[:64],40) or not bump('global',1000):return self.sendj(429,{'error':'visitor_limit'},o,{'Retry-After':'3600'})
   if not SEM.acquire(False):return self.sendj(503,{'error':'busy'},o,{'Retry-After':'15'})
-  req=urllib.request.Request(OLLAMA+'/api/chat',data=json.dumps({'model':MODEL,'messages':msgs,'stream':True,'think':False,'options':{'temperature':0.7,'num_predict':256,'num_ctx':4096}}).encode(),headers={'Content-Type':'application/json'},method='POST')
+
+  # Terminal chat explicitly sets mode:'chat'. Structured reports omit it.
+  # Reports get Ollama JSON mode plus enough output room for the complete schema;
+  # chat preserves the lower-latency free-text configuration.
+  is_report=isinstance(d,dict) and d.get('mode')!='chat'
+  payload={
+   'model':MODEL,
+   'messages':msgs,
+   'stream':True,
+   'think':False,
+   'options':{
+    'temperature':0.2 if is_report else 0.7,
+    'num_predict':1200 if is_report else 256,
+    'num_ctx':4096
+   }
+  }
+  if is_report:payload['format']='json'
+
+  req=urllib.request.Request(OLLAMA+'/api/chat',data=json.dumps(payload).encode(),headers={'Content-Type':'application/json'},method='POST')
   try:
    up=urllib.request.urlopen(req,timeout=TIMEOUT)
   except Exception:
