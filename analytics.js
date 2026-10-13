@@ -1,3 +1,4 @@
+import './assets/ai-proxy-compat.js';
 import './assets/ads.js';
 import './assets/control-room.js';
 import { ANALYTICS_ENDPOINT, PRIVATE_DASHBOARD_ORIGIN } from './deployment.js';
