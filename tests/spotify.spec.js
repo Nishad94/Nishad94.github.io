@@ -79,6 +79,24 @@ async function mockSpotify(page) {
   });
 }
 
+test('standard vibe loads independent Spotify top lists concurrently', async ({ page }) => {
+  await seed(page);
+  const started = new Set();
+  let release;
+  const bothStarted = new Promise(resolve => { release = resolve; });
+  await page.route('https://api.spotify.com/v1/**', async route => {
+    const type = route.request().url().includes('/artists') ? 'artists' : 'tracks';
+    started.add(type);
+    if (started.size === 2) release();
+    await bothStarted;
+    return route.fulfill({ json: { items: type === 'artists' ? [artist] : [track] } });
+  });
+  await page.getByRole('button', { name: 'Last 4 weeks', exact: true }).click();
+  await bothStarted;
+  await expect(page.locator('.vibe-consent')).toBeVisible();
+  expect([...started].sort()).toEqual(['artists', 'tracks']);
+});
+
 test('PKCE login, callback scrubbing, reload, safe results, no-key, disconnect', async ({ page }) => {
   let tokenBody, authURL, pending, apiCalls = 0;
   await mockSpotify(page);
@@ -279,13 +297,13 @@ for (const code of [401, 403, 429, 500]) {
     });
     await command(page, 'vibe');
     await expect(page.locator('#spotify-output')).toContainText(String(code));
-    expect(calls).toBe(1);
+    expect(calls).toBe(2);
     await expect(page.locator('#spotify-output')).not.toContainText('untrusted backend detail');
     if (code === 401) expect(await page.evaluate(() => sessionStorage.getItem('nishad_spotify_auth'))).toBeNull();
     if (code === 429) {
       await command(page, 'vibe');
       await expect(page.locator('#spotify-output')).toContainText('before trying again');
-      expect(calls).toBe(1);
+      expect(calls).toBe(2);
     }
   });
 }

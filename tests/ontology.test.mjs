@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ARCHITECTURE_RECEIPTS, buildSystemPrompt, TECHNICAL_BRIEF } from '../ontology.js';
+import { ARCHITECTURE_RECEIPTS, buildChatSystemPrompt, buildSystemPrompt, TECHNICAL_BRIEF } from '../ontology.js';
 
 test('technical brief is deterministic, factual and connected to technical receipts', () => {
   assert.match(TECHNICAL_BRIEF, /Carnegie Mellon/);
@@ -18,4 +18,14 @@ test('system prompt gives concise investor guidance without inventing traction',
   assert.match(prompt, /4-6 concise evidence-based bullets/);
   assert.match(prompt, /Never invent startup traction, fundraising, user counts, revenue, or a founder title/);
   assert.match(prompt, /CURRENT SITE ARCHITECTURE RECEIPTS/);
+});
+
+test('latency-sensitive chat prompt keeps core evidence in a smaller context', () => {
+  const prompt = buildChatSystemPrompt();
+  assert.ok(prompt.length < 3500, `chat prompt is ${prompt.length} characters`);
+  assert.match(prompt, /Kafka Observer/);
+  assert.match(prompt, /per-broker-per-tenant rate limiting/);
+  assert.match(prompt, /Azure Edge/);
+  assert.match(prompt, /Default to 60-90 words/);
+  assert.match(prompt, /Never invent startup traction, revenue, funding, user counts/);
 });
