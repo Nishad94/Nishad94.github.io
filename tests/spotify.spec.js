@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 
 const artist = { id: 'syntheticArtist', name: 'Synthetic Artist', genres: [] };
 const track = { id: 'syntheticTrack', name: '<img src=x onerror=alert(1)> Synthetic Song', artists: [artist], explicit: true };
@@ -39,11 +40,18 @@ test.beforeEach(async ({ page }) => {
 
 test('button-only UI connects, selects reports, manages key, and disconnects', async ({ page }) => {
   await page.goto('/#music');
+  await expect(page.locator('#music-flow-status')).toContainText('Step 1');
+  await expect(page.locator('#music-report-choices')).toHaveAttribute('disabled', '');
   await page.getByRole('button', { name: 'Connect Spotify', exact: true }).click();
+  await expect(page.locator('#music-flow-status')).toContainText('review Spotify access');
   await expect(page.getByRole('button', { name: 'Agree & continue to Spotify' })).toBeVisible();
   await seed(page);
   await mockSpotify(page);
+  await expect(page.locator('#music-flow-status')).toContainText('Step 2');
+  await expect(page.locator('#music-report-choices')).not.toHaveAttribute('disabled', '');
   await page.getByRole('button', { name: 'Last 4 weeks', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Last 4 weeks', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#music-flow-status')).toContainText('review the data');
   await expect(page.locator('.vibe-consent')).toBeVisible();
   await page.getByText('Add or remove your OpenAI key', { exact: true }).click();
   await page.getByLabel('OpenAI API key', { exact: true }).fill('sk-synthetic-test-only');
@@ -53,8 +61,11 @@ test('button-only UI connects, selects reports, manages key, and disconnects', a
   await page.getByRole('button', { name: 'Remove AI key', exact: true }).click();
   await expect(page.locator('#music-ai-status')).toContainText('No OpenAI key');
   await page.getByRole('button', { name: 'Past vs now', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Past vs now', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#spotify-output')).toContainText('In both samples');
   await page.getByRole('button', { name: 'Disconnect Spotify', exact: true }).click();
+  await expect(page.locator('#music-flow-status')).toContainText('Step 1');
+  await expect(page.locator('#music-report-choices')).toHaveAttribute('disabled', '');
   await expect(page.locator('.spotify-data')).toHaveCount(0);
   expect(await page.evaluate(() => sessionStorage.getItem('nishad_spotify_auth'))).toBeNull();
 });
@@ -333,7 +344,7 @@ test('timeline and comparison request and render their structured reports', asyn
 test('optional recent scope is requested only by timeline reconnect', async ({ page }) => {
   await seed(page, { topOnly: true });
   await page.getByRole('button', { name: 'Mood timeline', exact: true }).click();
-  await expect(page.locator('#spotify-output')).toContainText('Mood timeline needs optional recent-play access');
+  await expect(page.locator('#spotify-connect-output')).toContainText('Mood timeline needs optional recent-play access');
   await page.route('https://accounts.spotify.com/authorize?**', route => route.fulfill({ body: 'Synthetic login' }));
   await page.getByRole('button', { name: 'Agree & continue to Spotify' }).click();
   await expect(page).toHaveURL(/accounts.spotify.com/);
@@ -427,7 +438,7 @@ test('remembered OpenAI key stays inactive until explicit session activation', a
     return route.fulfill({ json: { content: 'GEMMA_DEFAULT_OK', finish_reason: 'stop' } });
   });
   await page.reload();
-  await expect(page.locator('#term-output')).toContainText('self-hosted Gemma 4 is on');
+  await expect(page.locator('#term-output')).toContainText('Mac-hosted Gemma 4 is on');
   await expect(page.locator('#spend-hud')).not.toHaveClass(/on/);
   await command(page, 'prove default');
   await expect(page.locator('#term-output')).toContainText('GEMMA_DEFAULT_OK');
@@ -488,12 +499,12 @@ test('self-hosted terminal AI uses Gemma gateway without a visitor key', async (
 for (const outcome of ['ok', 'visitor_limit', 'global_limit', 'down']) {
   test('site AI proxy ' + outcome + ' works without a visitor key and never calls OpenAI directly', async ({ page }) => {
     await seed(page, { key: false });
-    await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/report'));
+    await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:18888/report'));
     await page.reload();
     await mockSpotify(page);
     let proxyCalls = 0;
     await page.route('https://api.openai.com/**', route => { throw new Error('direct OpenAI call'); });
-    await page.route('http://127.0.0.1:9/report', route => {
+    await page.route('http://127.0.0.1:18888/report', route => {
       proxyCalls++;
       const body = route.request().postDataJSON();
       expect(Object.keys(body)).toEqual(['messages']);
@@ -505,7 +516,8 @@ for (const outcome of ['ok', 'visitor_limit', 'global_limit', 'down']) {
     });
     await expect(page.locator('#music-ai-status')).toContainText('no key needed');
     await command(page, 'vibe');
-    await expect(page.locator('.vibe-consent')).toContainText('site’s AI service');
+    await expect(page.locator('.vibe-consent')).toContainText('Cloudflare Worker and tunnel to Mac-hosted Gemma');
+    await expect(page.getByRole('checkbox')).toHaveAccessibleName(/through Cloudflare to Mac-hosted Gemma/);
     await expect(page.locator('.vibe-consent')).not.toContainText('require a key');
     await page.getByRole('checkbox').check();
     await page.getByRole('button', { name: 'Generate AI report', exact: true }).click();
@@ -517,3 +529,138 @@ for (const outcome of ['ok', 'visitor_limit', 'global_limit', 'down']) {
     expect(proxyCalls).toBe(1);
   });
 }
+
+    for (const [outcome, expected] of [
+      ['stream', 'wrong report format'],
+      ['malformed-envelope', 'unreadable report JSON'],
+      ['malformed-model', 'invalid JSON'],
+      ['missing-completion', 'refused, truncated, or empty'],
+      ['incomplete-schema', 'incomplete or invalid'],
+      ['length', 'output limit'],
+      ['upstream_incomplete', 'before confirmed completion'],
+      ['upstream_timeout', 'service deadline'],
+      ['busy', 'busy with another request']
+    ]) {
+      test('report ' + outcome + ' clears pending state and permits a consented manual retry', async ({ page }) => {
+        await seed(page);
+        await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:18888/report'));
+        await page.reload();
+        await mockSpotify(page);
+        let calls = 0;
+        await page.route('http://127.0.0.1:18888/report', route => {
+          calls++;
+          if (calls > 1) return route.fulfill({ json: { content: JSON.stringify(profile), finish_reason: 'stop' } });
+          if (outcome === 'stream') return route.fulfill({ contentType: 'text/event-stream', body: 'data: {"delta":"{}"}\n\ndata: {"done":true,"finish_reason":"stop"}\n\n' });
+          if (outcome === 'malformed-envelope') return route.fulfill({ contentType: 'application/json', body: '{broken' });
+          if (['busy', 'upstream_timeout', 'upstream_incomplete'].includes(outcome)) {
+            return route.fulfill({ status: outcome === 'busy' ? 503 : 502, json: { error: outcome } });
+          }
+          return route.fulfill({ json: {
+            content: outcome === 'malformed-model' ? '{broken' : outcome === 'incomplete-schema' ? '{}' : JSON.stringify(profile),
+            finish_reason: outcome === 'missing-completion' ? null : outcome === 'length' ? 'length' : 'stop'
+          } });
+        });
+        await page.getByRole('button', { name: 'Last 4 weeks', exact: true }).click();
+        await page.getByRole('checkbox').check();
+        await page.getByRole('button', { name: 'Generate AI report', exact: true }).click();
+        await expect(page.locator('#spotify-output')).toContainText(expected);
+        await expect(page.locator('.vibe-report')).toHaveCount(0);
+        await expect(page.locator('.report-progress')).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Generate AI report', exact: true })).toBeEnabled();
+        await expect(page.getByRole('checkbox')).not.toBeChecked();
+        expect(calls).toBe(1);
+        await page.getByRole('checkbox').check();
+        await page.getByRole('button', { name: 'Generate AI report', exact: true }).click();
+        await expect(page.locator('.vibe-report')).toContainText(profile.writeUp);
+        expect(calls).toBe(2);
+      });
+    }
+
+    test('cancel report stops pending state without disconnecting Spotify or rendering a late result', async ({ page }) => {
+      await seed(page);
+      await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:18888/report'));
+      await page.reload();
+      await mockSpotify(page);
+      let started, release;
+      const requested = new Promise(resolve => { started = resolve; });
+      const held = new Promise(resolve => { release = resolve; });
+      let calls = 0;
+      await page.route('http://127.0.0.1:18888/report', async route => {
+        calls++;
+        if (calls === 1) { started(); await held; }
+        await route.fulfill({ json: { content: JSON.stringify(profile), finish_reason: 'stop' } });
+      });
+      await page.getByRole('button', { name: 'Last 4 weeks', exact: true }).click();
+      await page.getByRole('checkbox').check();
+      await page.getByRole('button', { name: 'Generate AI report', exact: true }).click();
+      await requested;
+      await expect(page.getByRole('button', { name: 'Last year', exact: true })).toBeDisabled();
+      await expect(page.locator('#music-flow-status')).toContainText('Generating');
+      await page.getByRole('button', { name: 'Cancel AI report', exact: true }).click();
+      release();
+      await expect(page.locator('#spotify-output')).toContainText('AI report cancelled');
+      await expect(page.locator('.report-progress')).toHaveCount(0);
+      await expect(page.locator('.vibe-report')).toHaveCount(0);
+      expect(await page.evaluate(() => sessionStorage.getItem('nishad_spotify_auth'))).not.toBeNull();
+      await page.getByRole('checkbox').check();
+      await page.getByRole('button', { name: 'Generate AI report', exact: true }).click();
+      await expect(page.locator('.vibe-report')).toContainText(profile.writeUp);
+      expect(calls).toBe(2);
+    });
+
+    test.describe('Firefox report and PDF', () => {
+      test('production report renders and saves both automatic and manual PDFs', async ({ page }, testInfo) => {
+        await seed(page);
+        await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:18888/report'));
+        await page.reload();
+        await mockSpotify(page);
+        await page.route('http://127.0.0.1:18888/report', route => route.fulfill({
+          json: { content: JSON.stringify(profile), finish_reason: 'stop' }
+        }));
+        await page.getByRole('button', { name: 'Last 4 weeks', exact: true }).click();
+        await page.getByRole('checkbox').check();
+        await page.getByRole('button', { name: 'Generate AI report', exact: true }).click();
+        await expect(page.locator('.vibe-report meter')).toHaveCount(4);
+        await page.getByRole('button', { name: 'Reveal tarot card' }).click();
+        const downloaded = page.waitForEvent('download');
+        await page.getByRole('button', { name: 'Download PDF' }).click();
+        const automatic = await downloaded;
+        const path = testInfo.outputPath('automatic-report.pdf');
+        await automatic.saveAs(path);
+        const bytes = await readFile(path);
+        expect(bytes.subarray(0, 8).toString()).toBe('%PDF-1.4');
+        expect(bytes.toString()).toContain('Synthetic fictional music profile.');
+        expect(bytes.toString()).toContain('The Test Fixture');
+        await expect(page.getByRole('button', { name: 'Download PDF' })).toBeEnabled();
+        const manualDownload = page.waitForEvent('download');
+        await page.getByRole('link', { name: 'Save PDF manually' }).click();
+        const manual = await manualDownload;
+        const manualPath = testInfo.outputPath('manual-report.pdf');
+        await manual.saveAs(manualPath);
+        expect(await readFile(manualPath)).toEqual(bytes);
+        await expect(page.locator('[data-pdf-export]')).toContainText('PDF ready');
+      });
+
+      test('smoke page shares production consent, request, validation and PDF controls', async ({ page }) => {
+        let calls = 0;
+        await page.route('https://nishad-ai-proxy.nishad-dawkhar94.workers.dev/', route => {
+          calls++;
+          const body = route.request().postDataJSON();
+          expect(Object.keys(body)).toEqual(['messages']);
+          const data = JSON.parse(body.messages[1].content);
+          expect(data.artists).toHaveLength(50);
+          expect(data.tracks).toHaveLength(50);
+          expect(data.artists.every(artist => artist.name.startsWith('Synthetic '))).toBe(true);
+          expect(body.messages[0].content).toContain('exactly four MBTI axes');
+          return route.fulfill({ json: { content: JSON.stringify(profile), finish_reason: 'stop' } });
+        });
+        await page.goto('/pipeline-smoke.html');
+        await page.getByLabel('Synthetic sample size').selectOption('50');
+        expect(calls).toBe(0);
+        await page.getByRole('checkbox').check();
+        await page.getByRole('button', { name: 'Generate AI report', exact: true }).click();
+        await expect(page.locator('.vibe-report meter')).toHaveCount(4);
+        await expect(page.getByRole('button', { name: 'Download PDF' })).toBeVisible();
+        expect(calls).toBe(1);
+      });
+    });

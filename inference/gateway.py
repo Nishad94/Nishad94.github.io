@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, os, threading, time, urllib.request, urllib.error
+import http.client, json, os, threading, time, urllib.request, urllib.error
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 LISTEN=os.getenv('LISTEN','127.0.0.1:8094')
@@ -29,6 +29,9 @@ class H(BaseHTTPRequestHandler):
   if extra:
    for k,v in extra.items():self.send_header(k,v)
   self.end_headers();self.wfile.write(b)
+ def sende(self,event):
+  self.wfile.write(('data: '+json.dumps(event,separators=(',',':'))+'\n\n').encode())
+  self.wfile.flush()
  def do_OPTIONS(self):
   o=self.origin()
   if not o:return self.sendj(403,{'error':'origin_not_allowed'})
@@ -73,20 +76,48 @@ class H(BaseHTTPRequestHandler):
   if is_report:payload['format']='json'
 
   req=urllib.request.Request(OLLAMA+'/api/chat',data=json.dumps(payload).encode(),headers={'Content-Type':'application/json'},method='POST')
+  started=time.monotonic()
   try:
    up=urllib.request.urlopen(req,timeout=TIMEOUT)
-  except Exception:
-   SEM.release();return self.sendj(502,{'error':'upstream_unreachable'},o)
-  self.send_response(200);self.send_header('Content-Type','text/event-stream');self.send_header('Cache-Control','no-store, no-transform');self.send_header('X-Accel-Buffering','no');self.send_header('Access-Control-Allow-Origin',o);self.send_header('Vary','Origin');self.end_headers()
+  except (OSError,urllib.error.URLError,http.client.HTTPException) as error:
+   code='upstream_timeout' if isinstance(error,TimeoutError) or isinstance(getattr(error,'reason',None),TimeoutError) else 'upstream_unreachable'
+   print(json.dumps({'event':'generation','mode':'report' if is_report else 'chat','error':code,'duration_ms':round((time.monotonic()-started)*1000)}),flush=True)
+   SEM.release();return self.sendj(504 if code=='upstream_timeout' else 502,{'error':code},o)
+  failure=None; finish_reason=None; prompt_tokens=None; output_tokens=None
   try:
    with up:
-    for raw in up:
-     try:e=json.loads(raw); delta=(e.get('message') or {}).get('content',''); done=bool(e.get('done'))
-     except:continue
-     if delta:self.wfile.write(('data: '+json.dumps({'delta':delta,'finish_reason':None},separators=(',',':'))+'\n\n').encode());self.wfile.flush()
-     if done:self.wfile.write(('data: '+json.dumps({'done':True,'finish_reason':e.get('done_reason','stop')},separators=(',',':'))+'\n\n').encode());self.wfile.flush();break
-  except (BrokenPipeError,ConnectionResetError):pass
-  finally:SEM.release()
+    self.send_response(200);self.send_header('Content-Type','text/event-stream');self.send_header('Cache-Control','no-store, no-transform');self.send_header('X-Accel-Buffering','no');self.send_header('Access-Control-Allow-Origin',o);self.send_header('Vary','Origin');self.end_headers()
+    try:
+     for raw in up:
+      try:e=json.loads(raw)
+      except (json.JSONDecodeError,UnicodeDecodeError):
+       failure='upstream_invalid_response';break
+      if not isinstance(e,dict):
+       failure='upstream_invalid_response';break
+      if e.get('error'):
+       failure='upstream_failed';break
+      message=e.get('message') or {}
+      if not isinstance(message,dict) or not isinstance(message.get('content',''),str):
+       failure='upstream_invalid_response';break
+      delta=message.get('content','')
+      if delta:self.sende({'delta':delta,'finish_reason':None})
+      if e.get('done') is True:
+       reason=e.get('done_reason')
+       if not isinstance(reason,str) or not reason:
+        failure='upstream_incomplete';break
+       finish_reason=reason
+       prompt_tokens=e.get('prompt_eval_count') if isinstance(e.get('prompt_eval_count'),int) else None
+       output_tokens=e.get('eval_count') if isinstance(e.get('eval_count'),int) else None
+       self.sende({'done':True,'finish_reason':finish_reason});break
+     else:failure='upstream_incomplete'
+    except (BrokenPipeError,ConnectionResetError):raise
+    except TimeoutError:failure='upstream_timeout'
+    except (OSError,http.client.HTTPException):failure='upstream_incomplete'
+    if failure:self.sende({'error':failure})
+  except (BrokenPipeError,ConnectionResetError):failure='request_cancelled'
+  finally:
+   print(json.dumps({'event':'generation','mode':'report' if is_report else 'chat','duration_ms':round((time.monotonic()-started)*1000),'input_bytes':n,'finish_reason':finish_reason,'error':failure,'prompt_tokens':prompt_tokens,'output_tokens':output_tokens}),flush=True)
+   SEM.release()
 def main():
  h,p=LISTEN.rsplit(':',1);ThreadingHTTPServer((h,int(p)),H).serve_forever()
 if __name__=='__main__':main()

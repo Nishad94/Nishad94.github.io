@@ -68,6 +68,10 @@ main{padding:28px 0 90px}.section{margin-top:34px}.section-head{margin-bottom:14
 .launch-icon{font-size:26px}.launch h3{margin:10px 0 6px;font-size:16px}.launch p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
 .daily{margin-top:14px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}.daily p{margin:6px 0 0;font-size:14px;line-height:1.55}
 .music-steps{display:grid;gap:12px}.music-step{display:grid;grid-template-columns:34px 1fr;gap:14px;padding:16px;border:1px solid #30334f;border-radius:16px;background:#14162b}
+.music-step[data-state=active]{border-color:var(--mint)}.music-step[data-state=upcoming]>.step-n{background:#30334f;color:var(--muted)}.music-step{scroll-margin-top:90px}.step-body{min-width:0}
+.music-progress{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;font-size:12px;color:var(--muted)}.music-progress li{padding:8px;border-bottom:2px solid var(--line)}.music-progress [aria-current=step]{color:var(--mint);border-color:var(--mint)}
+#music-flow-status{padding:12px;border-radius:10px;background:#101225;color:var(--mint);line-height:1.6}#music-report-choices{border:0;padding:0;margin:0;min-width:0}.music-controls .btn[aria-pressed=true]{background:var(--mint);color:var(--bg);box-shadow:0 0 0 2px var(--mint)}.music-panel button:disabled{opacity:.5;cursor:not-allowed}.music-panel button[aria-pressed=true]:disabled{opacity:.8}
+#spotify-result-output{overflow-wrap:anywhere}#spotify-result-output .vibe-report{margin-top:0;border-top:0}#spotify-result-output p{line-height:1.7}#spotify-result-output .btn{margin:8px 0}#spotify-result-output a{color:var(--mint)}
 .step-n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--mint);color:#0d0f1b;font-weight:900;font-size:13px}
 .step-body h3{margin:4px 0 8px;font-size:16px}.step-body .smallcopy{margin:0 0 4px;color:var(--muted)}
 .music-controls{margin:10px 0 0}.seg{display:inline-flex;padding:4px;border:1px solid var(--line);border-radius:12px;background:#101225}.seg .btn{border:0;background:transparent}.seg .btn:hover{background:#20233e;transform:none}
@@ -237,28 +241,32 @@ main{padding:28px 0 90px}.section{margin-top:34px}.section-head{margin-bottom:14
 </section>
 
 <section class="section view" id="music" data-view="music" aria-labelledby="music-title">
-<div class="section-head"><div><h2 id="music-title">music vibes</h2><p>connect Spotify → pick a lens → get a fictional read of your taste</p></div><a class="chip" href="./spotify-privacy.html" target="_blank" rel="noreferrer">privacy &amp; data flow ↗</a></div>
+<div class="section-head"><div><h2 id="music-title">music vibes</h2><p>connect → choose a report → review &amp; generate → read &amp; download</p></div><a class="chip" href="./spotify-privacy.html" target="_blank" rel="noreferrer">privacy &amp; data flow ↗</a></div>
 <div class="card music-panel">
+<ol class="music-progress" aria-label="Music report progress"><li data-progress-step="1">1. Connect</li><li data-progress-step="2">2. Choose</li><li data-progress-step="3">3. Review &amp; generate</li><li data-progress-step="4">4. Read &amp; download</li></ol>
+<p id="music-flow-status" role="status">Start by connecting Spotify. No music data goes to AI automatically.</p>
 <div class="music-steps">
-<div class="music-step"><div class="step-n">1</div><div class="step-body"><h3>Connect</h3>
+<div class="music-step" data-music-step="1"><div class="step-n">1</div><div class="step-body"><h3>Connect Spotify <span id="music-connection-status" class="chip">Not connected</span></h3>
 <p class="smallcopy">Read-only access to your top artists and tracks. Tokens stay in this tab and vanish when you disconnect.</p>
 <div class="music-controls" aria-label="Spotify connection controls">
 <button class="btn primary" type="button" data-music-command="spotify connect">Connect Spotify</button>
-<button class="btn ghost" type="button" data-music-command="spotify status">Connection status</button>
 <button class="btn ghost" type="button" data-music-command="spotify disconnect">Disconnect Spotify</button>
-</div></div></div>
-<div class="music-step"><div class="step-n">2</div><div class="step-body"><h3>Pick a lens</h3>
+</div><div id="spotify-connect-output"></div></div></div>
+<div class="music-step" data-music-step="2"><div class="step-n">2</div><div class="step-body"><h3>Choose your report</h3>
+<p class="smallcopy" id="music-choice-help">For a full music personality, genre, MBTI, tarot and roast report, choose a period. Top lists summarize that period; they are not chronological listening history.</p>
+<fieldset id="music-report-choices" disabled aria-describedby="music-choice-help"><legend class="smallcopy">Full report / time period</legend>
 <div class="music-controls seg" aria-label="Music views">
 <button class="btn" type="button" data-music-command="vibe short">Last 4 weeks</button>
 <button class="btn" type="button" data-music-command="vibe medium">Last 6 months</button>
 <button class="btn" type="button" data-music-command="vibe long">Last year</button>
 </div>
-<div class="lens-grid">
-<div class="lens"><b>Mood timeline</b><span>How your recent plays feel hour by hour.</span><div class="music-controls"><button class="btn" type="button" data-music-command="vibe timeline">Mood timeline</button><button class="btn ghost" type="button" data-music-command="spotify connect timeline">Enable recent-play access</button></div></div>
-<div class="lens"><b>Past vs now</b><span>Compare your long-term taste with today.</span><div class="music-controls"><button class="btn" type="button" data-music-command="vibe compare">Past vs now</button></div></div>
-</div></div></div>
-<div class="music-step"><div class="step-n">3</div><div class="step-body"><h3>Your results</h3>
+<p class="smallcopy" style="margin-top:18px">Or choose one alternative report. These are not extra required steps and do not create playlists.</p>
+<div class="music-controls"><button class="btn" type="button" data-music-command="vibe timeline">Mood timeline</button><button class="btn" type="button" data-music-command="vibe compare">Past vs now</button></div>
+<p class="smallcopy">Mood timeline uses up to 20 recent plays, not six months of history; extra Spotify permission is requested only if needed. Past vs now compares overlapping top-artist samples.</p>
+</fieldset></div></div>
+<div class="music-step" data-music-step="3"><div class="step-n">3</div><div class="step-body"><h3>Review data &amp; generate</h3>
 <div id="spotify-output" aria-live="polite"><p class="smallcopy">Connect Spotify to start. Raw top lists work without AI; the personality, MBTI, tarot and roast reports ask for consent first.</p></div></div></div>
+<div class="music-step" data-music-step="4"><div class="step-n">4</div><div class="step-body"><h3>Read &amp; download</h3><p id="music-result-hint" class="smallcopy">Your validated report will appear here. PDF preparation takes seconds after the report is ready.</p><div id="spotify-result-output"></div></div></div>
 </div>
 <p id="music-ai-status" role="status"></p>
 <details class="music-key" id="music-key-block"><summary>Add or remove your OpenAI key</summary>
@@ -300,6 +308,7 @@ main{padding:28px 0 90px}.section{margin-top:34px}.section-head{margin-bottom:14
 <script type="module">
 import { buildSystemPrompt, PROFILE } from './ontology.js';
 import { createSpotifyTerminal } from './spotify-ui.js';
+import { REPORT_ENDPOINT, requestReport } from './report-client.js';
 (async () => {
   const output = document.getElementById('term-output');
   const form = document.getElementById('term-form');
@@ -321,7 +330,7 @@ import { createSpotifyTerminal } from './spotify-ui.js';
   const HOSTED_MODEL = 'gpt-4o';
   const HOSTED_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
   // Self-hosted Gemma gateway. Empty = visitors bring their own key or use local WebGPU.
-  const AI_PROXY_DEFAULT = 'https://nishad-ai-proxy.nishad-dawkhar94.workers.dev';
+  const AI_PROXY_DEFAULT = REPORT_ENDPOINT;
   const AI_PROXY_URL = (() => {
     const loopback = ['127.0.0.1', '[::1]'].includes(location.hostname);
     try {
@@ -448,51 +457,59 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     musicOutput.appendChild(line);
     return line;
   }
-  async function proxyReport(messages, signal) {
+  function updateMusicFlow(state) {
+    const step = state.phase === 'connect' || state.phase === 'connection-consent' ? 1 :
+      state.phase === 'choose' ? 2 : state.phase === 'ready' ? 4 : 3;
+    const selected = document.querySelector('[data-music-command="vibe ' + state.mode + '"]');
+    const label = selected?.textContent || 'your report';
+    const messages = {
+      connect: 'Step 1: connect Spotify. No data goes to AI automatically.',
+      'connection-consent': 'Step 1: review Spotify access below, then choose Agree & continue to Spotify.',
+      choose: 'Connected. Step 2: choose a period for the full report, or one alternative report.',
+      loading: 'Selected: ' + label + '. Loading Spotify data for your review...',
+      review: 'Selected: ' + label + '. Step 3: review the data, confirm permission, then Generate AI report.',
+      generating: 'Generating ' + label + '. Gemma can take around two minutes. You can cancel below.',
+      ready: label + ' is ready. Step 4: read your report or Download PDF below.'
+    };
+    document.getElementById('music-flow-status').textContent = state.message || messages[state.phase];
+    document.getElementById('music-connection-status').textContent = state.connected ? 'Connected in this tab' : 'Not connected';
+    document.getElementById('music-report-choices').disabled = !state.connected || state.busy;
+    document.querySelector('[data-music-command="spotify connect"]').hidden = state.connected;
+    document.querySelector('[data-music-command="spotify connect"]').disabled = state.busy;
+    document.querySelector('[data-music-command="spotify connect"]').setAttribute('aria-expanded', String(state.phase === 'connection-consent'));
+    document.querySelector('[data-music-command="spotify disconnect"]').disabled = !state.connected && !state.busy;
+    document.querySelectorAll('[data-music-command^="vibe "]').forEach(button => {
+      button.setAttribute('aria-pressed', String(button === selected));
+      button.setAttribute('aria-busy', String(button === selected && state.phase === 'loading'));
+    });
+    document.querySelectorAll('[data-music-step]').forEach(section => {
+      const n = Number(section.dataset.musicStep);
+      section.dataset.state = n === step ? 'active' : n < step ? 'complete' : 'upcoming';
+    });
+    document.querySelectorAll('[data-progress-step]').forEach(item => {
+      if (Number(item.dataset.progressStep) === step) item.setAttribute('aria-current', 'step');
+      else item.removeAttribute('aria-current');
+    });
+    document.getElementById('music-result-hint').hidden = Boolean(document.querySelector('#spotify-result-output .vibe-report'));
+  }
+  async function proxyReport(messages, signal, onStage) {
     if (aiBusy) throw new Error('An AI response is already running. Try again when it finishes.');
     aiBusy = true;
     try {
-      const response = await fetch(AI_PROXY_URL, {
-        method: 'POST', signal: AbortSignal.any([signal, AbortSignal.timeout(180000)]),
-        credentials: 'omit', cache: 'no-store', referrerPolicy: 'no-referrer', redirect: 'error',
-        headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages })
-      });
-      if (!response.ok) {
-        const code = await response.json().then(j => j?.error, () => '');
-        const reasons = {
-          visitor_limit: 'You have used today’s free AI reports. Try again tomorrow.',
-          global_limit: 'The site’s free AI budget for today is used up. Try again later.',
-          ai_not_configured: 'The site’s AI service is not configured yet.',
-          origin_not_allowed: 'The AI service does not accept requests from this origin.'
-        };
-        throw new Error(reasons[code] || 'The AI service failed (HTTP ' + response.status + '). No automatic retry.');
-      }
-      const json = await response.json();
-      if (json?.finish_reason !== 'stop' || typeof json?.content !== 'string') {
-        throw new Error('AI report was refused, truncated, or empty. No result was invented.');
-      }
-      try {
-        const raw = json.content.trim().replace(/^\x60\x60\x60(?:json)?\s*/i, '').replace(/\s*\x60\x60\x60$/, '');
-        return JSON.parse(raw);
-      } catch {
-        throw new Error('AI returned invalid JSON; no result was invented. Retry manually.');
-      }
-    } catch (error) {
-      if (signal.aborted) throw new Error('AI report cancelled.');
-      if (error instanceof TypeError || error.name === 'TimeoutError' || error.name === 'AbortError') {
-        throw new Error('The AI service is unreachable or timed out. No result was invented.');
-      }
-      throw error;
+      return await requestReport(AI_PROXY_URL, messages, { signal, onStage });
     } finally {
       aiBusy = false;
     }
   }
   const spotifyRunner = createSpotifyTerminal({
     output: musicOutput, addLine: addMusicLine,
+    connectionOutput: document.getElementById('spotify-connect-output'),
+    reportOutput: document.getElementById('spotify-result-output'),
+    onStateChange: updateMusicFlow,
     aiAvailable: () => Boolean(AI_PROXY_URL || hostedKey),
     aiProvider: () => (AI_PROXY_URL ? 'proxy' : 'byok'),
-    generateAI: async (messages, signal) => {
-      if (AI_PROXY_URL) return proxyReport(messages, signal);
+    generateAI: async (messages, signal, onStage) => {
+      if (AI_PROXY_URL) return proxyReport(messages, signal, onStage);
       if (!hostedKey) throw new Error('Use “Add or remove your OpenAI key” above, then retry. The small local model is not used for these structured reports.');
       if (aiBusy) throw new Error('An AI response is already running. Try again when it finishes.');
       const maxTokens = 2600;
@@ -523,6 +540,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
         if (json?.choices?.[0]?.finish_reason !== 'stop' || typeof content !== 'string') {
           throw new Error('AI report was refused, truncated, or empty. Usage was still recorded. No result was invented.');
         }
+        onStage?.('validating');
         try { return JSON.parse(content); }
         catch { throw new Error('AI returned invalid JSON. Usage was recorded; no result was invented. Retry manually.'); }
       } catch (error) {

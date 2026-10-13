@@ -196,7 +196,7 @@ export async function buildSite() {
   // Validate every post before replacing output; a bad draft also fails the build.
   await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
-  for (const path of ['index.html', 'ontology.js', 'spotify.js', 'spotify-ui.js',
+  for (const path of ['index.html', 'ontology.js', 'spotify.js', 'spotify-ui.js', 'report-client.js',
     'spotify-callback.html', 'spotify-privacy.html', 'preview.html', 'pipeline-smoke.html', 'assets', 'CNAME', '.nojekyll',
     'deployment.js', 'analytics.js', 'analytics.css', 'analytics-privacy.html', 'metrics', 'shell']) {
     await cp(join(root, path), join(output, path), { recursive: true });

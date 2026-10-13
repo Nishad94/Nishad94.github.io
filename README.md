@@ -14,8 +14,8 @@ Branching Hypothesis," an interactive shell, and an in-browser LLM you can talk 
 - **Hosting**: GitHub Pages (`Nishad94/Nishad94.github.io`), served over HTTPS.
 - **Custom domain**: `nishad.ai`, DNS managed at GoDaddy (apex `A` records → GitHub Pages,
   `www` `CNAME` → `nishad94.github.io`). The `CNAME` file in this repo pins the domain.
-- **AI terminal**: self-hosted Gemma 4 26B-A4B Q4 served by llama.cpp on an
-  isolated Azure ARM64 inference VM, with browser-local WebLLM/WebGPU fallback
+- **AI terminal**: self-hosted Gemma 4 served by Ollama on the owner's Mac through
+  a narrow Cloudflare-to-loopback gateway, with browser-local WebLLM/WebGPU fallback
   and an optional bring-your-own-key path to the OpenAI API.
 
 The public site stays static. Optional AI and private analytics services are separate.
@@ -195,10 +195,11 @@ Anything that isn't a known command is sent to the **AI** (see below).
 - **command palette** — `⌘K` / `Ctrl+K` fuzzy navigation.
 
 ### Self-hosted AI with a browser-local fallback
-Keyless terminal questions go first to **Gemma 4 26B-A4B Q4**, hosted through a
-narrow HTTPS gateway on a dedicated Azure ARM64 inference VM. The llama.cpp model
-server and management ports stay loopback-only; the gateway validates origins and
-request sizes, rate-limits use, and does not log prompts. If that host is unavailable,
+Keyless terminal questions and structured music reports go first to **Gemma 4**,
+hosted through a narrow HTTPS Worker/tunnel to Ollama on the owner's Mac. Ollama
+and the Python gateway stay loopback-only; the gateway validates origins and
+request sizes, rate-limits use, allows one generation at a time, and logs completion
+status/timing/token counts but not prompts or output. If that host is unavailable,
 the terminal lazy-loads **SmolLM2-360M-Instruct** through WebLLM and runs it entirely
 inside the visitor's browser using WebGPU. Local fallback works best in current
 Chrome/Edge on hardware with WebGPU.
@@ -259,7 +260,7 @@ When hosted mode is active, a neon badge appears in the terminal's title bar:
 - The site is fully static; it has no application backend. Hosting providers receive normal HTTP requests.
 - In BYOK mode, your API key stays in `localStorage` and is sent only to OpenAI.
 - Spotify is opt-in. Its tokens use tab-scoped `sessionStorage`, not `localStorage`.
-- Optional music reports require a separate per-request data/permission confirmation before music metadata goes to OpenAI; nothing goes to AI automatically. See [Spotify privacy & data flow](spotify-privacy.html).
+- Optional music reports require a separate per-request data/permission confirmation before metadata goes through the site Worker to Mac-hosted Gemma, or directly to OpenAI only in explicit BYOK mode. Nothing goes to AI automatically. See [Spotify privacy & data flow](spotify-privacy.html).
 - Never commit API keys to this (public) repo.
 
 ## Spotify POC: setup and policy prerequisite
@@ -292,9 +293,12 @@ No client secret belongs in this repository or the browser.
 5. Click **Connect Spotify**, then **Agree & continue to Spotify**, then approve Spotify consent.
    Return automatically to the music panel. Choose **Last 4 weeks**, **Last 6 months**, or **Last year**.
    No terminal typing is required; the `spotify` / `vibe` commands remain shortcuts.
-6. Raw top items work without an AI key/WebGPU. For an authorized AI test, expand **Add or remove your
-   OpenAI key**, enter your **own** key, and click **Save my key**. Review the exact music-data preview and separate permission/expense confirmation,
-   then select **Generate AI report**. Each regeneration needs confirmation and incurs another request.
+6. Raw top items work without an AI key/WebGPU. The guided UI enables report choices
+   only after connection, marks the selected period/report, then moves to the exact
+   data preview and separate permission confirmation. Select **Generate AI report**
+   to use Mac-hosted Gemma; generation can take around two minutes. Each regeneration
+   needs another explicit confirmation and consumes local inference quota. If the
+   site route is disabled, the separate BYOK control can use your own OpenAI key.
    The snark slider switches three already-generated roasts without additional calls.
 7. **Enable recent-play access** adds `user-read-recently-played`; then choose **Mood timeline**.
    **Past vs now** compares long- and short-term top-artist samples.
@@ -325,16 +329,17 @@ No client secret belongs in this repository or the browser.
   Missing genres/audio features/popularity are not treated as real measurements. AI genres are clearly
   guesses; MBTI axes, tarot, basic-vs-niche scores, and personality are fictional entertainment, not real
   psychology. Timeline guesses describe song vibes, not a listener's actual mood.
-- AI is direct-browser **gpt-4o BYOK**, sharing the existing pricing, spend ledger/HUD, and $0.50 soft cap.
-  A conservative preflight estimate leaves room for a 2,600-output-token response; exact returned usage
-  is charged even for invalid/truncated reports. Missing usage is conservatively estimated. Aborted,
-  timed-out, or unreadable responses can incur unreported charges; use OpenAI account-level budgets.
-  No owner key, server secret, token, ID, or play timestamp is inserted into an AI prompt.
-- The 360M local model's 2,048-token context is not adequate for reliable full structured reports, so
-  music reports explicitly require BYOK instead of silently falling back or inventing output. The
-  site's pre-existing local AI and hosted fun commands are unchanged.
-- Production redirect registration, real OAuth eligibility, and live model output are manual checks.
-  No DNS change is needed. This implementation does not push, deploy, or open a PR.
+- AI reports default to Mac-hosted **Gemma 4** through the public Worker. The Worker
+  converts completed report streams to one JSON envelope while terminal chat remains
+  SSE; interrupted, malformed, timed-out, busy, length-terminated, or cancelled work
+  never becomes a successful report. Explicit BYOK remains direct-browser gpt-4o,
+  sharing the pricing ledger/HUD and $0.50 soft cap. No owner key, server secret,
+  Spotify token, ID, or play timestamp is inserted into either prompt.
+- The 360M browser model's 2,048-token context is not adequate for reliable full
+  structured reports, so music reports never silently fall back to it or invent output.
+- Production redirect registration and the owner's real Spotify eligibility remain
+  owner-browser checks. Automated release acceptance uses invented Spotify fixtures,
+  the real Worker/Gemma route, Firefox rendering, and saved/readable PDFs.
 
 ### Verification
 
@@ -383,31 +388,24 @@ root directly still works for homepage-only development, but will not generate t
 ---
 
 *main is protected · force push disabled · built with HTML/CSS/JS and questionable 5 AM lore.*
-## Legacy OpenAI proxy rollback path
+## Gemma Worker adapter
 
-`worker/ai-proxy.js` is retained as a tested rollback artifact. It forwards prompts
-to OpenAI gpt-4o using a Worker secret and enforces an origin allowlist, 32 KB body
-limit, fixed token limits, and per-IP/global daily limits. It is not the active
-terminal backend; `AI_PROXY_DEFAULT` points to the self-hosted Gemma gateway.
+`worker/ai-proxy.js` is the active public adapter. It forwards only allowed-origin
+requests to the current Mac tunnel. Explicit terminal chat remains SSE. Omitted-mode
+structured reports are buffered only until a genuine terminal event and returned as
+`{content, finish_reason}` JSON; completion is never fabricated.
 
-Setup (manual, not done by this repo):
+Deploy while preserving the live tunnel variable and unrelated secret bindings:
 
 ```bash
 cd worker
-npx wrangler secret put OPENAI_API_KEY
-npx wrangler deploy
+npx wrangler deploy --keep-vars
 ```
 
-To reactivate this rollback path, replace `AI_PROXY_DEFAULT` with the Worker URL and
-restore its production origin allowlist. For local testing, set
-`localStorage.nishad_ai_proxy` to a mock/development URL. Tests:
-`node --test tests/ai-proxy.test.mjs` (mocked upstream; no live key).
-
-This does not change the Spotify Developer Policy III.13/III.14 position: an owner-run server sending other users' Spotify data to an AI model is a larger contractual exposure than a private BYOK test. Obtain Spotify's permission before enabling it for public visitors.
-
-The legacy Worker may remain deployed for rollback, but the production terminal does
-not point at it. On loopback, `localStorage.nishad_ai_proxy = 'off'` forces BYOK/local
-mode for tests; a temporary HTTP(S) URL can select a mock or development gateway.
+The Mac bridge supervisor deploys the installed `worker.js` again whenever its
+ephemeral tunnel changes, so release synchronization must update both repository
+and installed copies. On loopback, `localStorage.nishad_ai_proxy = 'off'` forces
+BYOK/browser-local mode; a temporary HTTP(S) URL can select a mock gateway.
 
 ## Layout
 

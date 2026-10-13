@@ -42,12 +42,12 @@ Use `window.history` (a local `history` variable shadows the global). Tests must
 
 There are **three** model paths behind the terminal, in precedence order:
 
-1. **Self-hosted (keyless default):** Gemma 4 26B-A4B Q4 through the narrow HTTPS
-   gateway configured as `AI_PROXY_DEFAULT`. It remains the default on every page
-   load, even when an OpenAI key is remembered in `localStorage`. The model runs
-   on a separate Azure CPU inference VM; the gateway validates origins and bodies,
-   rate-limits requests, stores no prompts, and exposes neither llama.cpp nor
-   management ports publicly.
+1. **Self-hosted (keyless default):** Gemma 4 through the narrow HTTPS gateway
+   configured as `AI_PROXY_DEFAULT`. It remains the default on every page load,
+   even when an OpenAI key is remembered in `localStorage`. The model runs through
+   Ollama on the owner's Mac; Cloudflare carries requests to a loopback-only
+   gateway that validates origins and bodies, rate-limits requests, stores no
+   prompts, and allows one generation at a time.
 2. **Hosted BYOK (explicit session override):** OpenAI `gpt-4o` via the Chat
    Completions API, activated only by typing **`MULTIVERSE`** or `key` in the
    current page session. The key is stored only in `localStorage` and sent directly
@@ -109,16 +109,18 @@ Anything else typed is sent to the AI as a free-form prompt.
 BYOK adapter in `index.html` uses the existing gpt-4o pricing/spend HUD; it never
 mixes Spotify metadata into the ontology or existing general-chat prompts.
 Each music AI request requires an explicit data-flow/permission confirmation;
-no local-model fallback or automatic AI processing. No client secret or owner
-OpenAI key. Default scope is `user-top-read`; only timeline asks for
+no browser-model fallback or automatic AI processing. The keyless default uses
+Mac-hosted Gemma; explicit BYOK remains available when that route is disabled.
+No client secret or owner OpenAI key. Default scope is `user-top-read`; only timeline asks for
 `user-read-recently-played`. Do not add audio-features/genre-enrichment probes.
 
 **Deployment prerequisite:** Spotify Developer Policy III.13/14 prohibits
 content analysis/user profiles and AI ingestion. This requested experimental
 POC port is not asserted compliant. Resolve Spotify permission before compliant
 live analysis/AI use or deployment; consent alone is not an exemption. Tests
-must use synthetic fixtures, not real Spotify-to-AI calls. Keep these notices
-in both UI and docs. All personality/MBTI/tarot/scores/mood labels are entertainment,
+must use synthetic fixtures. A controlled release acceptance may send those
+fixtures through the real Worker/Gemma route with analytics disabled. Keep these
+notices in both UI and docs. All personality/MBTI/tarot/scores/mood labels are entertainment,
 not real psychology or measured popularity. See README for dashboard setup.
 
 Run `npm run test:syntax` and `npm test` after changes (test-only Playwright).
