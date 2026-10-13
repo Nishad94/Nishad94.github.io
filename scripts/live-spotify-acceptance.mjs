@@ -1,5 +1,5 @@
 import { firefox } from '@playwright/test';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { syntheticSpotifySample } from '../assets/spotify-synthetic.js';
@@ -90,14 +90,18 @@ try {
   const manualPath = join(output, 'guided-report-manual.pdf');
   await manual.saveAs(manualPath);
   mark('manual_pdf_saved');
+  const automaticBytes = await readFile(automaticPath);
+  const manualBytes = await readFile(manualPath);
+  if (!automaticBytes.equals(manualBytes)) throw new Error('Automatic and manual PDF downloads differ.');
 
   const reader = process.env.PDF_READER_PYTHON || 'python3';
   const pdfCheck = spawnSync(reader, ['-c', [
     'from pypdf import PdfReader',
     'import sys',
     'text="\\n".join((p.extract_text() or "") for p in PdfReader(sys.argv[1]).pages)',
+    'normalized=" ".join(text.split())',
     'required=["Music Intelligence Report","Music personality / fictional write-up","Music MBTI / invented axes and scores","Music tarot / fictional card","Basic vs niche shuffle roast / made-up score"]',
-    'missing=[value for value in required if value not in text]',
+    'missing=[value for value in required if value not in normalized]',
     'print(text[:500])',
     'raise SystemExit(1 if missing else 0)'
   ].join(';') , automaticPath], { encoding: 'utf8' });
