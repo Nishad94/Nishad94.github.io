@@ -461,7 +461,7 @@ test('existing deterministic commands, palette, local failure, BYOK streaming an
 
 test('builder mode shortcut, proof callouts and palette form a fast high-intent path', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'writing / 7 build notes' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Blog / 7 build notes' })).toBeVisible();
   await expect(page.locator('.writing-card')).toHaveCount(7);
   await expect(page.locator('.writing-card.featured')).toHaveAttribute('href', '/blog/one-hour-five-fixes-one-missing-contract/');
   await expect(page.getByRole('heading', { name: 'proof of work / live architecture' })).toBeVisible();

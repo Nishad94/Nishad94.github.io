@@ -34,6 +34,7 @@ function initializeControlRoom() {
   tab.className = 'tab';
   tab.dataset.view = 'control';
   tab.href = '#control';
+  tab.setAttribute('aria-label', 'Control');
   tab.innerHTML = '<i aria-hidden="true">🎛️</i><span>Control</span>';
   tabs.append(tab);
 
