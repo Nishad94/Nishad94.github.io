@@ -1,4 +1,4 @@
-import './assets/ai-proxy-compat.js';
+import './assets/ai-proxy-compat.js?v=2';
 import './assets/ads.js';
 import './assets/control-room.js';
 import './assets/report-pdf.js';
