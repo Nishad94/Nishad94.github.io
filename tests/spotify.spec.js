@@ -708,8 +708,12 @@ for (const outcome of ['ok', 'visitor_limit', 'global_limit', 'down']) {
         await automatic.saveAs(path);
         const bytes = await readFile(path);
         expect(bytes.subarray(0, 8).toString()).toBe('%PDF-1.4');
-        expect(bytes.toString()).toContain('Synthetic fictional music profile.');
-        expect(bytes.toString()).toContain('The Test Fixture');
+        const pdfSource = bytes.toString();
+        expect(pdfSource).toContain('Synthetic fictional music profile.');
+        expect(pdfSource).toContain('The Test Fixture');
+        expect(pdfSource).toContain('0.051 0.059 0.106 rg');
+        expect(pdfSource).toContain('0.624 1.000 0.824 rg');
+        expect(pdfSource).toContain('NISHAD.AI // MUSIC DOSSIER');
         await expect(page.getByRole('button', { name: 'Download PDF' })).toBeEnabled();
         const manualDownload = page.waitForEvent('download');
         await page.getByRole('link', { name: 'Save PDF manually' }).click();
