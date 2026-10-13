@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200" role="img" aria-labelledby="title desc">
+  <title id="title">What we built in fourteen days</title>
+  <desc id="desc">A neon infographic showing seven systems added to nishad.ai in two weeks.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#070914"/>
+      <stop offset=".55" stop-color="#11152a"/>
+      <stop offset="1" stop-color="#080a13"/>
+    </linearGradient>
+    <radialGradient id="halo">
+      <stop offset="0" stop-color="#b9a4ff" stop-opacity=".26"/>
+      <stop offset=".52" stop-color="#9fffd2" stop-opacity=".06"/>
+      <stop offset="1" stop-color="#080a13" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop stop-color="#9fffd2"/>
+      <stop offset=".5" stop-color="#b9a4ff"/>
+      <stop offset="1" stop-color="#ff9bd6"/>
+    </linearGradient>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M48 0H0V48" fill="none" stroke="#7b83ad" stroke-opacity=".09"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="1200" fill="url(#bg)"/>
+  <rect width="1200" height="1200" fill="url(#grid)"/>
+  <circle cx="850" cy="170" r="430" fill="url(#halo)"/>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    <text x="72" y="84" fill="#9096b8" font-size="24" letter-spacing="6">NISHAD.AI // BUILD LOG</text>
+    <text x="72" y="176" fill="#ffffff" font-size="74" font-weight="800" letter-spacing="-4">14 DAYS.</text>
+    <text x="72" y="252" fill="#9fffd2" font-size="74" font-weight="800" letter-spacing="-4" filter="url(#glow)">7 SYSTEMS.</text>
+    <text x="75" y="302" fill="#b8bdd7" font-size="25">A personal site became one connected product system.</text>
+  </g>
+
+  <path d="M75 342H1125" stroke="url(#line)" stroke-width="4" filter="url(#glow)"/>
+
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace">
+    <g transform="translate(72 390)">
+      <rect width="332" height="184" rx="22" fill="#11162a" stroke="#394064"/>
+      <circle cx="48" cy="48" r="22" fill="#9fffd2" fill-opacity=".12" stroke="#9fffd2"/>
+      <text x="38" y="58" font-size="28">✦</text>
+      <text x="82" y="45" fill="#9fffd2" font-size="15" letter-spacing="2">01 // WEBSITE</text>
+      <text x="28" y="98" fill="#ffffff" font-size="21" font-weight="700">Portfolio + blog</text>
+      <text x="28" y="132" fill="#9aa1c2" font-size="15">Interactive site and terminal.</text>
+      <text x="28" y="158" fill="#9aa1c2" font-size="15">Seven technical essays.</text>
+    </g>
+
+    <g transform="translate(434 390)">
+      <rect width="332" height="184" rx="22" fill="#11162a" stroke="#394064"/>
+      <circle cx="48" cy="48" r="22" fill="#b9a4ff" fill-opacity=".12" stroke="#b9a4ff"/>
+      <text x="37" y="58" font-size="27">⚡</text>
+      <text x="82" y="45" fill="#b9a4ff" font-size="15" letter-spacing="2">02 // PRIVATE AI</text>
+      <text x="28" y="98" fill="#ffffff" font-size="21" font-weight="700">Private home AI</text>
+      <text x="28" y="132" fill="#9aa1c2" font-size="15">Secure questions reach a model</text>
+      <text x="28" y="158" fill="#9aa1c2" font-size="15">running on my Mac.</text>
+    </g>
+
+    <g transform="translate(796 390)">
+      <rect width="332" height="184" rx="22" fill="#11162a" stroke="#394064"/>
+      <circle cx="48" cy="48" r="22" fill="#ff9bd6" fill-opacity=".12" stroke="#ff9bd6"/>
+      <text x="37" y="58" font-size="27">◎</text>
+      <text x="82" y="45" fill="#ff9bd6" font-size="15" letter-spacing="2">03 // BROWSER AI</text>
+      <text x="28" y="98" fill="#ffffff" font-size="21" font-weight="700">Browser AI backup</text>
+      <text x="28" y="132" fill="#9aa1c2" font-size="15">A local fallback runs inside</text>
+      <text x="28" y="158" fill="#9aa1c2" font-size="15">the visitor's browser.</text>
+    </g>
+
+    <g transform="translate(72 604)">
+      <rect width="332" height="184" rx="22" fill="#11162a" stroke="#394064"/>
+      <circle cx="48" cy="48" r="22" fill="#ffe9a6" fill-opacity=".12" stroke="#ffe9a6"/>
+      <text x="37" y="58" font-size="27">◫</text>
+      <text x="82" y="45" fill="#ffe9a6" font-size="15" letter-spacing="2">04 // ANALYTICS</text>
+      <text x="28" y="98" fill="#ffffff" font-size="21" font-weight="700">Private analytics</text>
+      <text x="28" y="132" fill="#9aa1c2" font-size="15">Consent-first traffic metrics.</text>
+      <text x="28" y="158" fill="#9aa1c2" font-size="15">Owner-only reporting.</text>
+    </g>
+
+    <g transform="translate(434 604)">
+      <rect width="332" height="184" rx="22" fill="#11162a" stroke="#394064"/>
+      <circle cx="48" cy="48" r="22" fill="#9fffd2" fill-opacity=".12" stroke="#9fffd2"/>
+      <text x="36" y="58" font-size="27">♫</text>
+      <text x="82" y="45" fill="#9fffd2" font-size="15" letter-spacing="2">05 // MUSIC AI</text>
+      <text x="28" y="98" fill="#ffffff" font-size="21" font-weight="700">Music reports</text>
+      <text x="28" y="132" fill="#9aa1c2" font-size="15">Synthetic listening data</text>
+      <text x="28" y="158" fill="#9aa1c2" font-size="15">becomes a readable story.</text>
+    </g>
+
+    <g transform="translate(796 604)">
+      <rect width="332" height="184" rx="22" fill="#11162a" stroke="#394064"/>
+      <circle cx="48" cy="48" r="22" fill="#b9a4ff" fill-opacity=".12" stroke="#b9a4ff"/>
+      <text x="36" y="58" font-size="27">▤</text>
+      <text x="82" y="45" fill="#b9a4ff" font-size="15" letter-spacing="2">06 // PDF ENGINE</text>
+      <text x="28" y="98" fill="#ffffff" font-size="21" font-weight="700">PDF exports</text>
+      <text x="28" y="132" fill="#9aa1c2" font-size="15">Browser results become clean,</text>
+      <text x="28" y="158" fill="#9aa1c2" font-size="15">shareable documents.</text>
+    </g>
+
+    <g transform="translate(253 818)">
+      <rect width="694" height="154" rx="24" fill="#12172d" stroke="url(#line)" stroke-width="2"/>
+      <circle cx="62" cy="62" r="29" fill="#ff9bd6" fill-opacity=".12" stroke="#ff9bd6"/>
+      <text x="48" y="72" font-size="31">↗</text>
+      <text x="112" y="52" fill="#ff9bd6" font-size="16" letter-spacing="3">07 // PUBLISHING PIPELINE</text>
+      <text x="112" y="91" fill="#ffffff" font-size="24" font-weight="700">Monitored publishing</text>
+      <text x="112" y="123" fill="#a1a7c8" font-size="15">Automated posts, health checks, failure alerts.</text>
+    </g>
+
+    <text x="72" y="1060" fill="#ffffff" font-size="30" font-weight="700">Built after work. Engineered to compound.</text>
+    <text x="72" y="1104" fill="#8f96b8" font-size="22">Not seven demos. One connected system.</text>
+    <text x="72" y="1153" fill="#9fffd2" font-size="25" letter-spacing="4">NISHAD.AI  →  ENTER THE SIMULATION</text>
+  </g>
+</svg>
