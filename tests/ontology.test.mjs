@@ -4,6 +4,7 @@ import { ARCHITECTURE_RECEIPTS, buildSystemPrompt, TECHNICAL_BRIEF } from '../on
 
 test('technical brief is deterministic, factual and connected to technical receipts', () => {
   assert.match(TECHNICAL_BRIEF, /Carnegie Mellon/);
+  assert.match(TECHNICAL_BRIEF, /NISHAD DAWKHAR \/\/ BUILDER NOTES/);
   assert.match(TECHNICAL_BRIEF, /Twitter Kafka platform -> Microsoft Azure Edge/);
   assert.match(TECHNICAL_BRIEF, /Gemma 4\/Ollama gateway, WebGPU fallback, Go\/Postgres analytics/);
   assert.match(TECHNICAL_BRIEF, /Type 'projects'/);

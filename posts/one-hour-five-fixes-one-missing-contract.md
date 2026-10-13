@@ -436,7 +436,7 @@ The terminal also gained a deterministic command:
 brief
 ```
 
-It renders a compact technical summary immediately, without waiting for a remote model to summarize a résumé. Short aliases such as `vc` still work for people who search that way, but the interface itself stays neutral.
+It renders compact builder notes immediately, without waiting for a remote model to summarize a résumé.
 
 That follows a useful interface principle:
 

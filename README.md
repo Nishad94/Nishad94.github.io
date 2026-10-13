@@ -191,7 +191,7 @@ A faux zsh at the bottom of the page. Type `help` for the full list. Highlights:
 Anything that isn't a known command is sent to the **AI** (see below).
 
 ### Multiverse controls
-- **Technical Brief** — switch homepage metrics to implementation evidence, highlight core milestones, and prefill the deterministic `brief` summary.
+- **Builder Mode** — switch homepage copy to implementation evidence, highlight core milestones, and prefill the deterministic `brief` summary.
 - **branch roulette** — generate a random alternate-timeline blurb.
 - **chaos mode** — bump the visual entropy.
 - **summon Toffee** — deploy the site's least-qualified SRE (a cat 🐈).

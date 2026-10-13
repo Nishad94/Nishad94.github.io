@@ -147,10 +147,10 @@ export const ARCHITECTURE_RECEIPTS = [
 ];
 
 export const TECHNICAL_BRIEF = `================================================================================
-NISHAD DAWKHAR // TECHNICAL SUMMARY
+NISHAD DAWKHAR // BUILDER NOTES
 ================================================================================
 [Core]     MS in AI/NLP @ Carnegie Mellon School of Computer Science
-[Impact]   Distributed systems: Twitter Kafka platform -> Microsoft Azure Edge
+[Scale]    Distributed systems: Twitter Kafka platform -> Microsoft Azure Edge
 [Build]    nishad.ai: Gemma 4/Ollama gateway, WebGPU fallback, Go/Postgres analytics
 [Systems]  Kafka Observer, tenant rate limiting, streaming ML ingestion, real-time reporting
 [Tech]     Scala, Java, C++, Python, Kafka, Spark, Kubernetes, Azure, AI/ML infrastructure
