@@ -98,3 +98,29 @@ test('synthetic normal and maximum fixtures use production compaction and prompt
   assert.throws(() => validateReport({ moods: ['Chill'] }, 'timeline', 2), /incomplete or invalid/);
   assert.throws(() => validateReport({ narration: '' }, 'compare'), /incomplete or invalid/);
 });
+
+test('report validation rejects scaffolding and repeated MBTI labels', () => {
+  const report = {
+    writeUp: 'Synthetic write-up ending with Music Personality Type: ENFP',
+    genres: [],
+    mbti: {
+      type: 'ENFP', summary: 'Synthetic summary.',
+      axes: [...'ENFP'].map(letter => ({
+        letter, label: 'invented trait', opposite: 'opposite trait', score: 50
+      }))
+    },
+    tarot: { name: 'Signal Card', emoji: '*', tagline: 'Synthetic', flavorText: 'Synthetic flavor.' },
+    compatibility: {
+      score: 50, label: 'Synthetic label',
+      roasts: { gentle: 'Gentle.', cheeky: 'Cheeky.', spicy: 'Spicy.' }
+    }
+  };
+  assert.throws(() => validateReport(report, 'short'), /incomplete or invalid/);
+  report.mbti.axes = [
+    { letter: 'E', label: 'Crowd-sparked', opposite: 'Solo-looping', score: 50 },
+    { letter: 'N', label: 'Pattern-chasing', opposite: 'Detail-anchored', score: 50 },
+    { letter: 'F', label: 'Feeling-led', opposite: 'Logic-led', score: 50 },
+    { letter: 'P', label: 'Shuffle-ready', opposite: 'Queue-planned', score: 50 }
+  ];
+  assert.doesNotThrow(() => validateReport(report, 'short'));
+});

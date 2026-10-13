@@ -6,7 +6,10 @@ const track = { id: 'syntheticTrack', name: '<img src=x onerror=alert(1)> Synthe
 const profile = {
   writeUp: 'Synthetic fictional music profile. Music Personality Type: Test dreamer.',
   genres: ['Imaginary pop'],
-  mbti: { type: 'TEST', summary: 'Synthetic music type', axes: [...'TEST'].map(letter => ({ letter, label: 'Dreamy', opposite: 'Busy', score: 75 })) },
+  mbti: { type: 'TEST', summary: 'Synthetic music type', axes: [...'TEST'].map((letter, index) => ({
+    letter, label: ['Texture-led', 'Elastic', 'Signal-seeking', 'Taste-branching'][index],
+    opposite: ['Plain', 'Rigid', 'Noise-avoiding', 'Queue-planned'][index], score: 75
+  })) },
   tarot: { name: 'The Test Fixture', emoji: '*', tagline: 'The fixtures align', flavorText: 'Entirely fictional.' },
   compatibility: { score: 42, label: 'Synthetic selector', roasts: { gentle: 'Gentle fixture', cheeky: 'Cheeky fixture', spicy: 'Spicy fixture' } }
 };
