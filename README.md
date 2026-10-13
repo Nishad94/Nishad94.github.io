@@ -382,7 +382,7 @@ No client secret belongs in this repository or the browser.
   structured reports, so music reports never silently fall back to it or invent output.
 - Production redirect registration and the owner's real Spotify eligibility remain
   owner-browser checks. Automated release acceptance uses invented Spotify fixtures,
-  the real Worker/Gemma route, Firefox rendering, and saved/readable PDFs.
+  the real Worker/Gemma route, Firefox rendering, and the complete interactive HTML readout.
 
 ### Verification
 

@@ -30,7 +30,7 @@ That last part was useful: the system failed without inventing a report.
 
 The rest of the work was about identifying the first broken boundary rather than changing every layer that looked suspicious.
 
-> **Try or inspect it:** [open the guided Spotify report webapp](/#music), [open the themed synthetic PDF](/assets/demos/spotify-gemma-synthetic-report.pdf), [preview its first page](/assets/demos/spotify-gemma-synthetic-report-pdf.png), or [view the full web report](/assets/demos/spotify-gemma-synthetic-report.png). The downloadable demo uses invented artist and track names—no personal Spotify data. The webapp keeps Spotify connection and AI consent explicit.
+> **Current experience:** [open the guided Spotify report webapp](/#music) for the native interactive HTML readout. The [themed synthetic PDF](/assets/demos/spotify-gemma-synthetic-report.pdf), [first-page preview](/assets/demos/spotify-gemma-synthetic-report-pdf.png), and [older full web report](/assets/demos/spotify-gemma-synthetic-report.png) remain as historical debugging artifacts using invented names—no personal Spotify data.
 
 ![Synthetic Spotify report rendered in Firefox after the Worker, Mac gateway, Gemma validation, and PDF pipeline completed.](/assets/demos/spotify-gemma-synthetic-report.png)
 

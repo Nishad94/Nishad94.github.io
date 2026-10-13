@@ -2,7 +2,6 @@ import {
   connectSpotify, disconnectSpotify, spotifyStatus, spotifyTop, spotifyRecent, spotifyHasRecentAccess,
   spotifyLink, SPOTIFY_RANGES, SpotifyError
 } from './spotify.js';
-import './assets/report-pdf.js';
 
 const MODES = ['short', 'medium', 'long', 'timeline', 'compare'];
 const MOODS = ['Energetic', 'Chill', 'Happy', 'Melancholic', 'Angsty', 'Romantic', 'Focus', 'Party', 'Nostalgic', 'Dark', 'Unknown'];
@@ -115,14 +114,14 @@ export function reportMessages(mode, data) {
       ' labels in the input order, chosen only from ' + MOODS.join(', ') +
       '. Guess the musical vibe from title/artist knowledge, NOT the listener’s mood. Use Unknown when uncertain. Do not claim to have heard/analyzed audio.';
   } else if (mode === 'compare') {
-    instructions = 'Return JSON {"narration":"..."}: a 120-200 word playful past-vs-now music story with a chapter title. Compare the long-term (~1 year, NOT all-time) and short-term (~4 weeks) top-artist samples. Ranges overlap. Artists absent from a top list may still have been played: never claim they were gained, abandoned, or never heard. No causal/psychological conclusions.';
+    instructions = 'Return JSON {"narration":"..."}: a concise 70-110 word playful past-vs-now music story with a chapter title. Compare the long-term (~1 year, NOT all-time) and short-term (~4 weeks) top-artist samples. Ranges overlap. Artists absent from a top list may still have been played: never claim they were gained, abandoned, or never heard. No causal/psychological conclusions.';
   } else {
     instructions = `Return only JSON:
-{"writeUp":"150-250 playful words ending with Music Personality Type: ...",
-"genres":["up to 10 explicitly speculative genres if the supplied Spotify genres are empty, otherwise return []"],
+{"writeUp":"70-110 playful words ending with Music Personality Type: ...",
+"genres":["up to 6 explicitly speculative genres if the supplied Spotify genres are empty, otherwise return []"],
 "mbti":{"type":"four uppercase letters","axes":[{"letter":"first type letter","label":"invented music-taste trait","opposite":"opposite trait","score":50}],"summary":"one punchy sentence"},
-"tarot":{"name":"invented card name","emoji":"one symbol","tagline":"under 10 words","flavorText":"2-3 mystical fictional sentences"},
-"compatibility":{"score":50,"label":"playful basic-vs-niche label","roasts":{"gentle":"kind tease","cheeky":"witty roast","spicy":"snarky but affectionate roast"}}}
+"tarot":{"name":"invented card name","emoji":"one symbol","tagline":"under 8 words","flavorText":"1-2 short mystical fictional sentences"},
+"compatibility":{"score":50,"label":"playful basic-vs-niche label","roasts":{"gentle":"kind tease under 18 words","cheeky":"witty roast under 18 words","spicy":"snarky but affectionate roast under 18 words"}}}
 Include exactly four MBTI axes with letters matching type in order. Every score must be 0-100. Scores are made-up entertainment, NEVER Spotify popularity or measured obscurity. 0 means mainstream/basic and 100 niche/obscure in the invented shuffle score. No sensitive-trait inference, diagnoses, cruelty, or factual claims about the listener's mental state. Reference provided artists/tracks; missing audio features/popularity cannot be inferred as measured facts.`;
   }
   return [
@@ -131,43 +130,97 @@ Include exactly four MBTI axes with letters matching type in order. Every score 
   ];
 }
 
-function reportView(parent, report, mode, recent = []) {
+function reportStat(parent, label, value) {
+  const stat = node(parent, 'div', undefined, 'report-stat');
+  node(stat, 'b', value);
+  node(stat, 'span', label);
+}
+
+function reportCard(parent, title, cls = '') {
+  const card = node(parent, 'article', undefined, 'report-card' + (cls ? ' ' + cls : ''));
+  node(card, 'h3', title);
+  return card;
+}
+
+function reportView(parent, report, mode, recent = [], data = {}) {
   const section = node(parent, 'section', undefined, 'vibe-report');
-  node(section, 'p', ENTERTAINMENT, 'yellow');
+  const hero = node(section, 'header', undefined, 'report-hero');
+  node(hero, 'div', 'nishad.ai // MUSIC READOUT', 'report-eyebrow');
+  node(hero, 'h2', mode === 'timeline' ? 'Recent-play signal map' :
+    mode === 'compare' ? 'Past vs now, remixed' : 'Your fictional music readout');
+  node(hero, 'p', mode === 'timeline' ? 'Song-vibe guesses in recent-play order—not a reading of your mood.' :
+    mode === 'compare' ? 'Two overlapping samples, one short story, zero claims that your taste has a clean plot.' :
+    (data.range ? 'Based on your top-item sample from ' + data.range + '.' : 'Built from the music metadata you reviewed.'));
+  const stats = node(hero, 'div', undefined, 'report-stats');
   if (mode === 'compare') {
-    node(section, 'h3', 'Past vs now / AI-narrated fiction');
-    node(section, 'p', report.narration);
+    reportStat(stats, 'sample windows', '2');
+    reportStat(stats, 'analysis type', 'fiction');
+    const grid = node(section, 'div', undefined, 'report-grid');
+    const story = reportCard(grid, 'The chapter', 'report-card-wide report-story');
+    node(story, 'p', report.narration);
+    const curious = node(grid, 'details', undefined, 'report-card report-card-wide report-curious');
+    node(curious, 'summary', 'Curious how this was made?');
+    node(curious, 'p', 'This compares limited, overlapping Spotify top-artist samples. Presence or absence is not proof that an artist was gained, abandoned, or never played.');
     return;
   }
   if (mode === 'timeline') {
-    node(section, 'h3', 'Recent-play mood timeline / AI guesses about songs, not you');
-    const list = node(section, 'ol');
+    reportStat(stats, 'recent plays', String(recent.length));
+    reportStat(stats, 'vibe labels', String(new Set(report.moods).size));
+    const grid = node(section, 'div', undefined, 'report-grid');
+    const timeline = reportCard(grid, 'Track-by-track signals', 'report-card-wide');
+    const list = node(timeline, 'ol', undefined, 'report-timeline');
     recent.forEach((entry, i) => {
-      const row = node(list, 'li');
+      const row = node(list, 'li', undefined, 'report-timeline-row');
       const date = new Date(entry.played_at);
-      row.append(Number.isNaN(date.getTime()) ? 'Time unavailable · ' : date.toLocaleString() + ' · ');
+      node(row, 'span', Number.isNaN(date.getTime()) ? 'Time unavailable' : date.toLocaleString(), 'report-time');
+      const track = node(row, 'span', undefined, 'report-track');
       const href = spotifyLink(entry.track, 'track');
-      if (href) link(row, entry.track.name, href);
-      else row.append(entry.track.name);
-      node(row, 'span', ' · ' + report.moods[i] + ' (AI guess)', 'tag');
+      if (href) link(track, entry.track.name, href);
+      else track.append(entry.track.name);
+      node(row, 'span', report.moods[i], 'report-mood');
     });
+    const curious = node(grid, 'details', undefined, 'report-card report-card-wide report-curious');
+    node(curious, 'summary', 'Curious how labels are chosen?');
+    node(curious, 'p', 'Gemma guesses a song’s musical vibe from title and artist knowledge. It does not hear audio and does not infer your emotional state.');
     return;
   }
-  node(section, 'h3', 'Music personality / fictional write-up');
-  node(section, 'p', report.writeUp);
-  node(section, 'h3', 'AI-inferred genres / guesses, not Spotify metadata');
-  node(section, 'p', report.genres.length ? report.genres.join(' · ') : 'No additional genres inferred.');
-  node(section, 'h3', 'Music MBTI / invented axes and scores');
-  node(section, 'p', report.mbti.type, 'vibe-type');
-  node(section, 'p', report.mbti.summary);
-  for (const axis of report.mbti.axes) {
-    node(section, 'p', axis.letter + ' · ' + axis.label + ' vs ' + axis.opposite + ' · ' + axis.score + '/100 (fictional)');
-    const meter = node(section, 'meter');
-    meter.min = 0; meter.max = 100; meter.value = axis.score;
-    meter.setAttribute('aria-label', axis.label + ' fictional score');
+  reportStat(stats, 'music type', report.mbti.type);
+  reportStat(stats, 'niche score', report.compatibility.score + '/100');
+  reportStat(stats, 'genre signals', String(report.genres.length));
+
+  const grid = node(section, 'div', undefined, 'report-grid');
+  const story = reportCard(grid, 'Signal summary', 'report-card-wide report-story');
+  node(story, 'p', report.writeUp);
+
+  const genres = reportCard(grid, 'Genre constellation');
+  const tags = node(genres, 'div', undefined, 'report-tags');
+  if (report.genres.length) {
+    report.genres.forEach(genre => node(tags, 'span', genre));
+  } else {
+    node(genres, 'p', 'No extra genre guesses—the supplied Spotify genres carried the signal.', 'dim');
   }
-  node(section, 'h3', 'Music tarot / fictional card');
-  const tarot = node(section, 'div', undefined, 'vibe-tarot');
+
+  const mbti = reportCard(grid, 'Music MBTI', 'report-card-wide report-mbti');
+  const typeLine = node(mbti, 'div', undefined, 'report-type-line');
+  node(typeLine, 'strong', report.mbti.type, 'vibe-type');
+  node(typeLine, 'span', report.mbti.summary);
+  for (const axis of report.mbti.axes) {
+    const row = node(mbti, 'div', undefined, 'report-axis');
+    const head = node(row, 'div', undefined, 'report-axis-head');
+    node(head, 'span', axis.letter + ' · ' + axis.label + ' vs ' + axis.opposite);
+    node(head, 'b', axis.score + '/100');
+    const track = node(row, 'div', undefined, 'report-axis-track');
+    const fill = node(track, 'span', undefined, 'report-axis-fill');
+    fill.style.width = axis.score + '%';
+    track.setAttribute('role', 'meter');
+    track.setAttribute('aria-label', axis.label + ' fictional score');
+    track.setAttribute('aria-valuemin', '0');
+    track.setAttribute('aria-valuemax', '100');
+    track.setAttribute('aria-valuenow', String(axis.score));
+  }
+
+  const tarotCard = reportCard(grid, 'Music tarot', 'report-tarot-card');
+  const tarot = node(tarotCard, 'div', undefined, 'vibe-tarot');
   const reveal = button(tarot, 'Reveal tarot card', () => {
     detail.hidden = !detail.hidden;
     reveal.textContent = detail.hidden ? 'Reveal tarot card' : 'Hide tarot card';
@@ -179,20 +232,29 @@ function reportView(parent, report, mode, recent = []) {
   node(detail, 'h3', report.tarot.emoji + ' ' + report.tarot.name);
   node(detail, 'p', report.tarot.tagline);
   node(detail, 'p', report.tarot.flavorText);
-  node(section, 'h3', 'Basic vs niche shuffle roast / made-up score');
-  node(section, 'p', report.compatibility.score + '/100 · ' + report.compatibility.label + ' (0 basic, 100 niche; not measured popularity)');
-  const label = node(section, 'label', 'Snark level: ');
+
+  const compatibility = reportCard(grid, 'Shuffle compatibility', 'report-compatibility');
+  const scoreLine = node(compatibility, 'div', undefined, 'report-score-line');
+  node(scoreLine, 'strong', String(report.compatibility.score));
+  const scoreCopy = node(scoreLine, 'div');
+  node(scoreCopy, 'b', report.compatibility.label);
+  node(scoreCopy, 'span', '0 basic-ish · 100 delightfully specific · entirely made up');
+  const label = node(compatibility, 'label', 'Snark: ', 'report-snark');
   const slider = node(label, 'input');
   slider.type = 'range'; slider.min = '0'; slider.max = '2'; slider.step = '1'; slider.value = '1';
   slider.setAttribute('aria-label', 'Snark level');
   const level = node(label, 'span', 'cheeky');
-  const roast = node(section, 'p', report.compatibility.roasts.cheeky);
+  const roast = node(compatibility, 'p', report.compatibility.roasts.cheeky, 'report-roast');
   slider.addEventListener('input', () => {
     const name = ['gentle', 'cheeky', 'spicy'][Number(slider.value)];
     level.textContent = name;
     roast.textContent = report.compatibility.roasts[name];
   });
-  node(section, 'p', 'Slider changes use the same generated report; no extra AI request.', 'dim');
+  node(compatibility, 'p', 'Same generated report—moving the slider sends no new request.', 'dim');
+
+  const curious = node(grid, 'details', undefined, 'report-card report-card-wide report-curious');
+  node(curious, 'summary', 'Curious what is real here?');
+  node(curious, 'p', ENTERTAINMENT + ' Artist and track names come from the reviewed sample. The labels, axes, tarot, score, and roasts are generated fiction.');
 }
 
 export function createReportFlow({ output, reportOutput, addLine, aiAvailable, aiProvider = () => 'byok', generateAI, isBusy = () => false, onStateChange = () => {} }) {
@@ -256,7 +318,7 @@ export function createReportFlow({ output, reportOutput, addLine, aiAvailable, a
         if (view !== version || !panel.isConnected) return;
         const destination = reportOutput || panel;
         destination.querySelector('.vibe-report')?.remove();
-        reportView(destination, report, mode, recent);
+        reportView(destination, report, mode, recent, data);
         generate.textContent = proxied ? 'Generate again (uses daily quota)' : 'Generate again (another paid request)';
         onStateChange({ phase: 'ready', mode, busy: false });
         destination.scrollIntoView({ behavior: 'smooth', block: 'start' });

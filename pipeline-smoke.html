@@ -5,20 +5,20 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <link rel="icon" href="data:,">
-<title>nishad.ai synthetic report acceptance</title>
+<title>nishad.ai synthetic HTML report acceptance</title>
 <style>
 :root{color-scheme:dark;--bg:#0d0f1b;--panel:#17192d;--ink:#f7f4ff;--muted:#aba8c8;--mint:#9fffd2;--pink:#ff9bd6;--line:#343754}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.wrap{max-width:900px;margin:0 auto;padding:36px 20px}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;margin:16px 0}.btn,select{border:1px solid var(--line);background:#20233d;color:var(--ink);border-radius:12px;padding:11px 14px;font:inherit;cursor:pointer}.btn:disabled{opacity:.55;cursor:wait}.pink{color:var(--pink)}.muted{color:var(--muted)}a{color:var(--mint)}pre{white-space:pre-wrap;overflow-wrap:anywhere}p{line-height:1.65}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}.wrap{max-width:900px;margin:0 auto;padding:36px 20px}.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;margin:16px 0}.btn,select{border:1px solid var(--line);background:#20233d;color:var(--ink);border-radius:12px;padding:11px 14px;font:inherit;cursor:pointer}.btn:disabled{opacity:.55;cursor:wait}.pink{color:var(--pink)}.muted{color:var(--muted)}a{color:var(--mint)}pre{white-space:pre-wrap;overflow-wrap:anywhere}p{line-height:1.65}.report-hero{padding:22px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(135deg,#17192d,#111426)}.report-eyebrow{color:var(--mint);font-size:10px;letter-spacing:.12em}.report-stats,.report-tags{display:flex;flex-wrap:wrap;gap:8px}.report-stat,.report-tags span{padding:8px 10px;border:1px solid var(--line);border-radius:10px}.report-stat b,.report-stat span{display:block}.report-stat span{color:var(--muted);font-size:9px}.report-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}.report-card{padding:17px;border:1px solid var(--line);border-radius:14px;background:#111426}.report-card-wide{grid-column:1/-1}.report-card h3{color:var(--mint)}.report-axis-track{height:9px;background:#0d0f1b}.report-axis-fill{display:block;height:100%;background:linear-gradient(90deg,#b9a4ff,#ff9bd6,#9fffd2)}.vibe-type{font-size:28px;color:#b9a4ff}.report-timeline{list-style:none;padding:0}.report-timeline-row{padding:10px;border-bottom:1px solid var(--line)}@media(max-width:650px){.report-grid{grid-template-columns:1fr}.report-card-wide{grid-column:auto}}
 </style>
 </head>
 <body>
 <main class="wrap">
-<h1>Synthetic music report to PDF</h1>
-<p class="muted">This page uses invented artists and tracks, never account-derived data. It shares the production music-data compaction, consent controls, prompt, JSON transport, strict validation, report renderer, and dependency-free PDF exporter. It does not test Spotify login and sends no analytics.</p>
+<h1>Synthetic interactive music readout</h1>
+<p class="muted">This page uses invented artists and tracks, never account-derived data. It shares the production music-data compaction, consent controls, prompt, JSON transport, strict validation, and themed HTML renderer. It does not test Spotify login and sends no analytics.</p>
 <section class="card">
 <h2>Live acceptance path</h2>
-<p>Browser &rarr; Cloudflare Worker &rarr; Mac gateway &rarr; Ollama/Gemma &rarr; completed JSON envelope &rarr; full validated report &rarr; saved PDF.</p>
-<p>Run on <a href="https://nishad.ai/pipeline-smoke.html">nishad.ai</a> for the allowed production origin. Generating uses the site's daily inference quota and Mac resources. Nothing is sent until you confirm below and click Generate. Then click Download PDF, save and open it; the manual-save link is a second download path, not proof that a file was saved.</p>
+<p>Browser &rarr; Cloudflare Worker &rarr; Mac gateway &rarr; Ollama/Gemma &rarr; completed JSON envelope &rarr; strict validation &rarr; interactive HTML cards.</p>
+<p>Run on <a href="https://nishad.ai/pipeline-smoke.html">nishad.ai</a> for the allowed production origin. Generating uses the site's daily inference quota and Mac resources. Nothing is sent until you confirm below and click Generate. The result remains on the page and is not uploaded or downloaded.</p>
 <label for="fixture-size">Synthetic sample size </label>
 <select id="fixture-size">
 <option value="5">5 artists and 5 tracks</option>
