@@ -2,6 +2,7 @@ import {
   connectSpotify, disconnectSpotify, spotifyStatus, spotifyTop, spotifyRecent, spotifyHasRecentAccess,
   spotifyLink, SPOTIFY_RANGES, SpotifyError
 } from './spotify.js';
+import './assets/report-pdf.js';
 
 const MODES = ['short', 'medium', 'long', 'timeline', 'compare'];
 const MOODS = ['Energetic', 'Chill', 'Happy', 'Melancholic', 'Angsty', 'Romantic', 'Focus', 'Party', 'Nostalgic', 'Dark', 'Unknown'];
