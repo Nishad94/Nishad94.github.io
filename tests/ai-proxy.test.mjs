@@ -42,6 +42,7 @@ for (const [name, stream, code] of [
   ['terminal without a finish reason', delta + 'data: {"done":true}\n\n', 'upstream_incomplete'],
   ['malformed event', delta + 'data: {broken}\n\n' + terminal, 'upstream_invalid_response'],
   ['upstream error event', delta + 'data: {"error":"private model failure"}\n\n', 'upstream_failed'],
+  ['queue wait expiration', 'data: {"queued":true}\n\n: queued\n\ndata: {"error":"queue_timeout"}\n\n', 'queue_timeout'],
   ['empty completed report', terminal, 'upstream_incomplete']
 ]) {
   test('report rejects ' + name + ' instead of fabricating completion', async () => {

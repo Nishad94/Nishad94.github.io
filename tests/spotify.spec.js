@@ -13,8 +13,26 @@ const profile = {
   tarot: { name: 'The Test Fixture', emoji: '*', tagline: 'The fixtures align', flavorText: 'Entirely fictional.' },
   compatibility: { score: 42, label: 'Synthetic selector', roasts: { gentle: 'Gentle fixture', cheeky: 'Cheeky fixture', spicy: 'Spicy fixture' } }
 };
+const legacyRouterMocks = new WeakSet();
 
 async function command(page, value) {
+  if (!legacyRouterMocks.has(page)) {
+    legacyRouterMocks.add(page);
+    await page.route('**/*', async route => {
+      const request = route.request();
+      if (request.method() !== 'POST') return route.fallback();
+      let body;
+      try { body = request.postDataJSON(); }
+      catch { return route.fallback(); }
+      if (body?.task !== 'knowledge_route' &&
+          !body?.messages?.[0]?.content?.startsWith('You are a semantic source router')) return route.fallback();
+      const content = JSON.stringify({ needs_site_data: false, source_ids: [], intent: 'answer' });
+      return route.fulfill({ json: body.task === 'knowledge_route'
+        ? { content, finish_reason: 'stop' }
+        : { choices: [{ message: { content }, finish_reason: 'stop' }], usage: { prompt_tokens: 1, completion_tokens: 1 } }
+      });
+    });
+  }
   if (!(await page.locator('#term-input').isVisible())) await page.locator('.tab[data-view="shell"]').click();
   await page.locator('#term-input').fill(value);
   await page.locator('#term-input').press('Enter');
@@ -494,6 +512,54 @@ test('builder mode path stays within a mobile viewport', async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
 });
 
+test('terminal text selection survives click-to-focus and blank clicks still focus input', async ({ page }) => {
+  await page.goto('/#shell');
+  await command(page, 'echo SELECTABLE_TERMINAL_OUTPUT');
+  const selected = await page.evaluate(() => {
+    const line = [...document.querySelectorAll('#term-output .termline')].find(node => node.textContent === 'SELECTABLE_TERMINAL_OUTPUT');
+    const range = document.createRange();
+    range.selectNodeContents(line);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    line.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    return selection.toString();
+  });
+  expect(selected).toBe('SELECTABLE_TERMINAL_OUTPUT');
+  await page.evaluate(() => {
+    window.getSelection().removeAllRanges();
+    document.querySelector('#term-input').blur();
+    document.querySelector('#term-output').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
+  await expect(page.locator('#term-input')).toBeFocused();
+});
+
+test('terminal text selection survives AI completion', async ({ page }) => {
+  await seed(page, { key: false });
+  await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/selectable-answer'));
+  let release;
+  const pending = new Promise(resolve => { release = resolve; });
+  await page.route('http://127.0.0.1:9/selectable-answer', async route => {
+    await pending;
+    await route.fulfill({ json: { content: 'SYNTHETIC_ANSWER', finish_reason: 'stop' } });
+  });
+  await page.reload();
+  await command(page, 'echo KEEP_THIS_SELECTED');
+  await command(page, 'synthetic AI request');
+  await expect(page.locator('#term-input')).toBeDisabled();
+  await page.evaluate(() => {
+    const line = [...document.querySelectorAll('#term-output .termline')].find(node => node.textContent === 'KEEP_THIS_SELECTED');
+    const range = document.createRange();
+    range.selectNodeContents(line);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+  release();
+  await expect(page.locator('#term-output')).toContainText('SYNTHETIC_ANSWER');
+  await expect(page.locator('#term-input')).toBeEnabled();
+  expect(await page.evaluate(() => window.getSelection().toString())).toBe('KEEP_THIS_SELECTED');
+});
+
 test('remembered OpenAI key stays inactive until explicit session activation', async ({ page }) => {
   await seed(page, { key: true });
   await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/gemma-default'));
@@ -511,7 +577,7 @@ test('remembered OpenAI key stays inactive until explicit session activation', a
     return route.fulfill({ json: { content: 'GEMMA_DEFAULT_OK', finish_reason: 'stop' } });
   });
   await page.reload();
-  await expect(page.locator('#term-output')).toContainText('Mac-hosted Gemma 4 is on');
+  await expect(page.locator('#term-output')).toContainText('Self-hosted AI is on');
   await expect(page.locator('#spend-hud')).not.toHaveClass(/on/);
   await command(page, 'prove default');
   await expect(page.locator('#term-output')).toContainText('GEMMA_DEFAULT_OK');
@@ -547,6 +613,55 @@ test('self-hosted Gemma labels a genuinely truncated streamed answer', async ({ 
   await page.reload();
   await command(page, 'write a long answer');
   await expect(page.locator('#term-output')).toContainText('answer reached the output limit');
+  await expect(page.locator('#term-input')).toBeEnabled();
+});
+
+test('interrupted self-hosted output is explicit and does not start another model', async ({ page }) => {
+  await seed(page, { key: false });
+  await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/interrupted'));
+  let calls = 0;
+  await page.route('http://127.0.0.1:9/interrupted', route => {
+    calls++;
+    return route.fulfill({
+      contentType: 'text/event-stream',
+      body: 'data: {"delta":"Partial answer"}\n\ndata: {"error":"upstream_incomplete"}\n\n'
+    });
+
+  });
+  await page.reload();
+  await command(page, 'prove interruption');
+  await expect(page.locator('#term-output')).toContainText('answer interrupted');
+  await expect(page.locator('#term-input')).toBeEnabled();
+  expect(calls).toBe(1);
+  await expect(page.locator('#term-output')).not.toContainText('switching to the browser-local model');
+});
+
+test('full self-hosted queue displays rate limiting without a model fallback', async ({ page }) => {
+  await seed(page, { key: false });
+  await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/queue-full'));
+  let calls = 0;
+  await page.route('http://127.0.0.1:9/queue-full', route => {
+    calls++;
+    return route.fulfill({ status: 429, json: { error: 'queue_full' }, headers: { 'Retry-After': '15' } });
+  });
+  await page.reload();
+  await command(page, 'synthetic queue overflow');
+  await expect(page.locator('#term-output')).toContainText('request queue full');
+  await expect(page.locator('#term-input')).toBeEnabled();
+  await expect(page.locator('#term-output')).not.toContainText('switching to local WebGPU');
+  expect(calls).toBe(1);
+});
+
+test('queued self-hosted chat handles admission and keepalives before its answer', async ({ page }) => {
+  await seed(page, { key: false });
+  await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/queued'));
+  await page.route('http://127.0.0.1:9/queued', route => route.fulfill({
+    contentType: 'text/event-stream',
+    body: 'data: {"queued":true}\n\n: queued\n\ndata: {"delta":"QUEUED_ANSWER_OK"}\n\ndata: {"done":true,"finish_reason":"stop"}\n\n'
+  }));
+  await page.reload();
+  await command(page, 'synthetic queued request');
+  await expect(page.locator('#term-output')).toContainText('QUEUED_ANSWER_OK');
   await expect(page.locator('#term-input')).toBeEnabled();
 });
 

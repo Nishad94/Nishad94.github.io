@@ -13,6 +13,8 @@ export async function requestReport(url, messages, { signal, onStage = () => {},
     if (!response.ok) {
       const code = await response.json().then(json => json?.error, () => '');
       const reasons = {
+        queue_full: 'The AI request queue is full. Wait before retrying.',
+        queue_timeout: 'The AI request waited too long in the queue. Retry manually.',
         visitor_limit: 'You have used today’s free AI reports. Try again tomorrow.',
         global_limit: 'The site’s free AI budget for today is used up. Try again later.',
         ai_not_configured: 'The site’s AI service is not configured yet.',

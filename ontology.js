@@ -33,12 +33,13 @@ export const PROFILE = {
 };
 
 // ---- Professional history (REAL, from résumé) ------------------------------
-// Ordered newest → oldest. Each entry: company, title, dates, location, notes[].
+// Ordered newest → oldest. Keep display dates and ISO month boundaries in sync.
 export const CAREER = [
   {
     company: 'Microsoft',
     title: 'Software Engineer II',
     dates: 'May 2024 – present',
+    startMonth: '2024-05', endMonth: null,
     location: 'Bengaluru, India',
     notes: [
       'Azure Edge + Platform org.',
@@ -49,6 +50,7 @@ export const CAREER = [
     company: 'Cisco',
     title: 'Software Developer',
     dates: 'Apr 2023 – Jun 2023',
+    startMonth: '2023-04', endMonth: '2023-06',
     location: 'Webex org',
     notes: [
       'Built a Dockerized, cloud-deployed Java Spring parser microservice for RBAC management — read roles/permissions metadata from YAML in a Git config repo, transformed it with data from other APIs, and kept it in sync with a MySQL RBAC datastore.',
@@ -60,6 +62,7 @@ export const CAREER = [
     company: 'Twitter',
     title: 'Software Engineer → Software Engineer II',
     dates: 'Mar 2020 – Jan 2023 (~2 yr 11 mo)',
+    startMonth: '2020-03', endMonth: '2023-01',
     location: 'Seattle, WA, USA',
     notes: [
       'Platform / Messaging (Storage Backend Services) team — core Apache Kafka libraries and pub/sub infra, plus Scala distributed services for replication, transforms, and metadata provisioning.',
@@ -73,6 +76,7 @@ export const CAREER = [
     company: 'Lecida',
     title: 'Data Platform (AI Infra) Intern',
     dates: 'May 2019 – Aug 2019',
+    startMonth: '2019-05', endMonth: '2019-08',
     location: 'Berkeley, CA, USA',
     notes: [
       'Built the end-to-end streaming pipeline for an ML ingestion platform: REST ingest interface, Apache Spark Structured Streaming aggregation/transforms, and TensorFlow model execution.',
@@ -84,6 +88,7 @@ export const CAREER = [
     company: 'Symantec',
     title: 'Software Development Engineer 1',
     dates: 'Jul 2016 – Jul 2018 (~2 yr)',
+    startMonth: '2016-07', endMonth: '2018-07',
     location: 'Pune, India',
     notes: [
       'Symantec Endpoint Protection Cloud (SEPC), reporting & dashboard microservices team.',
@@ -96,6 +101,7 @@ export const CAREER = [
     company: 'Autodesk',
     title: 'Software Development Intern',
     dates: 'Jun 2015 – Nov 2015',
+    startMonth: '2015-06', endMonth: '2015-11',
     location: 'Pune, India',
     notes: [
       'Worked on Autodesk Fusion 360 (C++) in the MPG-Fusion360 group.',
@@ -257,33 +263,44 @@ Toffee: ${LORE.toffee}
 Site: ${LORE.siteFacts}`;
 }
 
-// Latency-sensitive terminal prompt. Structured music reports use their own
-// dedicated prompt/schema in spotify-ui.js and do not use this summary.
-export function buildChatSystemPrompt(query = '') {
+function monthEvidence(query) {
+  const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  const requested = new Set([...query.matchAll(/\b(\d{4})-(0[1-9]|1[0-2])\b/g)].map(match => `${match[1]}-${match[2]}`));
+  for (const match of query.matchAll(/\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+(\d{4})\b/g)) {
+    requested.add(`${match[2]}-${String(months.indexOf(match[1].slice(0, 3)) + 1).padStart(2, '0')}`);
+  }
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  return [...requested].slice(0, 4).map(month => {
+    const roles = CAREER.filter(role => role.startMonth <= month && month <= (role.endMonth || currentMonth));
+    return `- ${month}: ${roles.length ? roles.map(role => `${role.company} (${role.dates})`).join('; ') : 'No documented employment covers this month; do not extend a prior role across this gap.'}`;
+  }).join('\n');
+}
+
+// Structured music reports use their own prompt/schema, not this résumé summary.
+export function buildChatSystemPrompt(query = '', { intent = 'answer' } = {}) {
   const normalized = query.toLowerCase();
-  const broad = !normalized || /about nishad|background|career|resume|experience|biography/.test(normalized);
+  const timeline = [...CAREER].reverse().map(role =>
+    `- ${role.dates}: ${role.company} — ${role.title}.`
+  ).join('\n');
+  const education = [...EDUCATION].reverse().map(item =>
+    `- ${item.dates}: ${item.school} — ${item.degree}.`
+  ).join('\n');
+  const dateEvidence = monthEvidence(normalized);
   const extras = [];
-  if (broad || /stream|event|kafka|tenant|rate limit|rbac|spark|storm|lecida|symantec|cisco/.test(normalized)) {
-    extras.push(`Additional platform evidence:
-- Lecida: Kafka + Spark Structured Streaming ingestion and TensorFlow execution.
-- Symantec: metadata-driven reporting and Apache Storm real-time ETL.
-- Cisco Webex: Dockerized Java Spring RBAC metadata sync and Jenkins YAML validation.`);
-  }
-  if (broad || /autodesk|fusion|c\+\+|toolbox|replicate/.test(normalized)) {
-    extras.push(`Product engineering evidence:
-- Autodesk Fusion 360: command search/toolbox and parameterized command reuse.`);
-  }
-  if (broad || /site|nishad\.ai|gemma|webgpu|spotify|analytics|architecture|independent|side project|build/.test(normalized)) {
-    extras.push(`Current independent build:
-- nishad.ai: static browser shell, Mac-hosted Gemma 4 through a Cloudflare/gateway boundary, WebGPU fallback, Spotify experiments, and private Go/PostgreSQL analytics.`);
-  }
-  if (broad || /skill|stack|language|project|receipt|technology|tech/.test(normalized)) {
-    extras.push(`Technical focus:
-- Distributed systems, Kafka, Spark, Storm, Kubernetes, Docker, Python, Scala, Java, C++, Azure, AWS, reliability, and AI/ML infrastructure.`);
-  }
-  if (/fiction|alternate|branch|gmail|multiverse|toffee/.test(normalized)) {
-    extras.push(`Site lore:
-- Alternate career branches and the Gmail Branching Hypothesis are playful fiction. Toffee is the cat mascot.`);
+  if (intent === 'career_scenarios') {
+    const twitter = CAREER.find(role => role.company === 'Twitter');
+    const lecida = CAREER.find(role => role.company === 'Lecida');
+    extras.push(`Additional trajectory evidence:
+- Twitter: ${twitter.notes.slice(3).join(' ')}
+- Lecida: ${lecida.notes[0]}
+- Documented areas of focus: ${SKILLS.focus.join(', ')}.
+
+Career scenario guidance:
+- These are evidence-based possibilities, not predictions or documented future events. Begin with "Scenarios, not predictions."
+- Unless the user requests a different format, give three numbered plausible paths. For each, cite a real employer/project/degree and give one next step or evidence gap. Keep the entire answer under 100 words.
+- Infer possibilities from the documented progression, but do not claim readiness for a level, a promotion, a future employer, salary, timing, offers, or hiring probabilities.
+- Do not invent personal ambitions. Goals, preferred leadership track, performance reviews and organizational opportunities are unknown; state the most relevant uncertainty.
+- Never use fictional alternate branches as career evidence. Do not imply live job-market research, external profile access or a trained career-forecasting model.`);
   }
 
   return `You are the terminal AI inside nishad.ai. Be warm, direct, technically precise, and concise.
@@ -294,15 +311,23 @@ Response rules:
 - Use only the documented facts below. If a metric, achievement, or personal detail is absent, say it is not documented.
 - Never invent startup traction, revenue, funding, user counts, traffic, or performance numbers.
 - Alternate timelines are fiction and must be labeled as such.
+- Use the dates in the timeline for before/after, first/latest, and year-specific questions. Default chronological order is oldest to newest, not the order of the highlighted projects.
+- Internships count as work experience, but distinguish the first internship from the first full-time role. Do not invent work during undocumented gaps.
+- Education dates have year precision only: do not invent graduation months or assume which came first within the same year. Internships may overlap education.
 - Do not reveal a phone number. Public email and profile links are allowed.
 - For investment, hiring, or founder-potential questions, emphasize evidence and shipped systems without inventing outcomes.
 
 Identity:
 - ${PROFILE.name}; ${PROFILE.headline}; based in ${PROFILE.location}.
 - Email ${PROFILE.email}; LinkedIn ${PROFILE.linkedin}; GitHub ${PROFILE.github}.
+- Site: ${PROFILE.site}, static HTML/CSS/JS hosted on GitHub Pages.
 
-Education:
-- Carnegie Mellon University, MS in Intelligent Information Systems (AI/NLP), School of Computer Science.
+Career timeline (complete documented employment, oldest to newest):
+${timeline}
+
+Education timeline (oldest to newest):
+${education}
+${dateEvidence ? `\nMonth-specific lookup (computed from documented employment boundaries):\n${dateEvidence}\n` : ''}
 
 Core career evidence:
 - Microsoft Software Engineer II, Azure Edge + Platform: distributed hierarchical configuration resolution and application deployment at the edge.

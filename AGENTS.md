@@ -86,6 +86,10 @@ Edit the exported data objects in `ontology.js`:
 
 Update the structured facts and the concise chat highlights in `ontology.js`
 together when career evidence changes.
+`buildChatSystemPrompt()` derives the complete dated employment and education
+timelines from those objects for every query. Preserve chronological order,
+internship/full-time distinctions, and year-only education precision; do not
+remove dates to optimize latency.
 
 **Privacy rule:** do NOT add Nishad's phone number. Email is intentionally public
 (owner consent). Don't add other people's private data.
@@ -102,6 +106,8 @@ Deterministic (no model): `help`, `conspiracy`/`gmail`, `whoami`, `pwd`, `ls`,
 BYOK: `multiverse` (unlock), `lockdown`/`clearkey` (exit + reset spend).
 
 AI-powered "fun modes" (call `askAI` with a mode instruction):
+- `trajectory [focus]` — grounded career scenarios, not forecasts; policy and
+  supporting evidence live in `buildChatSystemPrompt()` in `ontology.js`.
 - `interview` — eccentric recruiter interviews Nishad.
 - `branch <topic>` — invents a detailed fictional alternate timeline.
 - `roast` — affectionate roast.
@@ -176,6 +182,11 @@ GitHub Pages Actions auto-rebuilds on push after manual source setup. Verify liv
   `--yellow`, `--pink`, `--purple`).
 ## AI inference gateway
 
+For laptop onboarding, recovery and new-machine setup, read root `MEMORY.md`
+and use `inference/windows/Bootstrap-Inference.ps1` rather than hand-installing
+or guessing runtime paths. `-CheckOnly` is read-only; normal bootstrap installs
+only missing local components and never enables public exposure by itself.
+
 `AI_PROXY_DEFAULT` points to the self-hosted Gemma gateway. Generic deployment
 sources live under `inference/`; runtime configuration, machine addresses beyond
 approved public endpoints, and operational data stay outside Pages output. Keep
@@ -183,6 +194,36 @@ origin/body validation, rate limits, loopback-only llama.cpp binding, no-prompt
 logging, and browser fallback when editing. `worker/ai-proxy.js` is retained only
 as a tested rollback artifact; never put an OpenAI key in client code. Tests:
 `npm run test:syntax` and `npm test`.
+
+The opt-in Windows ARM64 experiment uses `INFERENCE_BACKEND=llama.cpp`; Ollama
+remains the default. `inference/priority-worker.js` reuses the rollback Worker's
+response adapter and adds laptop-first/Mac-second routing with readiness checks,
+best-effort per-isolate cooldowns, and no ambiguous POST or mid-stream retry.
+Reports remain Mac-only unless explicitly enabled. See `inference/README.md`.
+Local installation is not production authorization: do not publish a tunnel,
+switch the live Worker, change startup/sleep settings, or access the Mac without
+permission. Replace/synchronize the Mac's old bridge before a priority cutover;
+it otherwise redeploys the old single-upstream Worker on tunnel restarts.
+
+Windows local recovery is managed by `inference/windows/Install-Recovery.ps1`.
+The opt-in `Nishad Local Inference` Scheduled Task starts
+`inference/windows/Watch-Inference.ps1` at user sign-in, which restarts the model
+and gateway after failure. To restore/register it from this checkout, use
+`.\inference\windows\Install-Recovery.ps1 -StartNow` in PowerShell 7; do not
+start a second launcher while the task is running. The task references this
+checkout: before removing/moving a worktree, stop and re-register it from a
+retained checkout. Runtime binaries/models/logs stay in `%LOCALAPPDATA%\nishad-ai`.
+An additional one-minute Scheduled Task trigger recovers a stopped supervisor;
+running instances are not duplicated. To stop intentionally, disable the task
+before stopping it, or the repeating trigger will restart it.
+This does not start before sign-in, wake the laptop, or publish an API.
+
+The inference gateway has a FIFO queue: one active generation by default and
+**10 waiting requests**. Overflow is HTTP 429 `queue_full` with `Retry-After: 15`;
+waiting expires after 60 seconds with an SSE `queue_timeout`. Admission sends
+SSE headers immediately, so the priority Worker must not retry accepted queued
+work. Cancelled waiting requests never start generation; maintenance skips the
+queue. Keep overflow/rate limits visible without automatic model fallback.
 
 ## Private metrics dashboard and analytics
 

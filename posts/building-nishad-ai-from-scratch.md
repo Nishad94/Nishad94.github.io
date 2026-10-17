@@ -2,7 +2,7 @@
 {
   "title": "Building nishad.ai: A Static Website with a Terminal, an AI Persona, and a Markdown Blog",
   "date": "2026-10-07",
-  "description": "A source-grounded guide to nishad.ai's vanilla homepage, hash navigation, shared AI ontology, static Markdown publishing, and GitHub Pages deployment.",
+  "description": "Static Markdown blog publishing: JSON frontmatter, draft validation and exclusion, permalinks, builds and GitHub Pages deployment, alongside nishad.ai's vanilla homepage and shared AI ontology.",
   "tags": ["web development", "static sites", "JavaScript", "AI", "GitHub Pages"],
   "draft": false
 }
