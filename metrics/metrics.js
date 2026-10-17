@@ -30,7 +30,7 @@ function chart(id) {
 }
 function resources(snapshot) {
   const { svg, width, height } = chart('resourceChart');
-  const rows = snapshot.history;
+  const rows = snapshot.history.filter(row => ['cpu_pct', 'memory_pct', 'disk_pct'].some(key => Number.isFinite(row[key])));
   select('resource-empty').textContent = rows.length ? '' : 'No resource samples collected yet.';
   if (!rows.length) return;
   const extent = d3.extent(rows, row => new Date(row.ts));
@@ -76,7 +76,7 @@ function render(snapshot) {
     card('Memory', percent(host.memory_pct), 'Host aggregate utilization'),
     card('GPU', percent(host.gpu_pct), 'No GPU utilization collector configured'),
     card('Disk', percent(host.disk_pct), 'Aggregate runtime-volume utilization'),
-    card('Host uptime', host.uptime_days === null ? 'Unavailable' : `${host.uptime_days}d`, 'Windows system uptime')
+    card('Host uptime', host.uptime_days === null ? 'Unavailable' : `${host.uptime_days}d`, 'Host uptime when the platform collector supports it')
   );
   select('resource-mix').replaceChildren(...[['CPU', host.cpu_pct], ['Memory', host.memory_pct], ['GPU', host.gpu_pct], ['Disk', host.disk_pct]].map(([label, value]) => {
     const element = document.createElement('div');
