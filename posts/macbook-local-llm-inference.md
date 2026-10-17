@@ -192,6 +192,65 @@ The gateway keeps at most 512 recent generation measurements and 288 host sample
 
 *Observe the system, not the visitor.*
 
+## Bounded conversation context in the browser tab
+
+The first terminal revision treated every AI question as an isolated request.
+That was predictable, but follow-ups such as “Where was he then?” or “What about
+the next role?” lacked the previous answer that made the pronouns meaningful.
+
+The terminal now retains **up to four recent user/assistant exchanges** in
+JavaScript memory for the current tab. A follow-up request is assembled as:
+
+```json
+[
+  { "role": "system", "content": "current ontology and selected evidence" },
+  { "role": "user", "content": "earlier question" },
+  { "role": "assistant", "content": "earlier completed answer" },
+  { "role": "user", "content": "current follow-up" }
+]
+```
+
+With a full four-exchange window, the request can contain one system message,
+eight historical user/assistant messages, and the current user message. The
+gateway therefore permits at most ten bounded messages and accepts only
+`system`, `user`, and `assistant` roles.
+
+Only successful completed answers enter memory. Interrupted streams, routing
+errors, empty responses, and requests rejected before generation do not create a
+fake conversation turn.
+
+The browser also applies a character budget before each request. Newer exchanges
+win when the budget is tight. The WebGPU fallback receives a smaller history
+budget because its context window is only 2,048 tokens; the self-hosted and BYOK
+paths can carry more context but retain the same four-exchange cap.
+
+Semantic source routing receives a compact version of the recent conversation.
+That matters for a question such as:
+
+```text
+Where did Nishad work in 2020?
+→ Twitter.
+
+Which location was he at?
+→ Seattle, Washington.
+```
+
+The current profile location is not allowed to replace the historical location
+stored on the Twitter career entry. Every employment and education move is kept
+with its own location in the ontology.
+
+This is intentionally **session memory, not user profiling**:
+
+- it is not written to `localStorage`, cookies, analytics, or the gateway;
+- it is not attached to an IP address or visitor identifier;
+- it disappears when the tab closes or reloads;
+- switching between Qwen, explicit BYOK OpenAI, and WebGPU retains the same
+  in-tab conversation;
+- typing `forget` clears it immediately.
+
+This design improves conversational clarity without creating a server-side
+conversation database or pretending the model has durable personal memory.
+
 ## The browser-local fallback
 
 The Mac is the default, not a single point of fictional perfection.

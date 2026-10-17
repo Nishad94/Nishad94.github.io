@@ -47,10 +47,10 @@ test('every chat query receives the complete dated career and education timeline
   for (const query of ['What came before that?', 'What did he do in 2017?', 'When did he graduate?', 'Hello']) {
     const prompt = buildChatSystemPrompt(query);
     for (const role of CAREER) {
-      assert.ok(prompt.includes(`${role.dates}: ${role.company} — ${role.title}.`), `${query}: missing ${role.company}`);
+      assert.ok(prompt.includes(`${role.dates}: ${role.company} — ${role.title}; ${role.location}.`), `${query}: missing ${role.company}`);
     }
     for (const item of EDUCATION) {
-      assert.ok(prompt.includes(`${item.dates}: ${item.school} — ${item.degree}.`), `${query}: missing ${item.school}`);
+      assert.ok(prompt.includes(`${item.dates}: ${item.school} — ${item.degree}; ${item.location}.`), `${query}: missing ${item.school}`);
     }
     const chronology = prompt.split('Career timeline (complete documented employment, oldest to newest):')[1].split('Education timeline')[0];
     const positions = [...CAREER].reverse().map(role => chronology.indexOf(`: ${role.company} —`));
@@ -59,6 +59,17 @@ test('every chat query receives the complete dated career and education timeline
     assert.match(prompt, /Do not invent work during undocumented gaps/);
     assert.match(prompt, /do not invent graduation months/);
   }
+});
+
+test('historical employer locations cannot be replaced by the current profile location', () => {
+  const prompt = buildChatSystemPrompt('Where was Nishad while working at Twitter?');
+  assert.match(prompt, /Twitter \(March 2020–January 2023\) was in Seattle, Washington, USA, not Bengaluru/);
+  assert.match(prompt, /Twitter platform\/messaging in Seattle, Washington/);
+  assert.match(prompt, /Twitter — Software Engineer → Software Engineer II; Seattle, WA, USA/);
+  assert.match(prompt, /Cisco — Software Developer; San Jose, CA, USA/);
+  assert.match(prompt, /Microsoft — Software Engineer II; Bengaluru, India/);
+  assert.match(prompt, /Carnegie Mellon University .* Pittsburgh, PA, USA/);
+  assert.match(prompt, /Pune Institute of Computer Technology .* Pune, India/);
 });
 
 test('month-specific grounding uses exact employment boundaries rather than year matches', () => {

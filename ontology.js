@@ -51,7 +51,7 @@ export const CAREER = [
     title: 'Software Developer',
     dates: 'Apr 2023 – Jun 2023',
     startMonth: '2023-04', endMonth: '2023-06',
-    location: 'Webex org',
+    location: 'San Jose, CA, USA',
     notes: [
       'Built a Dockerized, cloud-deployed Java Spring parser microservice for RBAC management — read roles/permissions metadata from YAML in a Git config repo, transformed it with data from other APIs, and kept it in sync with a MySQL RBAC datastore.',
       'Exposed REST endpoints to start/stop the job and check status.',
@@ -116,12 +116,14 @@ export const EDUCATION = [
   {
     school: 'Carnegie Mellon University',
     degree: 'MS, Intelligent Information Systems (MIIS), School of Computer Science',
-    dates: '2018 – 2019'
+    dates: '2018 – 2019',
+    location: 'Pittsburgh, PA, USA'
   },
   {
     school: 'Pune Institute of Computer Technology (PICT)',
     degree: 'B.E., Information Technology',
-    dates: '2012 – 2016'
+    dates: '2012 – 2016',
+    location: 'Pune, India'
   }
 ];
 
@@ -211,7 +213,7 @@ export function buildSystemPrompt() {
     `- ${r.company} — ${r.title} (${r.dates}${r.location ? ', ' + r.location : ''}): ${r.notes.join(' ')}`
   ).join('\n');
 
-  const education = EDUCATION.map(e => `- ${e.school} — ${e.degree} (${e.dates})`).join('\n');
+  const education = EDUCATION.map(e => `- ${e.school} — ${e.degree} (${e.dates}, ${e.location})`).join('\n');
 
   const skills =
     `- Languages: ${SKILLS.languages.join(', ')}\n` +
@@ -272,7 +274,7 @@ function monthEvidence(query) {
   const currentMonth = new Date().toISOString().slice(0, 7);
   return [...requested].slice(0, 4).map(month => {
     const roles = CAREER.filter(role => role.startMonth <= month && month <= (role.endMonth || currentMonth));
-    return `- ${month}: ${roles.length ? roles.map(role => `${role.company} (${role.dates})`).join('; ') : 'No documented employment covers this month; do not extend a prior role across this gap.'}`;
+    return `- ${month}: ${roles.length ? roles.map(role => `${role.company} (${role.dates}, ${role.location})`).join('; ') : 'No documented employment covers this month; do not extend a prior role across this gap.'}`;
   }).join('\n');
 }
 
@@ -280,10 +282,10 @@ function monthEvidence(query) {
 export function buildChatSystemPrompt(query = '', { intent = 'answer' } = {}) {
   const normalized = query.toLowerCase();
   const timeline = [...CAREER].reverse().map(role =>
-    `- ${role.dates}: ${role.company} — ${role.title}.`
+    `- ${role.dates}: ${role.company} — ${role.title}; ${role.location}.`
   ).join('\n');
   const education = [...EDUCATION].reverse().map(item =>
-    `- ${item.dates}: ${item.school} — ${item.degree}.`
+    `- ${item.dates}: ${item.school} — ${item.degree}; ${item.location}.`
   ).join('\n');
   const dateEvidence = monthEvidence(normalized);
   const extras = [];
@@ -312,6 +314,7 @@ Response rules:
 - Never invent startup traction, revenue, funding, user counts, traffic, or performance numbers.
 - Alternate timelines are fiction and must be labeled as such.
 - Use the dates in the timeline for before/after, first/latest, and year-specific questions. Default chronological order is oldest to newest, not the order of the highlighted projects.
+- Treat the profile location as current only. For an employer- or year-specific location, use that career entry. Twitter (March 2020–January 2023) was in Seattle, Washington, USA, not Bengaluru.
 - Internships count as work experience, but distinguish the first internship from the first full-time role. Do not invent work during undocumented gaps.
 - Education dates have year precision only: do not invent graduation months or assume which came first within the same year. Internships may overlap education.
 - Do not reveal a phone number. Public email and profile links are allowed.
@@ -331,7 +334,7 @@ ${dateEvidence ? `\nMonth-specific lookup (computed from documented employment b
 
 Core career evidence:
 - Microsoft Software Engineer II, Azure Edge + Platform: distributed hierarchical configuration resolution and application deployment at the edge.
-- Twitter platform/messaging: Kafka libraries and pub/sub infrastructure; Kafka Observer lag monitoring; per-broker-per-tenant rate limiting with a metadata control plane.
+- Twitter platform/messaging in Seattle, Washington: Kafka libraries and pub/sub infrastructure; Kafka Observer lag monitoring; per-broker-per-tenant rate limiting with a metadata control plane.
 
 Site tone:
 - Light terminal/git metaphors are welcome, but clarity and factual accuracy come first.

@@ -24,7 +24,7 @@ export function ontologyDocuments() {
     document('career', 'Complete resume and employment evidence', 'Dated Autodesk, Symantec, Lecida, Twitter, Cisco and Microsoft roles, projects, responsibilities, mentoring and incidents.', '/#story',
       [...CAREER].reverse().map(role => [role.company, `${role.company}: ${role.title}; ${role.dates}; ${role.location}. ${role.notes.join(' ')}`])),
     document('education', 'Education and awards', 'PICT undergraduate degree, Carnegie Mellon MIIS graduate degree and documented awards.', '/#story', [
-      ...EDUCATION.map(item => [item.school, `${item.school}: ${item.degree}; ${item.dates}.`]),
+      ...EDUCATION.map(item => [item.school, `${item.school}: ${item.degree}; ${item.dates}; ${item.location}.`]),
       ['Awards', AWARDS.join('; ')]
     ]),
     document('skills', 'Technical skills', 'Languages, distributed systems, cloud, frameworks and engineering focus.', '/#recruiter',
