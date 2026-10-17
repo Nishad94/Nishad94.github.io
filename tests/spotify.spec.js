@@ -684,6 +684,39 @@ test('self-hosted terminal AI uses Gemma gateway without a visitor key', async (
   expect(calls).toBe(1);
 });
 
+test('terminal remembers four tab-only exchanges and forget clears them', async ({ page }) => {
+  await seed(page, { key: false });
+  await page.evaluate(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/memory'));
+  const finalBodies = [];
+  await page.route('http://127.0.0.1:9/memory', route => {
+    const body = route.request().postDataJSON();
+    if (body.task === 'knowledge_route') {
+      return route.fulfill({ json: {
+        content: JSON.stringify({ needs_site_data: false, source_ids: [], intent: 'answer' }),
+        finish_reason: 'stop'
+      } });
+    }
+    finalBodies.push(body);
+    const content = finalBodies.length === 1 ? 'FIRST_MEMORY_ANSWER' : finalBodies.length === 2 ? 'SECOND_MEMORY_ANSWER' : 'AFTER_FORGET';
+    return route.fulfill({ json: { content, finish_reason: 'stop' } });
+  });
+  await page.reload();
+  await command(page, 'remember this topic');
+  await expect(page.locator('#term-output')).toContainText('FIRST_MEMORY_ANSWER');
+  await command(page, 'what did I ask about?');
+  await expect(page.locator('#term-output')).toContainText('SECOND_MEMORY_ANSWER');
+  expect(finalBodies[1].messages.slice(-3)).toEqual([
+    { role: 'user', content: 'remember this topic' },
+    { role: 'assistant', content: 'FIRST_MEMORY_ANSWER' },
+    { role: 'user', content: 'what did I ask about?' }
+  ]);
+  await command(page, 'forget');
+  await expect(page.locator('#term-output')).toContainText('conversation memory cleared');
+  await command(page, 'is anything remembered?');
+  await expect(page.locator('#term-output')).toContainText('AFTER_FORGET');
+  expect(finalBodies[2].messages).toHaveLength(2);
+});
+
 for (const outcome of ['ok', 'visitor_limit', 'global_limit', 'down']) {
   test('site AI proxy ' + outcome + ' works without a visitor key and never calls OpenAI directly', async ({ page }) => {
     await seed(page, { key: false });

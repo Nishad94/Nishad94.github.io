@@ -98,7 +98,7 @@ remove dates to optimize latency.
 
 Deterministic (no model): `help`, `conspiracy`/`gmail`, `whoami`, `pwd`, `ls`,
 `cat <file>`, `git status|branch|log`, `timeline`, `branches`, `recruiter`,
-`linkedin`, `github`, `blog`, `open`, `echo`, `date`, `history`, `clear`, `sudo`, `rm`,
+`linkedin`, `github`, `blog`, `open`, `echo`, `date`, `history`, `clear`, `forget`, `sudo`, `rm`,
 `ssh`, `roulette`, `chaos`, `toffee`, `palette`, `matrix`, `brief`/`summary`,
 `vc`/`founder`/`investor`, `--mode vc`, `projects`, `architecture`, `contact`,
 `exit`/`logout`.
@@ -114,6 +114,10 @@ AI-powered "fun modes" (call `askAI` with a mode instruction):
 - `hype` — over-the-top hype-man.
 
 Anything else typed is sent to the AI as a free-form prompt.
+
+Successful AI answers retain at most four recent user/assistant exchanges in
+memory for the current browser tab. The history is bounded before requests,
+never stored in localStorage or on the gateway, and `forget` clears it.
 
 ## Spotify POC
 

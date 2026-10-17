@@ -330,6 +330,17 @@ class AdmissionQueueTests(unittest.TestCase):
     def test_default_queue_wait_expires_at_sixty_seconds_not_fifteen(self):
         self.assertEqual(gateway.QUEUE_WAIT_SECONDS, 60)
 
+    def test_conversation_messages_allow_four_user_assistant_exchanges(self):
+        messages = [{"role": "system", "content": "grounding"}]
+        for index in range(4):
+            messages.extend([
+                {"role": "user", "content": f"question {index}"},
+                {"role": "assistant", "content": f"answer {index}"}
+            ])
+        messages.append({"role": "user", "content": "follow-up"})
+        self.assertTrue(gateway.allowed_messages(messages))
+        self.assertFalse(gateway.allowed_messages(messages + [{"role": "assistant", "content": "too many"}]))
+
 
 class HostSamplerTests(unittest.TestCase):
     def test_macos_sampler_reports_cpu_memory_disk_and_uptime_without_gpu(self):

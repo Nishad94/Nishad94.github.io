@@ -257,6 +257,7 @@ A faux zsh at the bottom of the page. Type `help` for the full list. Highlights:
 | `spotify connect timeline` | reconnect with optional recent-play scope |
 | `vibe timeline`, `vibe compare` | recent-play mood guesses, or past-vs-now samples and narration |
 | `clear` / `history` / Ctrl+L | terminal housekeeping |
+| `forget` | clear the current tab's bounded AI conversation memory |
 | ↑ / ↓ | command history |
 
 Anything that isn't a known command is sent to the **AI** (see below).
@@ -278,6 +279,11 @@ status/timing/token counts but not prompts or output. If that host is unavailabl
 the terminal lazy-loads **SmolLM2-360M-Instruct** through WebLLM and runs it entirely
 inside the visitor's browser using WebGPU. Local fallback works best in current
 Chrome/Edge on hardware with WebGPU.
+
+Successful AI answers keep up to four recent user/assistant exchanges in memory
+for follow-up questions within the current browser tab. This history is bounded
+before each request, is not written to localStorage or the server, disappears
+when the tab closes, and can be cleared immediately with `forget`.
 
 The launchd-managed llama.cpp process keeps Qwen loaded between requests. This
 avoids per-request model startup; it does not eliminate prompt evaluation or

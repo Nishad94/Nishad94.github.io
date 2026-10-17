@@ -135,7 +135,7 @@ def maintain_warm_model(stop):
   stop.wait(WARM_CHECK_SECONDS)
 
 def allowed_messages(v):
- return isinstance(v,list) and 1<=len(v)<=4 and all(isinstance(x,dict) and x.get('role') in {'system','user'} and isinstance(x.get('content'),str) and len(x['content'])<=20000 for x in v)
+ return isinstance(v,list) and 1<=len(v)<=10 and all(isinstance(x,dict) and x.get('role') in {'system','user','assistant'} and isinstance(x.get('content'),str) and len(x['content'])<=20000 for x in v)
 def bump(k,n):
  day=time.strftime('%Y-%m-%d',time.gmtime()); key=day+':'+k
  with lock:

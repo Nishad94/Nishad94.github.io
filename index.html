@@ -389,6 +389,44 @@ import { REPORT_ENDPOINT, requestReport } from './report-client.js';
   let aiBusy = false;
   const siteKnowledge = createSiteKnowledge();
   const browserKnowledge = createSiteKnowledge({ maxContextCharacters: 1100, catalogCharacters: 4000 });
+  const conversation = [];
+  const MAX_CONVERSATION_EXCHANGES = 4;
+  const MAX_CONVERSATION_CHARACTERS = 6000;
+
+  function conversationMessages(maxCharacters = MAX_CONVERSATION_CHARACTERS) {
+    const selected = [];
+    let used = 0;
+    for (let index = conversation.length - 1; index >= 0; index--) {
+      const exchange = conversation[index];
+      const length = exchange.user.length + exchange.assistant.length;
+      if (used + length > maxCharacters && selected.length) break;
+      selected.push(exchange);
+      used += length;
+    }
+    return selected.reverse().flatMap(exchange => [
+      { role: 'user', content: exchange.user },
+      { role: 'assistant', content: exchange.assistant }
+    ]);
+  }
+
+  function chatMessages(systemPrompt, query, extra, maxCharacters) {
+    return [
+      { role: 'system', content: extra ? systemPrompt + '\n\n=== MODE ===\n' + extra : systemPrompt },
+      ...conversationMessages(maxCharacters),
+      { role: 'user', content: query }
+    ];
+  }
+
+  function rememberExchange(user, assistant) {
+    if (!assistant.trim()) return;
+    conversation.push({ user: user.slice(0, 1000), assistant: assistant.slice(0, 2000) });
+    if (conversation.length > MAX_CONVERSATION_EXCHANGES) conversation.splice(0, conversation.length - MAX_CONVERSATION_EXCHANGES);
+  }
+
+  function routingQuery(query) {
+    const context = conversationMessages(1800).map(message => `${message.role}: ${message.content}`).join('\n');
+    return context ? `Recent tab conversation:\n${context}\n\nCurrent question: ${query}` : query;
+  }
 
   // --- BYOK (bring-your-own-key) state ---
   // Hosted gpt-4o mode is offered up-front. The key lives ONLY in this browser
@@ -786,7 +824,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     let accumulated = '';
     let grounding;
     try {
-      grounding = await siteKnowledge.prepare(query, hostedRoutingDecision, stage => { answerLine.textContent = 'nishad.ai✨> ' + stage; });
+      grounding = await siteKnowledge.prepare(routingQuery(query), hostedRoutingDecision, stage => { answerLine.textContent = 'nishad.ai✨> ' + stage; });
     } catch (error) {
       if (!(error instanceof KnowledgeRoutingError)) throw error;
       answerLine.textContent = 'ai: ' + error.message;
@@ -794,10 +832,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     }
     if (spendTotal >= SPEND_CAP) throw new Error('OpenAI spend cap reached after routing.');
     const systemPrompt = grounding.systemPrompt;
-    const messages = [
-      { role: 'system', content: extra ? systemPrompt + '\n\n=== MODE ===\n' + extra : systemPrompt },
-      { role: 'user', content: query }
-    ];
+    const messages = chatMessages(systemPrompt, query, extra);
 
     const resp = await fetch(HOSTED_ENDPOINT, {
       method: 'POST',
@@ -863,7 +898,10 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     const outTok = usage?.completion_tokens ?? Math.ceil(accumulated.length / 4);
     const cost = recordSpend(inTok, outTok);
     addLine('[usage] +' + (inTok + outTok) + ' tok · ' + fmtUSD(cost) + ' · session ' + fmtUSD(spendTotal) + ' / ' + fmtUSD(SPEND_CAP), 'dim');
-    if (accumulated.trim()) showKnowledgeSources(grounding.sources, grounding.notice);
+    if (accumulated.trim()) {
+      rememberExchange(query, accumulated);
+      showKnowledgeSources(grounding.sources, grounding.notice);
+    }
     return true;
   }
 
@@ -872,17 +910,14 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     answerLine.textContent = 'nishad.ai◆> Self-hosted AI is thinking…';
     let grounding;
     try {
-      grounding = await siteKnowledge.prepare(query, proxyRoutingDecision, stage => { answerLine.textContent = 'nishad.ai◆> ' + stage; });
+      grounding = await siteKnowledge.prepare(routingQuery(query), proxyRoutingDecision, stage => { answerLine.textContent = 'nishad.ai◆> ' + stage; });
     } catch (error) {
       if (!(error instanceof KnowledgeRoutingError)) throw error;
       answerLine.textContent = 'ai: ' + error.message;
       return true;
     }
     const systemPrompt = grounding.systemPrompt;
-    const messages = [
-      { role: 'system', content: extra ? systemPrompt + '\n\n=== MODE ===\n' + extra : systemPrompt },
-      { role: 'user', content: query }
-    ];
+    const messages = chatMessages(systemPrompt, query, extra);
     let response;
     try {
       response = await fetch(AI_PROXY_URL, {
@@ -913,6 +948,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       answerLine.textContent = 'nishad.ai◆> ' + content;
       if (json.finish_reason === 'length') answerLine.textContent += '\n\n[answer reached the output limit — ask “continue” for the rest]';
       output.scrollTop = output.scrollHeight;
+      rememberExchange(query, content);
       showKnowledgeSources(grounding.sources, grounding.notice);
       return true;
     }
@@ -936,6 +972,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     if (finishReason === 'length') {
       answerLine.textContent += '\n\n[answer reached the output limit — ask “continue” for the rest]';
     }
+    rememberExchange(query, accumulated);
     showKnowledgeSources(grounding.sources, grounding.notice);
     return true;
   }
@@ -985,7 +1022,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       const answerLine = addLine('nishad.ai> ', 'yellow');
       let accumulated = '';
 
-      const grounding = await browserKnowledge.prepare(query, async (messages, schema) => {
+      const grounding = await browserKnowledge.prepare(routingQuery(query), async (messages, schema) => {
         const result = await e.chat.completions.create({ messages, temperature: 0, max_tokens: 192, stream: false, response_format: { type: 'json_object', schema: JSON.stringify(schema) } });
         if (result.choices?.[0]?.finish_reason !== 'stop' || typeof result.choices?.[0]?.message?.content !== 'string') {
           throw new KnowledgeRoutingError('Browser-model routing did not complete. Retry manually.');
@@ -993,10 +1030,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
         return result.choices[0].message.content;
       }, stage => { answerLine.textContent = 'nishad.ai> ' + stage; });
       const systemPrompt = grounding.systemPrompt;
-      const messages = [
-        { role: 'system', content: extra ? systemPrompt + '\n\n=== MODE ===\n' + extra : systemPrompt },
-        { role: 'user', content: query }
-      ];
+      const messages = chatMessages(systemPrompt, query, extra, 1800);
 
       const stream = await e.chat.completions.create({
         messages,
@@ -1016,7 +1050,10 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       if (!accumulated.trim()) {
         answerLine.textContent = 'nishad.ai> [model returned an empty response — try again]';
       }
-      if (accumulated.trim()) showKnowledgeSources(grounding.sources, grounding.notice);
+      if (accumulated.trim()) {
+        rememberExchange(query, accumulated);
+        showKnowledgeSources(grounding.sources, grounding.notice);
+      }
     } catch (err) {
       addLine('ai error: ' + (err?.message || String(err)), 'pink');
       addLine('Tip: this prototype works best in current Chrome/Edge on a Mac with WebGPU enabled.', 'dim');
@@ -1058,6 +1095,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
         addLine('  contact               public contact links');
         addLine('  trajectory [focus]    evidence-based career possibilities (AI)');
         addLine('  clear | history       terminal housekeeping');
+        addLine('  forget                clear tab-only AI conversation memory');
         addLine('  roulette              generate an alternate timeline');
         addLine('  chaos                 toggle visual entropy');
         addLine('  toffee                summon site reliability cat');
@@ -1192,6 +1230,11 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
 
       case 'clear':
         output.replaceChildren();
+        break;
+
+      case 'forget':
+        conversation.length = 0;
+        addLine('ai conversation memory cleared for this tab.', 'dim');
         break;
 
       case 'sudo':
