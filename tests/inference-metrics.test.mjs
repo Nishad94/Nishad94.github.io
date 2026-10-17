@@ -44,13 +44,26 @@ test('public metrics GET contacts only the laptop using its private secret', asy
     assert.equal(url, 'https://laptop.example/metrics');
     assert.equal(init.headers.Authorization, 'Bearer synthetic-token');
     assert.equal(init.method, undefined);
-    assert.equal(init.redirect, 'error');
+    assert.equal(init.redirect, 'manual');
     return Response.json(data);
   });
+
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('Access-Control-Allow-Origin'), 'https://nishad.ai');
   assert.equal(response.headers.get('Cache-Control'), 'no-store');
   assert.doesNotMatch(await response.text(), /must not leak/);
+});
+
+test('public metrics use the authenticated Mac gateway when no laptop is configured', async () => {
+  const macEnv = { MAC_UPSTREAM: 'https://mac.example', MAC_GATEWAY_TOKEN: 'synthetic-mac-token' };
+  const response = await handle(request(), macEnv, async (url, init) => {
+    assert.equal(url, 'https://mac.example/metrics');
+    assert.match(init.headers.Authorization, /^Bearer /);
+    assert.equal(init.redirect, 'manual');
+    return Response.json(metricsFixture());
+  });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).schema, 'nishad.inference-operations.v1');
 });
 
 test('metrics can be read without an Origin but cannot be scraped through an unapproved browser origin', async () => {

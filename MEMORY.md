@@ -2,12 +2,15 @@
 
 ## Purpose and boundaries
 
-This project can host Qwen locally on a Windows 11 laptop, independently of the
-static GitHub Pages site. The reproducible bootstrap currently supports **Windows
-ARM64 and x64**, with CPU inference. It does not claim macOS/Linux installation,
-GPU/NPU acceleration, or an unattended service before Windows sign-in.
+This project can host Qwen locally, independently of the static GitHub Pages
+site. The reproducible, one-command bootstrap currently supports **Windows 11
+ARM64 and x64**, with CPU inference. macOS has manual local and persistent
+launchd bootstrap instructions for llama.cpp plus the Python gateway in
+`inference/macos/README.md`; it does not provide a one-command Mac installer or
+Linux installation.
 
-Never contact the Mac to bootstrap or collect metrics: it may be switched off.
+Do not probe or bootstrap the Mac from another machine; it may be switched off.
+The Mac runbook is for the owner to execute locally when intended.
 Never copy machine credentials, private configuration, operational logs, IP
 addresses, prompts, or generated answers into this repository.
 
@@ -153,10 +156,11 @@ install the optional CLI/tunnel binaries using
 then authorize Wrangler locally. Windows ARM64 uses an isolated x64 Node CLI
 runtime for Wrangler/workerd compatibility; the model remains native ARM64.
 
-The approved architecture uses a **separate laptop Cloudflare Worker** for
-terminal chat and public metrics. Do not redeploy the Mac's Worker or use the Mac
-as a relay. `deployment.js` contains approved public chat/metrics URLs only.
-The browser must never receive the private tunnel address or gateway token.
+The Windows publication path uses a **separate laptop Cloudflare Worker** for
+terminal chat. The shared priority Worker can publish privacy-safe metrics from
+the first configured authenticated gateway, preferring the laptop and otherwise
+using the Mac. `deployment.js` contains approved public chat/metrics URLs only.
+The browser must never receive a private tunnel address or gateway token.
 
 Owner-generated `private-settings.json` in the private runtime directory holds
 `GatewayToken`, `PublishEnabled`, and the separate `WorkerName`. The supervisor
@@ -165,10 +169,10 @@ After each quick-tunnel restart it updates only that Worker's `LAPTOP_UPSTREAM`
 secret. Configure `LAPTOP_GATEWAY_TOKEN` to match the private gateway token.
 Authenticate again on a new machine; never copy OAuth credentials into Git.
 
-`/metrics/` uses only privacy-safe laptop operational aggregates. Missing
-GPU/automation/database telemetry is **unavailable**, not zero and not old Mac
-data. Direct model UI calls are not counted as gateway inference requests.
-Gateway counters/history reset on restart and are not durable analytics storage.
+`/metrics/` uses only privacy-safe gateway operational aggregates. Missing host,
+GPU, automation and database telemetry is **unavailable**, not zero. Direct
+model UI calls are not counted as gateway inference requests. Gateway
+counters/history reset on restart and are not durable analytics storage.
 
 Read `inference\README.md` for detailed routing, report policy, publication,
 rollback and runtime constraints. Publishing the static site is a separate

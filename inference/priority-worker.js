@@ -2,8 +2,8 @@ import { handle as handleGateway } from '../worker/ai-proxy.js';
 import { publicMetrics } from '../assets/inference-metrics-contract.js';
 
 const cooldowns = new Map();
-const HEALTH_TIMEOUT_MS = 1500;
-const HEADER_TIMEOUT_MS = 5000;
+const HEALTH_TIMEOUT_MS = 5000;
+const HEADER_TIMEOUT_MS = 30000;
 const FAILURE_COOLDOWN_MS = 30000;
 const BUSY_COOLDOWN_MS = 3000;
 
@@ -31,38 +31,49 @@ export async function handle(request, env, fetchImpl = fetch, now = Date.now) {
     const fail = (error, status) => Response.json({ error }, { status, headers });
     if (origin && !allowed.includes(origin)) return fail('origin_not_allowed', 403);
     if (request.method !== 'GET') return fail('method_not_allowed', 405);
-    if (!env.LAPTOP_UPSTREAM || !env.LAPTOP_GATEWAY_TOKEN) return fail('metrics_not_configured', 503);
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 7000);
+    let routes;
     try {
-      const url = upstream(env.LAPTOP_UPSTREAM);
-      const response = await fetchImpl(url + '/metrics', {
-        headers: { Authorization: 'Bearer ' + env.LAPTOP_GATEWAY_TOKEN },
-        signal: AbortSignal.any([request.signal, controller.signal]), redirect: 'error', cache: 'no-store'
-      });
-      if (!response.ok) return fail('metrics_unavailable', 503);
-      const reader = response.body.getReader();
-      let raw = '', size = 0;
-      const decoder = new TextDecoder('utf-8', { fatal: true });
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) { raw += decoder.decode(); break; }
-          size += value.byteLength;
-          if (size > 131072) throw new Error('Metrics too large');
-          raw += decoder.decode(value, { stream: true });
-        }
-      } finally {
-        await reader.cancel();
-        reader.releaseLock();
-      }
-      return Response.json(publicMetrics(JSON.parse(raw)), { headers });
+      routes = [
+        { url: upstream(env.LAPTOP_UPSTREAM), token: env.LAPTOP_GATEWAY_TOKEN },
+        { url: upstream(env.MAC_UPSTREAM), token: env.MAC_GATEWAY_TOKEN }
+      ].filter(route => route.url && route.token);
     } catch {
       return fail('metrics_unavailable', 503);
-    } finally {
-      clearTimeout(timer);
-      controller.abort();
     }
+    if (!routes.length) return fail('metrics_not_configured', 503);
+    for (const route of routes) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 7000);
+      try {
+        const response = await fetchImpl(route.url + '/metrics', {
+          headers: { Authorization: 'Bearer ' + route.token },
+          signal: AbortSignal.any([request.signal, controller.signal]), redirect: 'manual', cache: 'no-store'
+        });
+        if (!response.ok) continue;
+        const reader = response.body.getReader();
+        let raw = '', size = 0;
+        const decoder = new TextDecoder('utf-8', { fatal: true });
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) { raw += decoder.decode(); break; }
+            size += value.byteLength;
+            if (size > 131072) throw new Error('Metrics too large');
+            raw += decoder.decode(value, { stream: true });
+          }
+        } finally {
+          await reader.cancel();
+          reader.releaseLock();
+        }
+        return Response.json(publicMetrics(JSON.parse(raw)), { headers });
+      } catch {
+        // Try the next configured self-hosted gateway.
+      } finally {
+        clearTimeout(timer);
+        controller.abort();
+      }
+    }
+    return fail('metrics_unavailable', 503);
   }
   if (path !== '/') return Response.json({ error: 'not_found' }, { status: 404 });
   // Delegate CORS, payload validation, report collection and response shaping to
@@ -90,14 +101,25 @@ export async function handle(request, env, fetchImpl = fetch, now = Date.now) {
       let timer = setTimeout(() => health.abort(), HEALTH_TIMEOUT_MS);
       try {
         const response = await fetchImpl(route.url + '/healthz', {
-          headers, redirect: 'error', cache: 'no-store',
+          headers, redirect: 'manual', cache: 'no-store',
           signal: AbortSignal.any([init.signal, health.signal])
         });
         const state = response.ok ? await response.json() : null;
         if (response.body && !response.bodyUsed) await response.body.cancel();
-        if (!response.ok || state?.status !== 'ok') throw new Error('unavailable');
-      } catch {
+        if (!response.ok || state?.status !== 'ok') {
+          console.log(JSON.stringify({ event: 'upstream_health', status: response.status, ready: false }));
+          cooldowns.set(route.url, now() + FAILURE_COOLDOWN_MS);
+          continue;
+        }
+      } catch (error) {
         if (init.signal.aborted) throw new DOMException('Cancelled', 'AbortError');
+        console.log(JSON.stringify({
+          event: 'upstream_health', status: null, ready: false,
+          error: error instanceof Error ? error.name : 'UnknownError',
+          detail: error instanceof Error
+            ? error.message.replace(/https:\/\/[a-z0-9.-]+/gi, '[upstream]')
+            : 'unknown'
+        }));
         cooldowns.set(route.url, now() + FAILURE_COOLDOWN_MS);
         continue;
       } finally {

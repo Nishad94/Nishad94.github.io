@@ -20,6 +20,7 @@ test('healthy laptop has priority, uses its secret, and preserves chat stream', 
   const calls = [];
   const response = await handle(request(), env, async (url, init) => {
     calls.push(url);
+    if (url.endsWith('/healthz')) assert.equal(init.redirect, 'manual');
     assert.equal(init.headers.get('Authorization'), 'Bearer synthetic-laptop');
     return url.endsWith('/healthz') ? ready() : success();
   });

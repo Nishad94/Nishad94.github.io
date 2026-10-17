@@ -17,7 +17,8 @@ while true; do
   if [[ -n "$URL" ]]; then
     # Install the canonical Worker tree before enabling priority routing.
     # Preserve the laptop route and secrets; this bridge owns only MAC_UPSTREAM.
-    if [[ -f "$BASE/inference/wrangler.toml" && -f "$BASE/inference/priority-worker.js" && -f "$BASE/worker/ai-proxy.js" ]]; then
+    if [[ -f "$BASE/inference/wrangler.toml" && -f "$BASE/inference/priority-worker.js" &&
+          -f "$BASE/worker/ai-proxy.js" && -f "$BASE/assets/inference-metrics-contract.js" ]]; then
       if ! (cd "$BASE" && env -u HTTP_PROXY -u HTTPS_PROXY -u ALL_PROXY -u http_proxy -u https_proxy -u all_proxy /opt/homebrew/bin/npx --yes wrangler deploy \
         --config "$BASE/inference/wrangler.toml" --name nishad-ai-proxy --keep-vars --var "MAC_UPSTREAM:$URL") >>"$LOG" 2>>"$ERR"; then
         print -u2 'Worker route update failed; inspect the private tunnel log.'

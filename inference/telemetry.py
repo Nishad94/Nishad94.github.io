@@ -109,7 +109,7 @@ class Telemetry:
             }
             token_rows = [row for row in timings if row["output_tokens"] is not None]
             return {
-                "schema": "nishad.laptop-operations.v1", "generated_at": timestamp(),
+                "schema": "nishad.inference-operations.v1", "generated_at": timestamp(),
                 "started_at": self.started_at, "sampled_at": self.last_sample_at,
                 "host": {**self.host, "services_up": 1 + int(model_up), "services_total": 2,
                          "availability_pct": 100 if model_up else 50},

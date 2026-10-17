@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>Label</key><string>com.nishad.ai.llama</string>
+<key>ProgramArguments</key><array>
+<string>/opt/homebrew/bin/llama-server</string>
+<string>-m</string><string>/Users/nishaddawkhar/.local/share/nishad-ai/models/Qwen3-4B-Q4_K_M.gguf</string>
+<string>--host</string><string>127.0.0.1</string><string>--port</string><string>8081</string>
+<string>-c</string><string>4096</string><string>-np</string><string>1</string>
+<string>-t</string><string>6</string><string>-tb</string><string>6</string>
+<string>-ngl</string><string>99</string><string>--jinja</string><string>--log-disable</string>
+</array>
+<key>RunAtLoad</key><true/><key>KeepAlive</key><true/><key>ThrottleInterval</key><integer>15</integer>
+<key>StandardOutPath</key><string>/Users/nishaddawkhar/Library/Logs/nishad-ai-llama.log</string>
+<key>StandardErrorPath</key><string>/Users/nishaddawkhar/Library/Logs/nishad-ai-llama.error.log</string>
+</dict></plist>

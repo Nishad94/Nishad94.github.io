@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title desc">
+<title id="title">Inference observability and browser fallback</title>
+<desc id="desc">The gateway exports privacy-safe request outcomes, queue measurements, latency percentiles, and token throughput through a sanitizing Worker to the metrics page. If the Mac route fails before generation, the browser starts WebLLM and SmolLM2 through WebGPU.</desc>
+<defs><style>
+.bg{fill:#0d0f1b}.panel{fill:#121528;stroke:#343754;stroke-width:2}.metric{fill:#171d30;stroke:#55a9ff;stroke-width:2}.safe{fill:#18182c;stroke:#ff9bd6;stroke-width:2}.fallback{fill:#241f25;stroke:#f4cf57;stroke-width:2}.ttl{fill:#f7f4ff;font:700 30px system-ui,sans-serif}.sub{fill:#aba8c8;font:18px system-ui,sans-serif}.h{fill:#f7f4ff;font:700 19px system-ui,sans-serif}.p{fill:#cfcbe5;font:16px system-ui,sans-serif}.mono{fill:#9fffd2;font:700 14px ui-monospace,monospace}.wire{fill:none;stroke:#7380a8;stroke-width:3;marker-end:url(#a)}.dash{fill:none;stroke:#f4cf57;stroke-width:3;stroke-dasharray:9 9;marker-end:url(#y)}.bar1{fill:#55a9ff}.bar2{fill:#b690ff}.bar3{fill:#4ee38c}
+</style><marker id="a" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0L9 3L0 6Z" fill="#7380a8"/></marker><marker id="y" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0 0L9 3L0 6Z" fill="#f4cf57"/></marker></defs>
+<rect class="bg" width="1400" height="820" rx="28"/>
+<text class="ttl" x="55" y="62">Inference observability without surveillance</text>
+<text class="sub" x="55" y="95">Measure runtime behavior. Do not publish prompts, identities, or invented “accuracy.”</text>
+<rect class="panel" x="45" y="135" width="1310" height="570" rx="24"/>
+<rect class="metric" x="75" y="205" width="260" height="210" rx="18"/>
+<text class="mono" x="105" y="243">PYTHON GATEWAY</text><text class="h" x="105" y="282">Bounded aggregates</text>
+<text class="p" x="105" y="320">outcomes · queue</text><text class="p" x="105" y="350">p50 / p95 latency</text><text class="p" x="105" y="380">tokens / second</text>
+<path class="wire" d="M335 310H430"/>
+<rect class="safe" x="430" y="205" width="260" height="210" rx="18"/>
+<text class="mono" x="460" y="243">WORKER FILTER</text><text class="h" x="460" y="282">Field-by-field schema</text>
+<text class="p" x="460" y="320">drop prompts + answers</text><text class="p" x="460" y="350">drop IPs + credentials</text><text class="p" x="460" y="380">reject malformed data</text>
+<path class="wire" d="M690 310H785"/>
+<rect class="metric" x="785" y="175" width="530" height="270" rx="18"/>
+<text class="mono" x="820" y="215">NISHAD.AI / METRICS</text><text class="h" x="820" y="254">ML inference</text>
+<rect class="bar1" x="825" y="292" width="250" height="18" rx="9"/><text class="p" x="1090" y="307">end-to-end latency</text>
+<rect class="bar2" x="825" y="332" width="175" height="18" rx="9"/><text class="p" x="1015" y="347">time to first token</text>
+<rect class="bar3" x="825" y="372" width="315" height="18" rx="9"/><text class="p" x="1155" y="387">completion rate</text>
+<text class="p" x="825" y="422">queue · failures · throughput · token totals</text>
+<path class="dash" d="M200 415V540H420"/>
+<rect class="fallback" x="420" y="500" width="650" height="145" rx="18"/>
+<text class="mono" x="455" y="540">MAC ROUTE FAILS BEFORE ANSWER</text>
+<text class="h" x="455" y="577">WebLLM boots SmolLM2 in the visitor browser</text>
+<text class="p" x="455" y="610">WebGPU required · first use downloads weights · no silent fallback for queue limits</text>
+<path class="dash" d="M1070 572H1245"/>
+<rect x="1245" y="525" width="70" height="95" rx="12" fill="#0d0f1b" stroke="#f4cf57" stroke-width="2"/>
+<path d="M1260 545h40v45h-40zM1268 600h24" fill="none" stroke="#f4cf57" stroke-width="4"/>
+<text class="mono" x="75" y="765">NO GROUND TRUTH → NO ONLINE ACCURACY CLAIM</text>
+</svg>

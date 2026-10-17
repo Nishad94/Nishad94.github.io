@@ -141,13 +141,13 @@ export const PROJECTS = [
   { name: 'RBAC parser microservice', blurb: 'Java Spring, Dockerized YAML→MySQL RBAC sync with Jenkins PR validation (Cisco Webex).' },
   { name: 'SEPC reporting framework', blurb: 'Metadata-driven report generation + Apache Storm real-time ETL (Symantec).' },
   { name: 'Fusion 360 Toolbox & Replicate', blurb: 'C++ command search/pin and parametric command reuse (Autodesk).' },
-  { name: 'nishad://multiverse (this site)', blurb: 'A static personal site framing life as a git graph, with Mac-hosted Gemma 4, a WebLLM/WebGPU fallback, optional BYOK OpenAI, and a private Go/PostgreSQL analytics engine.' }
+  { name: 'nishad://multiverse (this site)', blurb: 'A static personal site framing life as a git graph, with Mac-hosted Qwen through llama.cpp, a WebLLM/WebGPU fallback, optional BYOK OpenAI, and a private Go/PostgreSQL analytics engine.' }
 ];
 
 export const ARCHITECTURE_RECEIPTS = [
   'Static GitHub Pages shell with deterministic browser commands and a curated ontology.',
   'Cloudflare Worker adapter preserving chat SSE while requiring confirmed JSON completion for structured reports.',
-  'Loopback-only Python gateway to Ollama/Gemma 4 on the owner’s Mac, with origin, payload, quota, timeout, and concurrency controls.',
+  'Loopback-only Python gateway to llama.cpp/Qwen on the owner’s Mac, with authentication, origin, payload, queue, quota, timeout, and concurrency controls.',
   'In-browser WebGPU fallback with no visitor API key required.',
   'Consent-first private analytics built in Go and PostgreSQL with immutable GitHub owner authorization.'
 ];
@@ -157,7 +157,7 @@ NISHAD DAWKHAR // BUILDER NOTES
 ================================================================================
 [Core]     MS in AI/NLP @ Carnegie Mellon School of Computer Science
 [Scale]    Distributed systems: Twitter Kafka platform -> Microsoft Azure Edge
-[Build]    nishad.ai: Gemma 4/Ollama gateway, WebGPU fallback, Go/Postgres analytics
+[Build]    nishad.ai: Qwen/llama.cpp gateway, WebGPU fallback, Go/Postgres analytics
 [Systems]  Kafka Observer, tenant rate limiting, streaming ML ingestion, real-time reporting
 [Tech]     Scala, Java, C++, Python, Kafka, Spark, Kubernetes, Azure, AI/ML infrastructure
 ================================================================================
@@ -188,7 +188,7 @@ export const LORE = {
   motto: 'One life. Many branches.',
   gmailHypothesis: 'A running joke that Nishad\'s Gmail inbox behaves like a Monte Carlo simulator for career/geography — recruiter pings, offers, and relocation threads appear right when life hits equilibrium, as if the universe keeps offering new git branches.',
   toffee: 'Toffee is the site\'s mascot: a cat who serves as the least-qualified site-reliability engineer.',
-  siteFacts: 'The site is a static HTML/CSS/JS application on GitHub Pages at nishad.ai. It has an interactive terminal, a branch-topology graph, alternate-timeline write-ups, Mac-hosted Gemma 4 through a narrow Cloudflare/gateway boundary, a WebGPU fallback, Spotify report experiments, and a private Go/PostgreSQL analytics engine. "main is protected; force push disabled" is a running gag.'
+  siteFacts: 'The site is a static HTML/CSS/JS application on GitHub Pages at nishad.ai. It has an interactive terminal, a branch-topology graph, alternate-timeline write-ups, Mac-hosted Qwen through llama.cpp and a narrow authenticated Cloudflare/gateway boundary, a WebGPU fallback, Spotify report experiments, public privacy-safe inference metrics, and a private Go/PostgreSQL analytics engine. "main is protected; force push disabled" is a running gag.'
 };
 
 // The AI's voice. Keep it fun but honest.

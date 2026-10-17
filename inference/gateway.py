@@ -154,6 +154,13 @@ def routing_schema(ids,limit=3):
  }
 
 def generation_request(messages,is_report,is_route=False,route_ids=None,route_limit=3):
+ if is_route and 'career' in route_ids:
+  messages=[dict(message) for message in messages]
+  messages[0]['content']+=(
+   '\nEmployer-specific questions about responsibilities, projects, or what Nishad built at a company '
+   'must select "career". A verb such as "build" must not select an article merely because its title '
+   'starts with "Building".'
+  )
  if BACKEND=='llama.cpp':
   payload={
    'messages':messages,'stream':True,

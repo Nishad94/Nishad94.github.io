@@ -18,7 +18,7 @@ function resource(row) {
 
 // Reconstruct the public object field by field. Never proxy arbitrary gateway JSON.
 export function publicMetrics(input) {
-  if (input?.schema !== 'nishad.laptop-operations.v1' || !Array.isArray(input.history) || input.history.length > 288) {
+  if (input?.schema !== 'nishad.inference-operations.v1' || !Array.isArray(input.history) || input.history.length > 288) {
     throw new Error('Invalid metrics schema');
   }
   const inference = input.inference;

@@ -6,6 +6,7 @@ const select = id => document.getElementById(id);
 const display = value => value === null ? 'Unavailable' : String(value);
 const milliseconds = value => value === null ? 'Unavailable' : `${Math.round(value)} ms`;
 const percent = value => value === null ? 'Unavailable' : `${value}%`;
+const rate = (numerator, denominator) => denominator ? `${(100 * numerator / denominator).toFixed(1)}%` : 'Unavailable';
 let latest = null;
 let pending = false;
 
@@ -65,11 +66,14 @@ function latency(snapshot) {
 function render(snapshot) {
   latest = snapshot;
   const host = snapshot.host, inference = snapshot.inference, counts = inference.counts;
+  const settled = counts.completed + counts.truncated + counts.failed + counts.cancelled;
+  const averageOutput = inference.tokens.measured_generations && inference.tokens.output !== null
+    ? Math.round(inference.tokens.output / inference.tokens.measured_generations) : null;
   select('clock').textContent = `Updated ${new Date(snapshot.generated_at).toLocaleString()}`;
   select('cards').replaceChildren(
     card('Service availability', `${host.services_up}/${host.services_total}`, 'Gateway and model readiness, not historical uptime'),
-    card('CPU', percent(host.cpu_pct), 'Laptop aggregate utilization'),
-    card('Memory', percent(host.memory_pct), 'Laptop aggregate utilization'),
+    card('CPU', percent(host.cpu_pct), 'Host aggregate utilization'),
+    card('Memory', percent(host.memory_pct), 'Host aggregate utilization'),
     card('GPU', percent(host.gpu_pct), 'No GPU utilization collector configured'),
     card('Disk', percent(host.disk_pct), 'Aggregate runtime-volume utilization'),
     card('Host uptime', host.uptime_days === null ? 'Unavailable' : `${host.uptime_days}d`, 'Windows system uptime')
@@ -90,16 +94,17 @@ function render(snapshot) {
   }));
   select('inference-cards').replaceChildren(
     card('Requests', display(counts.requests), 'Valid authenticated generation requests since gateway start'),
+    card('Completion rate', rate(counts.completed, settled), `${counts.completed} completed of ${settled} settled generations`),
+    card('Failure rate', rate(counts.failed, settled), 'Explicit model or upstream failures; excludes queue rejection'),
     card('Active / waiting', `${inference.queue.active} / ${inference.queue.waiting}`, `Queue capacity ${inference.queue.capacity} · maximum wait ${inference.queue.wait_limit_seconds}s`),
-    card('Completed / truncated', `${counts.completed} / ${counts.truncated}`, 'Truncated answers reached the output limit'),
-    card('Full queue rejections', display(counts.queue_full), 'HTTP 429 · no generation started'),
-    card('Queue expirations', display(counts.queue_timeout), 'No generation started'),
-    card('Failed / cancelled', `${counts.failed} / ${counts.cancelled}`, `${counts.rate_limited} daily quota rejections`)
+    card('Rejected before generation', `${counts.queue_full + counts.queue_timeout + counts.rate_limited}`, `${counts.queue_full} queue full · ${counts.queue_timeout} queue timeout · ${counts.rate_limited} quota`),
+    card('Truncated / cancelled', `${counts.truncated} / ${counts.cancelled}`, 'Truncated responses reached the output limit')
   );
-  select('inference-detail').textContent = `Gateway started ${new Date(snapshot.started_at).toLocaleString()}. Latency window: ${inference.samples} generations. Generation p95: ${milliseconds(inference.latency.duration_ms.p95)}.`;
+  select('inference-detail').textContent = `Gateway started ${new Date(snapshot.started_at).toLocaleString()}. Rolling window: ${inference.samples} generations. End-to-end p50/p95: ${milliseconds(inference.latency.duration_ms.p50)} / ${milliseconds(inference.latency.duration_ms.p95)}. First-token p50/p95: ${milliseconds(inference.latency.first_token_ms.p50)} / ${milliseconds(inference.latency.first_token_ms.p95)}.`;
   select('token-metrics').replaceChildren(
-    card('Decode speed p50', inference.latency.tokens_per_second.p50 === null ? 'Unavailable' : `${inference.latency.tokens_per_second.p50} tokens/s`, 'Measured llama.cpp decode throughput, not estimated from characters'),
-    card('Prompt / output tokens', `${display(inference.tokens.prompt)} / ${display(inference.tokens.output)}`, `${inference.tokens.measured_generations} measured generations in the recent window`)
+    card('Decode speed p50 / p95', inference.latency.tokens_per_second.p50 === null ? 'Unavailable' : `${inference.latency.tokens_per_second.p50} / ${inference.latency.tokens_per_second.p95} tok/s`, 'Measured model decode throughput'),
+    card('Prompt / output tokens', `${display(inference.tokens.prompt)} / ${display(inference.tokens.output)}`, `${inference.tokens.measured_generations} measured generations in the rolling window`),
+    card('Average output', averageOutput === null ? 'Unavailable' : `${averageOutput} tokens`, 'Average across generations with measured token usage')
   );
   select('services').replaceChildren(...Object.entries(snapshot.services).map(([label, service]) => {
     const element = card(label, service.up ? 'UP' : 'DOWN', `Local readiness probe: ${milliseconds(service.latency_ms)}`);
@@ -114,7 +119,7 @@ async function refresh() {
   const status = select('status');
   if (!INFERENCE_METRICS_ENDPOINT) {
     status.dataset.state = 'unconfigured';
-    status.textContent = 'Laptop metrics are not configured. No Mac endpoint is contacted.';
+    status.textContent = 'Inference metrics are not configured.';
     return;
   }
   pending = true;
@@ -129,10 +134,10 @@ async function refresh() {
     }
     render(snapshot);
     status.dataset.state = 'live';
-    status.textContent = snapshot.services['Model API'].up ? 'Live laptop metrics · model ready · no Mac polling.' : 'Live laptop metrics · model unavailable · no Mac polling.';
+    status.textContent = snapshot.services['Model API'].up ? 'Live inference metrics · model ready.' : 'Live inference metrics · model unavailable.';
   } catch {
     status.dataset.state = 'unavailable';
-    status.textContent = latest ? 'Laptop metrics unavailable. Charts show the last received sample, not live values.' : 'Laptop metrics unavailable. No Mac snapshot or invented values are substituted.';
+    status.textContent = latest ? 'Inference metrics unavailable. Charts show the last received sample, not live values.' : 'Inference metrics unavailable. No stale snapshot or invented values are substituted.';
   } finally {
     pending = false;
   }

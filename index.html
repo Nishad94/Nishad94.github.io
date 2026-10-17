@@ -142,14 +142,15 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 <div class="kv"><span>current node</span><span data-default="Microsoft" data-impact="Microsoft · Azure Edge">Microsoft</span></div>
 <div class="kv"><span>stability</span><span class="mint" data-default="high-ish" data-impact="Twitter distributed systems">high-ish</span></div>
 <div class="kv"><span>vigour</span><span class="pink" data-default="???" data-impact="CMU AI/NLP">???</span></div>
-<div class="kv"><span>branching factor</span><span class="yellow" data-default="non-zero" data-impact="Gemma + WebGPU + Go/Postgres">non-zero</span></div>
+<div class="kv"><span>branching factor</span><span class="yellow" data-default="non-zero" data-impact="Qwen + WebGPU + Go/Postgres">non-zero</span></div>
 <div class="kv"><span>force push</span><span class="mint" data-default="disabled" data-impact="shipped · instrumented · tested">disabled</span></div>
 </aside></section>
 
 <section class="section writing-section" id="writing" aria-labelledby="writing-title">
-<div class="section-head"><div><h2 id="writing-title">Blog / 7 build notes</h2><p>systems, privacy, AI infrastructure, experiments, and the occasional game that needed too much engineering</p></div><a class="writing-all" href="/blog/">all blog posts →</a></div>
+<div class="section-head"><div><h2 id="writing-title">Blog / 8 build notes</h2><p>systems, privacy, AI infrastructure, experiments, and the occasional game that needed too much engineering</p></div><a class="writing-all" href="/blog/">all blog posts →</a></div>
 <div class="writing-grid">
-<a class="card writing-card featured" href="/blog/one-hour-five-fixes-one-missing-contract/"><div class="writing-meta">new · debugging / Gemma / Firefox</div><h3>One Hour, Five Fixes, and One Missing Contract</h3><p>How a Spotify-to-Gemma report failed before PDF generation, why plausible fixes missed the live protocol mismatch, and what the final browser acceptance actually proved.</p><div class="writing-tags">SSE · JSON contracts · synthetic fixtures · readable PDFs</div></a>
+<a class="card writing-card featured" href="/blog/macbook-local-llm-inference/"><div class="writing-meta">new · local AI / MLOps</div><h3>Running nishad.ai on a MacBook</h3><p>llama.cpp, Qwen, an authenticated Python gateway, launchd recovery, ML observability, and a WebGPU browser fallback.</p><div class="writing-tags">Qwen · llama.cpp · Cloudflare · WebGPU</div></a>
+<a class="card writing-card" href="/blog/one-hour-five-fixes-one-missing-contract/"><div class="writing-meta">debugging / Gemma / Firefox</div><h3>One Hour, Five Fixes, and One Missing Contract</h3><p>How a Spotify-to-Gemma report failed before PDF generation, why plausible fixes missed the live protocol mismatch, and what the final browser acceptance actually proved.</p></a>
 <a class="card writing-card" href="/blog/inside-nishad-ai-terminal/"><div class="writing-meta">AI systems</div><h3>Inside the nishad.ai Terminal</h3><p>The browser shell, ontology, Gemma inference boundary, streaming path, fallbacks, and operational tradeoffs.</p></a>
 <a class="card writing-card" href="/blog/private-spotify-mood-recommendations/"><div class="writing-meta">privacy + recommendations</div><h3>Building a Privacy-First Spotify Mood Recommender</h3><p>Ephemeral signals, local embeddings, grounded ranking, OAuth health, and graceful degradation.</p></a>
 <a class="card writing-card" href="/blog/private-analytics-github-pages/"><div class="writing-meta">Go + PostgreSQL</div><h3>From GitHub Pages to Private Analytics</h3><p>Consent-first collection, owner-only access, retention boundaries, and useful metrics without surveillance.</p></a>
@@ -162,11 +163,11 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 <section class="section proof-section" id="architecture" aria-labelledby="architecture-title">
 <div class="section-head"><div><h2 id="architecture-title">proof of work / live architecture</h2><p>real systems behind the neon, visible without waiting for an AI response</p></div><span class="chip">production</span></div>
 <div class="proof-grid">
-<article class="card proof-card"><div class="tiny">inference engine</div><h3>Gemma 4 via Ollama on Mac</h3><p>Cloudflare Worker adapter, loopback Python gateway, strict completion and failure contracts.</p></article>
+<article class="card proof-card"><div class="tiny">inference engine</div><h3>Qwen via llama.cpp on Mac</h3><p>Authenticated Cloudflare Worker route, loopback Python gateway, bounded queue, strict completion and failure contracts.</p></article>
 <article class="card proof-card"><div class="tiny">fallback layer</div><h3>In-browser WebGPU</h3><p>SmolLM2 fallback runs locally in compatible browsers with zero visitor API-key dependency.</p></article>
 <article class="card proof-card"><div class="tiny">private analytics</div><h3>Go + PostgreSQL</h3><p>Consent-first collection, immutable GitHub owner authorization, private aggregate reporting.</p></article>
 </div>
-<div class="card architecture-flow" role="img" aria-label="Browser shell to Cloudflare Worker to Mac gateway to Ollama Gemma, with browser WebGPU fallback and a separate private analytics service">
+<div class="card architecture-flow" role="img" aria-label="Browser shell to Cloudflare Worker to Mac gateway to llama.cpp Qwen, with browser WebGPU fallback and separate public inference metrics and private analytics">
 <div class="architecture-node"><b>STATIC BROWSER SHELL</b><span>GitHub Pages · deterministic commands · curated ontology</span></div><div class="architecture-arrow">→</div>
 <div class="architecture-node"><b>CLOUDFLARE ADAPTER</b><span>origin/body controls · report JSON · chat SSE</span></div><div class="architecture-arrow">→</div>
 <div class="architecture-node"><b>MAC GATEWAY</b><span>Python · concurrency/quota/deadline controls</span></div><div class="architecture-arrow">→</div>
@@ -238,7 +239,7 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 <article class="commit"><div class="year">2023</div><div class="node pink-node"></div><div class="commit-box"><div class="commit-title">branch collision event</div><div class="commit-meta">Moveworks. Twilio. Graphite. Geography. Bureaucracy. Several universes briefly overlap.</div><span class="tag">entropy spike</span><br><a class="branch-link" href="#branch-twilio">simulate Twilio-2023 →</a></div></article>
 <article class="commit" data-impact-milestone><div class="year">2024</div><div class="node"></div><div class="commit-box"><div class="commit-title">Microsoft node respawns</div><div class="commit-meta">Azure Edge + Platform: distributed hierarchical configuration resolution and application deployment at the edge.</div><span class="tag">platform engineering</span></div></article>
 <article class="commit"><div class="year">2025</div><div class="node yellow-node"></div><div class="commit-box"><div class="commit-title">Dublin portal appears</div><div class="commit-meta">eBay creates a Europe branch. Portal later closes. Alternate world remains cached.</div><span class="tag">unmerged branch</span><br><a class="branch-link" href="#branch-dublin">visit Dublin-Nishad →</a></div></article>
-<article class="commit" data-impact-milestone><div class="year">2026</div><div class="node mint-node"></div><div class="commit-box"><div class="commit-title">self-hosted AI + private analytics shipped</div><div class="commit-meta">Static shell, Gemma/Ollama gateway, WebGPU fallback, Go/PostgreSQL metrics and production acceptance telemetry.</div><span class="tag">high-agency systems build</span></div></article>
+<article class="commit" data-impact-milestone><div class="year">2026</div><div class="node mint-node"></div><div class="commit-box"><div class="commit-title">self-hosted AI + private analytics shipped</div><div class="commit-meta">Static shell, Qwen/llama.cpp gateway, WebGPU fallback, public inference observability, Go/PostgreSQL metrics and production acceptance telemetry.</div><span class="tag">high-agency systems build</span></div></article>
 </div></section>
 
 <section class="section" aria-labelledby="receipts-title"><div class="section-head"><div><h2 id="receipts-title">technical receipts / build notes</h2><p>implementation details, tradeoffs, and operational lessons</p></div></div>
@@ -250,7 +251,7 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 
 <section class="section"><div class="section-head"><div><h2>runtime diagnostics</h2><p>the actual production layers, not vanity counters</p></div></div>
 <div class="grid3">
-<div class="card mini"><h3>inference</h3><div class="event"><strong>PRIMARY</strong><br>Gemma 4 · Ollama · Mac</div><div class="event"><strong>EDGE</strong><br>Cloudflare Worker adapter</div><p class="smallcopy">Structured reports require a confirmed terminal event; terminal chat preserves SSE.</p></div>
+<div class="card mini"><h3>inference</h3><div class="event"><strong>PRIMARY</strong><br>Qwen3-4B · llama.cpp · Mac</div><div class="event"><strong>EDGE</strong><br>Authenticated Cloudflare Worker adapter</div><p class="smallcopy">Structured reports require a confirmed terminal event; terminal chat preserves SSE.</p></div>
 <div class="card mini"><h3>browser fallback</h3><div class="event"><strong>RUNTIME</strong><br>WebLLM + WebGPU</div><div class="event"><strong>MODEL</strong><br>SmolLM2-360M</div><p class="smallcopy">Runs on compatible visitor hardware without requiring an API key.</p></div>
 <div class="card mini"><h3>private analytics</h3><div class="event"><strong>BACKEND</strong><br>Go + PostgreSQL</div><div class="event"><strong>ACCESS</strong><br>immutable GitHub owner</div><p class="smallcopy">Consent-first public events; private views and AI/Spotify payloads are excluded.</p></div>
 </div></section>
@@ -540,7 +541,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       choose: 'Connected. Step 2: choose a period for the full report, or one alternative report.',
       loading: 'Selected: ' + label + '. Loading Spotify data for your review...',
       review: 'Selected: ' + label + '. Step 3: review the data, confirm permission, then Generate AI report.',
-      generating: 'Generating ' + label + '. Gemma can take around two minutes. You can cancel below.',
+      generating: 'Generating ' + label + '. The Mac-hosted model can take around two minutes. You can cancel below.',
       ready: label + ' is ready. Step 4: explore the interactive readout below.'
     };
     document.getElementById('music-flow-status').textContent = state.message || messages[state.phase];
@@ -818,9 +819,9 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       let detail = resp.status + ' ' + resp.statusText;
       try { const j = await resp.json(); if (j?.error?.message) detail = j.error.message; } catch (_) {}
       if (resp.status === 401) {
-        addLine('ai: saved OpenAI key was rejected; falling back to self-hosted Gemma.', 'pink');
+        addLine('ai: saved OpenAI key was rejected; falling back to self-hosted AI.', 'pink');
       } else {
-        addLine('ai: OpenAI unavailable (' + detail + '); falling back to self-hosted Gemma.', 'pink');
+        addLine('ai: OpenAI unavailable (' + detail + '); falling back to self-hosted AI.', 'pink');
       }
       answerLine.remove();
       return false;
@@ -952,7 +953,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     // Hosted BYOK is a deliberate, page-session override. Gemma stays the default.
     if (hostedMode && hostedKey) {
       if (spendTotal >= SPEND_CAP) {
-        addLine('ai: OpenAI spend cap reached; falling back to self-hosted Gemma.', 'pink');
+        addLine('ai: OpenAI spend cap reached; falling back to self-hosted AI.', 'pink');
       } else try {
         if (await hostedAskAI(query, extra)) {
           aiBusy = false;
@@ -1074,7 +1075,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
         if (!AI_PROXY_URL) {
           addLine('AI backend:', 'yellow');
           addLine('  key | login           unlock hosted gpt-4o with your own OpenAI key');
-          addLine('  lockdown              wipe your key + return to self-hosted Gemma');
+          addLine('  lockdown              wipe your key + return to self-hosted AI');
           addLine('');
         }
         addLine(AI_PROXY_URL ? 'Anything else is sent to self-hosted AI, with local WebGPU fallback.' : 'Anything else is sent to the AI (hosted gpt-4o if unlocked, else local WebGPU model).', 'yellow');
@@ -1284,11 +1285,11 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       case 'login':
       case 'usekey':
         if (hostedMode && hostedKey) {
-          addLine('✨ hosted gpt-4o mode is already ON. type lockdown to switch back to Gemma.', 'yellow');
+          addLine('✨ hosted gpt-4o mode is already ON. type lockdown to switch back to self-hosted AI.', 'yellow');
         } else if (hostedKey) {
           hostedMode = true;
           updateHUD();
-          addLine('✨ hosted gpt-4o mode enabled for this page session. type lockdown to return to Gemma.', 'yellow');
+          addLine('✨ hosted gpt-4o mode enabled for this page session. type lockdown to return to self-hosted AI.', 'yellow');
         } else {
           awaitingKey = true;
           addLine('paste your OpenAI API key (sk-...) and press enter to unlock gpt-4o (or type cancel):', 'yellow');
@@ -1306,7 +1307,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
           updateHUD();
           addLine('🔒 hosted mode OFF. key wiped, spend counter reset. Self-hosted AI is the default again.', 'yellow');
         } else {
-          addLine('already on self-hosted Gemma. nothing to lock down.', 'dim');
+          addLine('already on self-hosted AI. nothing to lock down.', 'dim');
         }
         break;
 
@@ -1314,11 +1315,11 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
         // `multiverse` is a fun alias for the key flow.
         if (cmd === CHEAT_WORD) {
           if (hostedMode && hostedKey) {
-            addLine('✨ hosted gpt-4o mode already active. type lockdown to return to Gemma.', 'yellow');
+            addLine('✨ hosted gpt-4o mode already active. type lockdown to return to self-hosted AI.', 'yellow');
           } else if (hostedKey) {
             hostedMode = true;
             updateHUD();
-            addLine('✨ hosted gpt-4o mode enabled for this page session. type lockdown to return to Gemma.', 'yellow');
+            addLine('✨ hosted gpt-4o mode enabled for this page session. type lockdown to return to self-hosted AI.', 'yellow');
           } else {
             awaitingKey = true;
             addLine('✨ paste your OpenAI API key (sk-...) and press enter to unlock gpt-4o (or type cancel):', 'yellow');
@@ -1452,7 +1453,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     const key = rawKey.trim();
     awaitingKey = false;
     if (!key || key.toLowerCase() === 'cancel') {
-      addLine('cancelled. staying on self-hosted Gemma.', 'dim');
+      addLine('cancelled. staying on self-hosted AI.', 'dim');
       return;
     }
     if (!/^sk-/.test(key)) {

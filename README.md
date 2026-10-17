@@ -14,7 +14,7 @@ Branching Hypothesis," an interactive shell, and an in-browser LLM you can talk 
 - **Hosting**: GitHub Pages (`Nishad94/Nishad94.github.io`), served over HTTPS.
 - **Custom domain**: `nishad.ai`, DNS managed at GoDaddy (apex `A` records → GitHub Pages,
   `www` `CNAME` → `nishad94.github.io`). The `CNAME` file in this repo pins the domain.
-- **AI terminal**: self-hosted Gemma 4 served by Ollama on the owner's Mac through
+- **AI terminal**: self-hosted Qwen3-4B served by llama.cpp on the owner's Mac through
   a narrow Cloudflare-to-loopback gateway, with browser-local WebLLM/WebGPU fallback
   and an optional bring-your-own-key path to the OpenAI API.
 
@@ -267,28 +267,27 @@ Anything that isn't a known command is sent to the **AI** (see below).
 - **chaos mode** — bump the visual entropy.
 - **summon Toffee** — deploy the site's least-qualified SRE (a cat 🐈).
 - **command palette** — `⌘K` / `Ctrl+K` fuzzy navigation.
-- **proof-of-work architecture** — the homepage shows the real Gemma, WebGPU, and Go/PostgreSQL boundaries before any AI request.
+- **proof-of-work architecture** — the homepage shows the real Qwen/llama.cpp, WebGPU, and Go/PostgreSQL boundaries before any AI request.
 
 ### Self-hosted AI with a browser-local fallback
-Keyless terminal questions and structured music reports go first to **Gemma 4**,
-hosted through a narrow HTTPS Worker/tunnel to Ollama on the owner's Mac. Ollama
-and the Python gateway stay loopback-only; the gateway validates origins and
+Keyless terminal questions and structured music reports go first to **Qwen3-4B**,
+hosted through a narrow authenticated HTTPS Worker/tunnel to llama.cpp on the
+owner's Mac. llama.cpp and the Python gateway stay loopback-only; the gateway validates origins and
 request sizes, rate-limits use, allows one generation at a time, and logs completion
 status/timing/token counts but not prompts or output. If that host is unavailable,
 the terminal lazy-loads **SmolLM2-360M-Instruct** through WebLLM and runs it entirely
 inside the visitor's browser using WebGPU. Local fallback works best in current
 Chrome/Edge on hardware with WebGPU.
 
-The gateway keeps Gemma resident indefinitely between requests and preloads it
-asynchronously at startup or after eviction, without generating or caching a
-report. This avoids idle reload delays; it does not make full generation finish
-in under 10 seconds. Residency still depends on available memory and the Mac
-remaining awake. See [warm residency and rollback](inference/macos/README.md#warm-model-residency).
+The launchd-managed llama.cpp process keeps Qwen loaded between requests. This
+avoids per-request model startup; it does not eliminate prompt evaluation or
+generation time. Availability still depends on memory, power, connectivity and
+the Mac remaining awake. See the [Mac bootstrap and recovery runbook](inference/macos/README.md).
 
 The AI's knowledge (Nishad's career, projects, skills, lore, persona) lives in
 **`ontology.js`** — a single, heavily-commented source of truth. `buildSystemPrompt()`
 assembles the complete reference prompt; `buildChatSystemPrompt()` produces the
-latency-sensitive terminal summary used by Gemma, BYOK and browser fallback. Structured
+latency-sensitive terminal summary used by Qwen, BYOK and browser fallback. Structured
 Spotify reports keep their separate schema prompt. To change what the AI knows, edit
 `ontology.js`, not `index.html`.
 
@@ -309,9 +308,9 @@ A hidden GTA-style cheat upgrades the terminal to a hosted model:
 2. When prompted, paste your own **OpenAI API key** (`sk-...`).
 3. The terminal switches to **`gpt-4o`** via the OpenAI API, streaming responses
    (prompt prefix becomes `nishad.ai✨>`).
-4. Type **`lockdown`** (or `clearkey`) to wipe the key and return to self-hosted Gemma.
+4. Type **`lockdown`** (or `clearkey`) to wipe the key and return to self-hosted AI.
 
-Gemma is the default on every page load. A remembered OpenAI key is activated only
+Self-hosted Qwen is the default on every page load. A remembered OpenAI key is activated only
 after you explicitly type `MULTIVERSE` or `key` in that page session.
 
 **Where your key lives:** only in your browser's `localStorage`. Requests go **directly**
@@ -343,7 +342,7 @@ When hosted mode is active, a neon badge appears in the terminal's title bar:
 - The site is fully static; it has no application backend. Hosting providers receive normal HTTP requests.
 - In BYOK mode, your API key stays in `localStorage` and is sent only to OpenAI.
 - Spotify is opt-in. Its tokens use tab-scoped `sessionStorage`, not `localStorage`.
-- Optional music reports require a separate per-request data/permission confirmation before metadata goes through the site Worker to Mac-hosted Gemma, or directly to OpenAI only in explicit BYOK mode. Nothing goes to AI automatically. See [Spotify privacy & data flow](spotify-privacy.html).
+- Optional music reports require a separate per-request data/permission confirmation before metadata goes through the site Worker to Mac-hosted Qwen, or directly to OpenAI only in explicit BYOK mode. Nothing goes to AI automatically. See [Spotify privacy & data flow](spotify-privacy.html).
 - Never commit API keys to this (public) repo.
 
 ## Spotify POC: setup and policy prerequisite
@@ -379,7 +378,7 @@ No client secret belongs in this repository or the browser.
 6. Raw top items work without an AI key/WebGPU. The guided UI enables report choices
    only after connection, marks the selected period/report, then moves to the exact
    data preview and separate permission confirmation. Select **Generate AI report**
-   to use Mac-hosted Gemma; generation can take around two minutes. Each regeneration
+   to use Mac-hosted Qwen; generation can take around two minutes. Each regeneration
    needs another explicit confirmation and consumes local inference quota. If the
    site route is disabled, the separate BYOK control can use your own OpenAI key.
    The snark slider switches three already-generated roasts without additional calls.
@@ -412,7 +411,7 @@ No client secret belongs in this repository or the browser.
   Missing genres/audio features/popularity are not treated as real measurements. AI genres are clearly
   guesses; MBTI axes, tarot, basic-vs-niche scores, and personality are fictional entertainment, not real
   psychology. Timeline guesses describe song vibes, not a listener's actual mood.
-- AI reports default to Mac-hosted **Gemma 4** through the public Worker. The Worker
+- AI reports default to Mac-hosted **Qwen3-4B** through the public Worker. The Worker
   converts completed report streams to one JSON envelope while terminal chat remains
   SSE; interrupted, malformed, timed-out, busy, length-terminated, or cancelled work
   never becomes a successful report. Explicit BYOK remains direct-browser gpt-4o,
@@ -422,7 +421,7 @@ No client secret belongs in this repository or the browser.
   structured reports, so music reports never silently fall back to it or invent output.
 - Production redirect registration and the owner's real Spotify eligibility remain
   owner-browser checks. Automated release acceptance uses invented Spotify fixtures,
-  the real Worker/Gemma route, Firefox rendering, and the complete interactive HTML readout.
+  the real Worker/Qwen route, Firefox rendering, and the complete interactive HTML readout.
 
 ### Verification
 
@@ -471,7 +470,7 @@ root directly still works for homepage-only development, but will not generate t
 ---
 
 *main is protected · force push disabled · built with HTML/CSS/JS and questionable 5 AM lore.*
-## Gemma Worker adapter
+## Self-hosted AI Worker adapter
 
 `worker/ai-proxy.js` is the active public adapter. It forwards only allowed-origin
 requests to the current Mac tunnel. Explicit terminal chat remains SSE. Omitted-mode

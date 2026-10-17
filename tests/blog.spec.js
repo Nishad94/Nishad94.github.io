@@ -49,10 +49,10 @@ for (const width of [1280, 1201, 1024, 800, 701, 375, 320]) {
       for (const link of await navigation.getByRole('link').all()) {
         await expect(link).toBeInViewport({ ratio: 1 });
       }
-      await expect(page.getByRole('heading', { name: 'Blog / 7 build notes' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Blog / 8 build notes' })).toBeVisible();
       await expect(page.getByRole('link', { name: 'all blog posts' })).toHaveAttribute('href', '/blog/');
       const posts = await page.locator('.writing-card').evaluateAll(links => links.map(link => link.getAttribute('href')));
-      expect(posts).toHaveLength(7);
+      expect(posts).toHaveLength(8);
       const response = page.waitForResponse(response => response.request().isNavigationRequest() && response.url().endsWith('/blog/'));
       await blog.click();
       expect((await response).status()).toBe(200);
@@ -90,7 +90,7 @@ test('hash tabs and legacy anchors remain separate from keyboard Blog navigation
     await expect(page.locator('body')).toHaveAttribute('data-view', 'story');
     await page.goto('/#writing');
     await expect(page.locator('body')).toHaveAttribute('data-view', 'home');
-    await expect(page.getByRole('heading', { name: 'Blog / 7 build notes' })).toBeInViewport();
+    await expect(page.getByRole('heading', { name: 'Blog / 8 build notes' })).toBeInViewport();
     await blog.focus();
     await expect(blog).toBeFocused();
     await page.keyboard.press('Enter');

@@ -223,7 +223,7 @@ class GatewayTests(unittest.TestCase):
                     payload = json.loads(response.read())
                     self.assertEqual(response.status, 200 if authorized else 401)
                     if authorized:
-                        self.assertEqual(payload["schema"], "nishad.laptop-operations.v1")
+                        self.assertEqual(payload["schema"], "nishad.inference-operations.v1")
                         self.assertEqual(payload["inference"]["queue"]["wait_limit_seconds"], 60)
                         self.assertEqual(payload["workflows"], {})
                 finally:
@@ -320,6 +320,7 @@ class AdmissionQueueTests(unittest.TestCase):
                     [{"role": "user", "content": "Synthetic routing query"}], False, True, ["career", "blog-0"]
                 )
                 payload = json.loads(request.data)
+                self.assertIn('must select "career"', payload["messages"][0]["content"])
                 schema = payload["response_format"]["json_schema"]["schema"] if backend == "llama.cpp" else payload["format"]
                 self.assertEqual(schema["properties"]["source_ids"]["maxItems"], 3)
                 self.assertEqual(schema["properties"]["source_ids"]["items"]["enum"], ["career", "blog-0"])

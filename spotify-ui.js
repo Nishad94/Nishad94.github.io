@@ -188,7 +188,7 @@ function reportView(parent, report, mode, recent = [], data = {}) {
     });
     const curious = node(grid, 'details', undefined, 'report-card report-card-wide report-curious');
     node(curious, 'summary', 'Curious how labels are chosen?');
-    node(curious, 'p', 'Gemma guesses a song’s musical vibe from title and artist knowledge. It does not hear audio and does not infer your emotional state.');
+    node(curious, 'p', 'The local model guesses a song’s musical vibe from title and artist knowledge. It does not hear audio and does not infer your emotional state.');
     return;
   }
   reportStat(stats, 'music type', report.mbti.type);
@@ -283,7 +283,7 @@ export function createReportFlow({ output, reportOutput, addLine, aiAvailable, a
     const proxied = aiProvider() === 'proxy';
     node(box, 'h3', proxied ? 'Optional AI report / site AI service' : 'Optional AI report / your OpenAI key');
     node(box, 'p', POLICY_NOTICE, 'yellow');
-    if (proxied) node(box, 'p', 'This sends the music metadata below from your browser through this site’s Cloudflare Worker and tunnel to Mac-hosted Gemma via Ollama. Names, supplied genres, and range labels leave your device; tokens, Spotify IDs, and play timestamps do not. This route does not use OpenAI or an API key. The service applies daily limits and processes one request at a time. No browser-local fallback.');
+    if (proxied) node(box, 'p', 'This sends the music metadata below from your browser through this site’s Cloudflare Worker and tunnel to Mac-hosted Qwen via llama.cpp. Names, supplied genres, and range labels leave your device; tokens, Spotify IDs, and play timestamps do not. This route does not use OpenAI or an API key. The service applies daily limits and processes one request at a time. No browser-local fallback.');
     else node(box, 'p', 'This sends the music metadata below directly from your browser to OpenAI gpt-4o using your own key. Names, supplied genres, and range labels leave the device; tokens, Spotify IDs, play timestamps, and your OpenAI key are not included in the prompt. OpenAI receives the key only as API authorization and processes prompts under its policies. Spend counts toward the existing $0.50 soft cap. No local-model fallback: SmolLM2-360M’s 2048-token context is not sufficient for these reliable structured reports.');
     if (!proxied) link(box, 'OpenAI API data-use information', 'https://platform.openai.com/docs/guides/your-data');
     link(box, 'Privacy, data flow, and permission prerequisites', './spotify-privacy.html');
@@ -294,7 +294,7 @@ export function createReportFlow({ output, reportOutput, addLine, aiAvailable, a
     const label = node(box, 'label');
     const consent = node(label, 'input');
     consent.type = 'checkbox';
-    label.append(' I confirm Spotify permission has been resolved for this use (or I am using synthetic test data), and consent to sending this data ' + (proxied ? 'through Cloudflare to Mac-hosted Gemma.' : 'to OpenAI at my expense.'));
+    label.append(' I confirm Spotify permission has been resolved for this use (or I am using synthetic test data), and consent to sending this data ' + (proxied ? 'through Cloudflare to Mac-hosted Qwen.' : 'to OpenAI at my expense.'));
     if (!aiAvailable()) node(box, 'p', 'AI reports require a key. Use “Add or remove your OpenAI key” above, then return to this report button. Local AI is intentionally not invoked.', 'yellow');
     const view = version;
     const generate = button(box, 'Generate AI report', async () => {
@@ -310,7 +310,7 @@ export function createReportFlow({ output, reportOutput, addLine, aiAvailable, a
       consent.checked = false;
       generate.disabled = true;
       onStateChange({ phase: 'generating', mode, busy: true });
-      const pending = node(box, 'p', proxied ? 'Waiting for Mac-hosted Gemma to finish the complete report. This can take around two minutes...' : 'Generating with your OpenAI key...', 'report-progress');
+      const pending = node(box, 'p', proxied ? 'Waiting for Mac-hosted Qwen to finish the complete report. This can take around two minutes...' : 'Generating with your OpenAI key...', 'report-progress');
       pending.setAttribute('role', 'status');
       const cancelButton = button(box, 'Cancel AI report', () => {
         controller.abort();

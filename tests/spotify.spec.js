@@ -473,8 +473,8 @@ test('existing deterministic commands, palette, local failure, BYOK streaming an
 
 test('builder mode shortcut, proof callouts and palette form a fast high-intent path', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Blog / 7 build notes' })).toBeVisible();
-  await expect(page.locator('.writing-card')).toHaveCount(7);
+  await expect(page.getByRole('heading', { name: 'Blog / 8 build notes' })).toBeVisible();
+  await expect(page.locator('.writing-card')).toHaveCount(8);
   await expect(page.locator('.writing-card.featured')).toHaveAttribute('href', '/blog/one-hour-five-fixes-one-missing-contract/');
   await expect(page.getByRole('heading', { name: 'proof of work / live architecture' })).toBeVisible();
   await expect(page.locator('#architecture')).toContainText('Gemma 4 via Ollama on Mac');
@@ -704,8 +704,8 @@ for (const outcome of ['ok', 'visitor_limit', 'global_limit', 'down']) {
     });
     await expect(page.locator('#music-ai-status')).toContainText('no key needed');
     await command(page, 'vibe');
-    await expect(page.locator('.vibe-consent')).toContainText('Cloudflare Worker and tunnel to Mac-hosted Gemma');
-    await expect(page.getByRole('checkbox')).toHaveAccessibleName(/through Cloudflare to Mac-hosted Gemma/);
+    await expect(page.locator('.vibe-consent')).toContainText('Cloudflare Worker and tunnel to Mac-hosted Qwen');
+    await expect(page.getByRole('checkbox')).toHaveAccessibleName(/through Cloudflare to Mac-hosted Qwen/);
     await expect(page.locator('.vibe-consent')).not.toContainText('require a key');
     await page.getByRole('checkbox').check();
     await page.getByRole('button', { name: 'Generate AI report', exact: true }).click();

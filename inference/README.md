@@ -4,9 +4,15 @@ The Windows laptop can run a loopback-only `llama.cpp` server behind the existin
 Python gateway. `INFERENCE_BACKEND=llama.cpp` selects that protocol; the default
 remains `ollama`, including the Mac's existing model-residency behavior.
 
-This is an opt-in experiment. Installing or starting the laptop runtime does not
-change production, DNS, Windows startup, sleep settings, or the Mac. Production
-continues using its current Worker until an explicitly authorized cutover.
+macOS has local and persistent launchd bootstrap instructions for the
+loopback-only llama.cpp + Python gateway runtime in
+[`macos/README.md`](macos/README.md). Production publication remains a separate,
+explicitly authorized step.
+
+The Windows laptop path is an opt-in experiment. Installing or starting it does
+not change production, DNS, Windows startup, sleep settings, or the Mac.
+Production continues using its current Worker until an explicitly authorized
+cutover.
 
 ## Local Windows ARM64 runtime
 
@@ -178,16 +184,24 @@ it can serve laptop-only chat. Reports remain unavailable without the Mac unless
 Spotify policy prerequisites still apply; use synthetic fixtures, not real
 Spotify metadata, for infrastructure testing.
 
-Readiness checks use `/healthz`, never sample prompts, and have a 1.5-second
-deadline. A failed check skips that backend for 30 seconds. An explicit `busy`
+For `/metrics`, the Worker reads the first configured authenticated gateway,
+preferring the laptop and otherwise using the Mac. It reconstructs the public
+schema field by field and never forwards prompts, answers, identities, addresses,
+credentials or arbitrary upstream fields.
+
+Readiness checks use `/healthz`, never sample prompts, and have a five-second
+deadline so a newly established quick tunnel can complete its first connection.
+A failed check skips that backend for 30 seconds. An explicit `busy`
 rejection allows failover and a 3-second cooldown. Both cooldowns are best-effort,
 per Worker isolate, not globally shared state or durable availability promises.
 
 After a POST, only an explicit pre-generation `busy`/`upstream_unreachable` 503
-rejection is retried. An ambiguous POST failure, five-second response-header
+rejection is retried. An ambiguous POST failure, 30-second response-header
 timeout, quota/auth/input error, or a broken stream is not retried on another
-backend. Queue-full 429 responses are not retried, and accepted queued requests
-stay on the chosen backend. A slow first token does not trigger a race: the gateway sends response
+backend. The longer header window accommodates structured-routing prompt
+evaluation on local llama.cpp before its first streamed event. Queue-full 429
+responses are not retried, and accepted queued requests stay on the chosen
+backend. A slow first token does not trigger a race: the gateway sends response
 headers before forwarding generated tokens. Chat output is never concatenated
 across backends; the UI labels interrupted output and asks for manual retry.
 Reports retain the existing buffered, completion-checked JSON contract.

@@ -10,7 +10,12 @@
 
 The Terminal tab on [nishad.ai](https://nishad.ai/#shell) looks like a tiny Unix shell that wandered into a neon multiverse. It understands `ls`, `git log`, and `conspiracy`; it can also answer questions about my work. Underneath, it is neither a real Linux login nor a wrapper around one magical API.
 
-It is a deliberately layered system. The current production path is:
+It is a deliberately layered system. The architecture described here has since moved to Qwen3-4B through llama.cpp on
+the Mac. The browser routing, gateway contracts, streaming rules, and fallback
+design remain relevant; the current implementation is documented in
+[Running nishad.ai on a MacBook: llama.cpp, a Python Gateway, and a Browser Fallback](/blog/macbook-local-llm-inference/).
+
+The production path at the time of this article was:
 
 - a static browser application classifies commands;
 - a curated JavaScript ontology supplies facts and personality;
@@ -23,7 +28,7 @@ It is a deliberately layered system. The current production path is:
 
 This post also preserves the earlier Azure ARM64 + `llama.cpp` production revision as an architecture and operations retrospective. The browser routing, ontology, security-boundary, streaming, and fallback lessons still apply; runtime-specific sections are labeled below. No private credentials, owner addresses, or management endpoints are included.
 
-> **Production update — 13 October 2026:** the live route is now Browser → Cloudflare Worker → quick tunnel → Python gateway → Ollama/Gemma on Mac. The Azure/Caddy/`llama.cpp` sections below document the previous deployed revision, not the current host.
+> **Production update — 17 October 2026:** the live route is now Browser → Cloudflare Worker → authenticated tunnel → Python gateway → llama.cpp/Qwen on Mac. The Ollama/Gemma and Azure/Caddy sections below document earlier deployed revisions.
 
 ![A polished neon blueprint of the nishad.ai Terminal: a browser routes deterministic commands locally and AI questions through Caddy, a validating gateway, llama.cpp, and Gemma, with explicit OpenAI and WebGPU alternate paths.](/assets/blog/terminal-system-blueprint.svg)
 

@@ -4,7 +4,12 @@
 <key>Label</key><string>com.nishad.ai.gateway</string>
 <key>ProgramArguments</key><array><string>/opt/homebrew/bin/python3</string><string>/Users/nishaddawkhar/.local/share/nishad-ai/gateway.py</string></array>
 <key>EnvironmentVariables</key><dict>
-<key>LISTEN</key><string>127.0.0.1:8094</string><key>OLLAMA_BASE_URL</key><string>http://127.0.0.1:11434</string><key>GEMMA_MODEL</key><string>gemma4:e2b</string><key>MAX_CONCURRENT_REQUESTS</key><string>1</string><key>UPSTREAM_TIMEOUT_SECONDS</key><string>120</string>
+<key>LISTEN</key><string>127.0.0.1:8094</string>
+<key>INFERENCE_BACKEND</key><string>llama.cpp</string>
+<key>LLAMA_BASE_URL</key><string>http://127.0.0.1:8081</string>
+<key>GEMMA_MODEL</key><string>Qwen3-4B-Q4_K_M</string>
+<key>MAX_CONCURRENT_REQUESTS</key><string>1</string>
+<key>UPSTREAM_TIMEOUT_SECONDS</key><string>120</string>
 </dict>
 <key>RunAtLoad</key><true/><key>KeepAlive</key><true/><key>ThrottleInterval</key><integer>5</integer>
 <key>StandardOutPath</key><string>/Users/nishaddawkhar/Library/Logs/nishad-ai-gateway.log</string><key>StandardErrorPath</key><string>/Users/nishaddawkhar/Library/Logs/nishad-ai-gateway.error.log</string>

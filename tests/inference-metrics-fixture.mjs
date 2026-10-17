@@ -1,7 +1,7 @@
 export function metricsFixture() {
   const now = new Date().toISOString();
   return {
-    schema: 'nishad.laptop-operations.v1', generated_at: now, started_at: now, sampled_at: now,
+    schema: 'nishad.inference-operations.v1', generated_at: now, started_at: now, sampled_at: now,
     host: { cpu_pct: 12, memory_pct: 30, gpu_pct: null, disk_pct: 25, uptime_days: 1, services_up: 2, services_total: 2, availability_pct: 100 },
     history: [{ ts: now, cpu_pct: 12, memory_pct: 30, gpu_pct: null, disk_pct: 25 }],
     services: { 'Python gateway': { up: true, latency_ms: null }, 'Model API': { up: true, latency_ms: 1 } },
