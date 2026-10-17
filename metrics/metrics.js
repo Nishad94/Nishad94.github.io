@@ -30,7 +30,7 @@ function chart(id) {
 }
 function resources(snapshot) {
   const { svg, width, height } = chart('resourceChart');
-  const rows = snapshot.history.filter(row => ['cpu_pct', 'memory_pct', 'disk_pct'].some(key => Number.isFinite(row[key])));
+  const rows = snapshot.history.filter(row => ['cpu_pct', 'memory_pct', 'gpu_pct', 'disk_pct'].some(key => Number.isFinite(row[key])));
   select('resource-empty').textContent = rows.length ? '' : 'No resource samples collected yet.';
   if (!rows.length) return;
   const extent = d3.extent(rows, row => new Date(row.ts));
@@ -39,7 +39,7 @@ function resources(snapshot) {
   const y = d3.scaleLinear().domain([0, 100]).range([height - 30, 12]);
   svg.append('g').attr('class', 'axis').attr('transform', `translate(0,${height - 30})`).call(d3.axisBottom(x).ticks(4).tickFormat(d3.timeFormat('%H:%M')));
   svg.append('g').attr('class', 'axis').attr('transform', 'translate(48,0)').call(d3.axisLeft(y).ticks(5).tickFormat(value => `${value}%`));
-  for (const [key, color] of [['cpu_pct', '#55a9ff'], ['memory_pct', '#b690ff'], ['disk_pct', '#f1c75b']]) {
+  for (const [key, color] of [['cpu_pct', '#55a9ff'], ['memory_pct', '#b690ff'], ['gpu_pct', '#4ee38c'], ['disk_pct', '#f1c75b']]) {
     svg.append('path').datum(rows).attr('fill', 'none').attr('stroke', color).attr('stroke-width', 2)
       .attr('d', d3.line().defined(row => Number.isFinite(row[key])).x(row => x(new Date(row.ts))).y(row => y(row[key])));
     svg.selectAll(`circle.${key}`).data(rows.filter(row => Number.isFinite(row[key]))).join('circle')
@@ -74,7 +74,7 @@ function render(snapshot) {
     card('Service availability', `${host.services_up}/${host.services_total}`, 'Gateway and model readiness, not historical uptime'),
     card('CPU', percent(host.cpu_pct), 'Host aggregate utilization'),
     card('Memory', percent(host.memory_pct), 'Host aggregate utilization'),
-    card('GPU', percent(host.gpu_pct), 'No GPU utilization collector configured'),
+    card('GPU', percent(host.gpu_pct), 'Apple GPU device utilization when available'),
     card('Disk', percent(host.disk_pct), 'Aggregate runtime-volume utilization'),
     card('Host uptime', host.uptime_days === null ? 'Unavailable' : `${host.uptime_days}d`, 'Host uptime when the platform collector supports it')
   );

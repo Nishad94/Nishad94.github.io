@@ -9,12 +9,14 @@ import threading
 import time
 import unittest
 from concurrent.futures import ThreadPoolExecutor
+from types import SimpleNamespace
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "inference"))
 spec = importlib.util.spec_from_file_location("gateway", Path(__file__).resolve().parents[1] / "inference/gateway.py")
 gateway = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gateway)
+import telemetry
 
 
 class Upstream:
@@ -327,6 +329,31 @@ class AdmissionQueueTests(unittest.TestCase):
                 self.assertEqual(payload.get("max_tokens", payload.get("options", {}).get("num_predict")), 192)
     def test_default_queue_wait_expires_at_sixty_seconds_not_fifteen(self):
         self.assertEqual(gateway.QUEUE_WAIT_SECONDS, 60)
+
+
+class HostSamplerTests(unittest.TestCase):
+    def test_macos_sampler_reports_cpu_memory_disk_and_uptime_without_gpu(self):
+        outputs = {
+            ("/bin/ps", "-A", "-o", "%cpu="): "80.0\n40.0\n",
+            ("/usr/bin/memory_pressure", "-Q"): "System-wide memory free percentage: 25%\n",
+            ("/usr/sbin/sysctl", "-n", "kern.boottime"): "{ sec = 1000, usec = 0 }\n",
+            ("/usr/sbin/ioreg", "-r", "-d", "1", "-w", "0", "-c", "AGXAccelerator"):
+                '"PerformanceStatistics" = {"Device Utilization %"=42}\n'
+        }
+
+        def run(command, **_kwargs):
+            return SimpleNamespace(stdout=outputs[tuple(command)])
+
+        with patch.object(telemetry.sys, "platform", "darwin"), \
+             patch.object(telemetry.os, "cpu_count", return_value=8), \
+             patch.object(telemetry.subprocess, "run", side_effect=run), \
+             patch.object(telemetry.shutil, "disk_usage", return_value=SimpleNamespace(used=40, total=100)), \
+             patch.object(telemetry.time, "time", return_value=87400):
+            sample = telemetry.HostSampler().sample()
+        self.assertEqual(sample, {
+            "cpu_pct": 15.0, "memory_pct": 75.0, "gpu_pct": 42.0,
+            "disk_pct": 40.0, "uptime_days": 1.0
+        })
         queue = gateway.AdmissionQueue()
         queue.acquire(False)
         ticket = queue.reserve()

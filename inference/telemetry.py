@@ -3,8 +3,11 @@ import ctypes
 import math
 import os
 import shutil
+import subprocess
+import sys
 import threading
 import time
+import re
 from collections import Counter, deque
 from datetime import datetime, timezone
 
@@ -18,6 +21,41 @@ class HostSampler:
         self.previous = None
 
     def sample(self):
+        if sys.platform == "darwin":
+            cpu_result = subprocess.run(
+                ["/bin/ps", "-A", "-o", "%cpu="], check=True, capture_output=True, text=True, timeout=5
+            )
+            cpu_total = sum(float(value) for value in cpu_result.stdout.split())
+            cpu = round(min(100, max(0, cpu_total / (os.cpu_count() or 1))), 1)
+            memory_result = subprocess.run(
+                ["/usr/bin/memory_pressure", "-Q"], check=True, capture_output=True, text=True, timeout=5
+            )
+            match = next(
+                (line for line in memory_result.stdout.splitlines() if line.startswith("System-wide memory free percentage:")),
+                None
+            )
+            if match is None:
+                raise ValueError("Invalid macOS memory output")
+            free = float(match.rsplit(":", 1)[1].strip().removesuffix("%"))
+            boot_result = subprocess.run(
+                ["/usr/sbin/sysctl", "-n", "kern.boottime"], check=True, capture_output=True, text=True, timeout=5
+            )
+            marker = "sec = "
+            if marker not in boot_result.stdout:
+                raise ValueError("Invalid macOS boot time")
+            boot_seconds = int(boot_result.stdout.split(marker, 1)[1].split(",", 1)[0])
+            gpu_result = subprocess.run(
+                ["/usr/sbin/ioreg", "-r", "-d", "1", "-w", "0", "-c", "AGXAccelerator"],
+                check=True, capture_output=True, text=True, timeout=5
+            )
+            gpu_match = re.search(r'"Device Utilization %"\s*=\s*(\d+(?:\.\d+)?)', gpu_result.stdout)
+            disk = shutil.disk_usage(os.path.expanduser("~"))
+            return {
+                "cpu_pct": cpu, "memory_pct": round(100 - free, 1),
+                "gpu_pct": round(float(gpu_match.group(1)), 1) if gpu_match else None,
+                "disk_pct": round(100 * disk.used / disk.total, 1),
+                "uptime_days": round((time.time() - boot_seconds) / 86400, 2)
+            }
         if os.name != "nt":
             return dict.fromkeys(("cpu_pct", "memory_pct", "gpu_pct", "disk_pct", "uptime_days"))
         from ctypes import wintypes

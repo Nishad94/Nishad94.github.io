@@ -88,8 +88,9 @@ For a local site preview, run `python3 tests/serve.py 8000` from the repository
 root. In the page at `http://127.0.0.1:8000`, set
 `localStorage.nishad_ai_proxy` to `http://127.0.0.1:8095/` and reload. Remove
 that override after testing. Stop each manually started process with Ctrl-C.
-The gateway's host utilization metrics are unavailable on macOS; this does not
-affect inference or health reporting.
+The persistent gateway samples macOS CPU, memory, Apple GPU device utilization,
+disk use and uptime every 15 seconds. A manual gateway run exposes the same
+metrics after its first sample.
 
 These commands provide a local, loopback-only runtime, not public hosting. Do
 not bind either server to a network interface, install a launch agent, enable a
