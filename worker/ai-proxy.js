@@ -27,7 +27,7 @@ async function collectReportSSE(upstream) {
       throw new ReportError('upstream_invalid_response');
     }
     if (event.error) {
-      throw new ReportError(['upstream_timeout', 'upstream_incomplete', 'upstream_invalid_response'].includes(event.error)
+      throw new ReportError(['upstream_timeout', 'upstream_incomplete', 'upstream_invalid_response', 'queue_timeout'].includes(event.error)
         ? event.error : 'upstream_failed');
     }
     if (typeof event.delta === 'string') content += event.delta;

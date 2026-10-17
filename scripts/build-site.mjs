@@ -134,6 +134,45 @@ export function renderBlog(allPosts) {
   const posts = allPosts.filter(post => !post.draft).sort((a, b) =>
     b.date.localeCompare(a.date) || a.slug.localeCompare(b.slug));
   const files = new Map();
+  files.set('site-knowledge.json', JSON.stringify({
+    schema: 'nishad.public-knowledge.v1',
+    documents: posts.map((post, index) => {
+      const sections = [];
+      let heading = post.title;
+      for (const token of markdown.parse(post.body, {})) {
+        if (token.type !== 'inline' && token.type !== 'fence' && token.type !== 'code_block') continue;
+        const text = token.children
+          ? token.children.filter(child => ['text', 'code_inline', 'softbreak', 'hardbreak'].includes(child.type))
+            .map(child => child.type.endsWith('break') ? '\n' : child.content).join('')
+          : token.content;
+        if (!text.trim()) continue;
+        // Heading tokens are followed by inline content; use a readable passage
+        // label plus a short excerpt so a model can select any published passage.
+        if (token.map && /^#{1,6}\s/.test(post.body.split('\n')[token.map[0]] || '')) heading = text;
+        let remaining = text.trim();
+        while (remaining) {
+          const last = sections.at(-1);
+          const available = last?.title === heading.slice(0, 100) ? 899 - last.text.length : 0;
+          if (available > 0) {
+            last.text += '\n' + remaining.slice(0, available);
+            last.summary = last.text.slice(0, 120);
+            remaining = remaining.slice(available).trim();
+          } else {
+            const content = remaining.slice(0, 900);
+            sections.push({
+              id: `p${sections.length}`, title: heading.slice(0, 100),
+              summary: content.slice(0, 120), text: content
+            });
+            remaining = remaining.slice(900).trim();
+          }
+        }
+      }
+      return {
+        id: `blog-${post.slug}`, title: post.title, description: post.description,
+        url: `/blog/${post.slug}/`, sections
+      };
+    })
+  }) + '\n');
   files.set('analytics-pages.json', JSON.stringify(publicPageCatalog(posts)) + '\n');
   files.set('dashboard_metrics/index.html', renderMetricsEntry(PRIVATE_DASHBOARD_ORIGIN));
   const listing = posts.length
@@ -192,6 +231,25 @@ export async function buildSite() {
   }
   const posts = await loadPosts(join(root, 'posts'));
   const pages = renderBlog(posts);
+  const knowledge = JSON.parse(pages.get('site-knowledge.json'));
+  for (const [index, [filename, title, description]] of [
+    ['index.html', 'Homepage: story, lore and public features', 'Public career story, fictional lore, navigation, terminal commands and website features.'],
+    ['spotify-privacy.html', 'Spotify privacy and consent', 'Published Spotify consent, storage, data flow and experimental policy limitations.'],
+    ['analytics-privacy.html', 'Analytics privacy policy', 'Published analytics consent and privacy boundaries, not visitor data.']
+  ].entries()) {
+    const html = await readFile(join(root, filename), 'utf8');
+    const visible = html.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, '')
+      .replace(/<\/(?:p|li|h[1-6]|section|div)>/gi, '\n').replace(/<[^>]*>/g, ' ')
+      .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+      .split('\n').map(line => line.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n');
+    const sections = [];
+    for (let offset = 0; offset < visible.length; offset += 900) {
+      const text = visible.slice(offset, offset + 900);
+      sections.push({ id: `p${sections.length}`, title: title.slice(0, 100), summary: text.slice(0, 120), text });
+    }
+    knowledge.documents.push({ id: `page-${index}`, title, description, url: filename === 'index.html' ? '/' : '/' + filename, sections });
+  }
+  pages.set('site-knowledge.json', JSON.stringify(knowledge) + '\n');
   const output = join(root, '_site');
   // Validate every post before replacing output; a bad draft also fails the build.
   await rm(output, { recursive: true, force: true });

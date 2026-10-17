@@ -2,20 +2,25 @@ import http.client
 import importlib.util
 import io
 import json
+import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import threading
+import time
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import patch
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "inference"))
 spec = importlib.util.spec_from_file_location("gateway", Path(__file__).resolve().parents[1] / "inference/gateway.py")
 gateway = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gateway)
 
 
 class Upstream:
-    def __init__(self, events):
+    def __init__(self, events, sse=False):
         self.events = events
+        self.sse = sse
 
     def __enter__(self):
         return self
@@ -27,13 +32,17 @@ class Upstream:
         for event in self.events:
             if isinstance(event, Exception):
                 raise event
-            yield event if isinstance(event, bytes) else json.dumps(event).encode()
+            if self.sse:
+                yield event if isinstance(event, bytes) else ('data: ' + json.dumps(event) + '\n').encode()
+                yield b'\n'
+            else:
+                yield event if isinstance(event, bytes) else json.dumps(event).encode()
 
 
 class GatewayTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.server = gateway.ThreadingHTTPServer(("127.0.0.1", 0), gateway.H)
+        cls.server = gateway.GatewayServer(("127.0.0.1", 0), gateway.H)
         cls.thread = threading.Thread(target=cls.server.serve_forever, daemon=True)
         cls.thread.start()
 
@@ -45,15 +54,16 @@ class GatewayTests(unittest.TestCase):
 
     def setUp(self):
         gateway.counts.clear()
+        gateway.METRICS = gateway.Telemetry()
 
-    def request(self, events, mode=None):
+    def request(self, events, mode=None, sse=False, headers=None):
         body = {"messages": [{"role": "user", "content": "Synthetic diagnostic only."}]}
         if mode:
             body["mode"] = mode
-        with patch.object(gateway.urllib.request, "urlopen", return_value=Upstream(events)) as upstream:
+        with patch.object(gateway.urllib.request, "urlopen", return_value=Upstream(events, sse)) as upstream:
             connection = http.client.HTTPConnection(*self.server.server_address, timeout=5)
             try:
-                connection.request("POST", "/", json.dumps(body), {"Origin": "https://nishad.ai", "Content-Type": "application/json"})
+                connection.request("POST", "/", json.dumps(body), {"Origin": "https://nishad.ai", "Content-Type": "application/json", **(headers or {})})
                 response = connection.getresponse()
                 status, headers, raw = response.status, dict(response.getheaders()), response.read().decode()
             finally:
@@ -102,11 +112,12 @@ class GatewayTests(unittest.TestCase):
         _, _, events, _ = self.request([{"message": {"content": "{}"}}, {"done": True, "done_reason": "length"}])
         self.assertEqual(events[-1]["finish_reason"], "length")
 
-    def test_busy_has_retry_guidance_and_does_not_call_ollama(self):
+    def test_full_queue_has_rate_limit_and_does_not_call_model(self):
         gateway.SEM.acquire()
         try:
-            status, headers, _, payload = self.request([])
-            self.assertEqual(status, 503)
+            with patch.object(gateway, "MAX_QUEUE_LENGTH", 0):
+                status, headers, _, payload = self.request([])
+            self.assertEqual(status, 429)
             self.assertEqual(headers["Retry-After"], "15")
             self.assertIsNone(payload)
         finally:
@@ -117,6 +128,245 @@ class GatewayTests(unittest.TestCase):
         status, _, events, _ = self.request([{"message": {"content": "{}"}}, {"done": True, "done_reason": "stop"}])
         self.assertEqual(status, 200)
         self.assertEqual(events[-1]["finish_reason"], "stop")
+
+    def test_llama_chat_and_report_translate_to_existing_protocol(self):
+        for mode in [None, "chat"]:
+            with self.subTest(mode=mode), patch.object(gateway, "BACKEND", "llama.cpp"):
+                status, _, events, payload = self.request([
+                    {"choices": [{"delta": {"role": "assistant", "content": ""}, "finish_reason": None}]},
+                    {"choices": [{"delta": {"content": "synthetic café"}, "finish_reason": None}]},
+                    {"choices": [{"delta": {}, "finish_reason": "stop"}]},
+                ], mode, sse=True)
+                self.assertEqual(status, 200)
+                self.assertEqual(events[0]["delta"], "synthetic café")
+                self.assertEqual(events[-1], {"done": True, "finish_reason": "stop"})
+                self.assertEqual(payload["chat_template_kwargs"], {"enable_thinking": False})
+                self.assertEqual(payload["max_tokens"], 256 if mode == "chat" else 1200)
+                self.assertNotIn("keep_alive", payload)
+                if mode == "chat":
+                    self.assertNotIn("response_format", payload)
+                else:
+                    self.assertEqual(payload["response_format"], {"type": "json_object"})
+
+    def test_llama_does_not_fabricate_completion_or_expose_reasoning(self):
+        for source, code in [
+            ([{"choices": [{"delta": {"content": "partial"}, "finish_reason": None}]}], "upstream_incomplete"),
+            ([b"data: [DONE]\n"], "upstream_incomplete"),
+            ([{"choices": [{"delta": {"content": 42}, "finish_reason": None}]}], "upstream_invalid_response"),
+            ([{"choices": [{"delta": {}, "finish_reason": "tool_calls"}]}], "upstream_invalid_response"),
+            ([{"error": "private model failure"}], "upstream_failed"),
+        ]:
+            with self.subTest(code=code), patch.object(gateway, "BACKEND", "llama.cpp"):
+                _, _, events, _ = self.request(source, "chat", sse=True)
+                self.assertEqual(events[-1], {"error": code})
+        with patch.object(gateway, "BACKEND", "llama.cpp"):
+            _, _, events, _ = self.request([
+                {"choices": [{"delta": {"reasoning_content": "private"}, "finish_reason": None}]},
+                {"choices": [{"delta": {"content": "answer"}, "finish_reason": "length"}]},
+            ], "chat", sse=True)
+            self.assertNotIn("private", json.dumps(events))
+            self.assertEqual(events[-1]["finish_reason"], "length")
+
+    def test_optional_gateway_token_is_required_before_generation(self):
+        with patch.object(gateway, "TOKEN", "synthetic-token"):
+            status, _, _, payload = self.request([], "chat")
+            self.assertEqual(status, 401)
+            self.assertIsNone(payload)
+            status, _, events, _ = self.request([
+                {"message": {"content": "ok"}, "done": True, "done_reason": "stop"}
+            ], "chat", headers={"Authorization": "Bearer synthetic-token"})
+            self.assertEqual(status, 200)
+            self.assertEqual(events[-1]["finish_reason"], "stop")
+
+    def test_llama_health_checks_readiness_without_generation(self):
+        with patch.object(gateway, "BACKEND", "llama.cpp"), patch.object(
+            gateway.urllib.request, "urlopen", return_value=io.BytesIO(b'{"status":"ok"}')
+        ) as upstream:
+            connection = http.client.HTTPConnection(*self.server.server_address, timeout=5)
+            try:
+                connection.request("GET", "/healthz")
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                self.assertEqual(json.loads(response.read()), {"status": "ok"})
+            finally:
+                connection.close()
+            upstream.assert_called_once_with(gateway.LLAMA + "/health", timeout=5)
+
+    def test_llama_final_usage_is_recorded_without_exposing_prompts_or_tokens_as_text(self):
+        with patch.object(gateway, "BACKEND", "llama.cpp"):
+            _, _, events, _ = self.request([
+                {"choices": [{"delta": {"content": "synthetic"}, "finish_reason": None}]},
+                {"choices": [{"delta": {}, "finish_reason": "stop"}]},
+                {"choices": [], "usage": {"prompt_tokens": 8, "completion_tokens": 3}, "timings": {"predicted_per_second": 12.5}},
+                b"data: [DONE]\n"
+            ], "chat", sse=True)
+        self.assertEqual(events[-1], {"done": True, "finish_reason": "stop"})
+        # Wait for the handler's finally block after the final SSE write.
+        deadline = time.monotonic() + 1
+        while not gateway.METRICS.timings and time.monotonic() < deadline:
+            time.sleep(.01)
+        snapshot = gateway.METRICS.snapshot(gateway.SEM.snapshot(), True, 1)
+        self.assertEqual(snapshot["inference"]["tokens"]["output"], 3)
+        self.assertEqual(snapshot["inference"]["latency"]["tokens_per_second"]["p50"], 12.5)
+        self.assertNotIn("synthetic", json.dumps(snapshot))
+
+    def test_private_metrics_requires_authentication_and_never_uses_remote_hosts(self):
+        with patch.object(gateway, "TOKEN", "synthetic-token"), patch.object(
+            gateway, "probe_model", return_value=(True, 1)
+        ):
+            for authorized in [False, True]:
+                connection = http.client.HTTPConnection(*self.server.server_address, timeout=5)
+                try:
+                    headers = {"Authorization": "Bearer synthetic-token"} if authorized else {}
+                    connection.request("GET", "/metrics", headers=headers)
+                    response = connection.getresponse()
+                    payload = json.loads(response.read())
+                    self.assertEqual(response.status, 200 if authorized else 401)
+                    if authorized:
+                        self.assertEqual(payload["schema"], "nishad.laptop-operations.v1")
+                        self.assertEqual(payload["inference"]["queue"]["wait_limit_seconds"], 60)
+                        self.assertEqual(payload["workflows"], {})
+                finally:
+                    connection.close()
+
+    def test_ten_waiters_are_fifo_and_eleventh_waiter_is_rejected(self):
+        entered = threading.Event()
+        release = threading.Event()
+        order = []
+        connections = []
+        def model(request, timeout):
+            name = json.loads(request.data)["messages"][0]["content"]
+            order.append(name)
+            if name == "active":
+                entered.set()
+                if not release.wait(5):
+                    raise TimeoutError("synthetic hold timeout")
+            return Upstream([{"message": {"content": name}, "done": True, "done_reason": "stop"}])
+        def connect(name):
+            connection = http.client.HTTPConnection(*self.server.server_address, timeout=8)
+            connections.append(connection)
+            connection.request("POST", "/", json.dumps({
+                "mode": "chat", "messages": [{"role": "user", "content": name}]
+            }), {"Origin": "https://nishad.ai", "Content-Type": "application/json"})
+            return connection.getresponse()
+        def active():
+            response = connect("active")
+            return response.status, response.read()
+        with patch.object(gateway.urllib.request, "urlopen", side_effect=model):
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(active)
+                try:
+                    self.assertTrue(entered.wait(2))
+                    responses = [connect(str(i)) for i in range(10)]
+                    self.assertEqual(len(gateway.SEM.waiting), 10)
+                    self.assertEqual(order, ["active"])
+                    overflow = connect("overflow")
+                    self.assertEqual(overflow.status, 429)
+                    self.assertEqual(overflow.getheader("Retry-After"), "15")
+                    self.assertEqual(json.loads(overflow.read()), {"error": "queue_full"})
+                    release.set()
+                    self.assertEqual(future.result(timeout=5)[0], 200)
+                    for response in responses:
+                        self.assertEqual(response.status, 200)
+                        body = response.read().decode()
+                        self.assertIn('"queued":true', body)
+                        self.assertIn('"finish_reason":"stop"', body)
+                    self.assertEqual(order, ["active"] + [str(i) for i in range(10)])
+                    self.assertEqual(len(gateway.SEM.waiting), 0)
+                finally:
+                    release.set()
+                    for connection in connections:
+                        connection.close()
+
+    def test_queued_http_request_expires_without_model_generation(self):
+        gateway.SEM.acquire()
+        try:
+            with patch.object(gateway, "QUEUE_WAIT_SECONDS", 0.1):
+                status, _, events, payload = self.request([], "chat")
+            self.assertEqual(status, 200)
+            self.assertEqual(events[0], {"queued": True})
+            self.assertEqual(events[-1], {"error": "queue_timeout"})
+            self.assertIsNone(payload)
+            self.assertEqual(len(gateway.SEM.waiting), 0)
+        finally:
+            gateway.SEM.release()
+
+    def test_disconnected_queued_client_is_removed_without_generation(self):
+        gateway.SEM.acquire()
+        connection = http.client.HTTPConnection(*self.server.server_address, timeout=5)
+        try:
+            with patch.object(gateway.urllib.request, "urlopen") as upstream:
+                connection.request("POST", "/", json.dumps({
+                    "mode": "chat", "messages": [{"role": "user", "content": "synthetic cancellation"}]
+                }), {"Origin": "https://nishad.ai", "Content-Type": "application/json"})
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                response.close()
+                connection.close()
+                deadline = time.monotonic() + 2
+                while gateway.SEM.waiting and time.monotonic() < deadline:
+                    time.sleep(0.02)
+                self.assertEqual(len(gateway.SEM.waiting), 0)
+                upstream.assert_not_called()
+        finally:
+            connection.close()
+            gateway.SEM.release()
+
+class AdmissionQueueTests(unittest.TestCase):
+    def test_router_uses_bounded_id_enums_and_constrained_json_for_both_backends(self):
+        for backend in ["llama.cpp", "ollama"]:
+            with patch.object(gateway, "BACKEND", backend):
+                request = gateway.generation_request(
+                    [{"role": "user", "content": "Synthetic routing query"}], False, True, ["career", "blog-0"]
+                )
+                payload = json.loads(request.data)
+                schema = payload["response_format"]["json_schema"]["schema"] if backend == "llama.cpp" else payload["format"]
+                self.assertEqual(schema["properties"]["source_ids"]["maxItems"], 3)
+                self.assertEqual(schema["properties"]["source_ids"]["items"]["enum"], ["career", "blog-0"])
+                self.assertEqual(payload.get("max_tokens", payload.get("options", {}).get("num_predict")), 192)
+    def test_default_queue_wait_expires_at_sixty_seconds_not_fifteen(self):
+        self.assertEqual(gateway.QUEUE_WAIT_SECONDS, 60)
+        queue = gateway.AdmissionQueue()
+        queue.acquire(False)
+        ticket = queue.reserve()
+        clock = [0.0]
+        observed = []
+        def advance(_seconds):
+            clock[0] = 59.9 if clock[0] == 0 else 60.0
+        with patch.object(gateway.time, "monotonic", side_effect=lambda: clock[0]), patch.object(
+            queue.condition, "wait", side_effect=advance
+        ):
+            result = queue.wait(ticket, lambda: False, lambda: observed.append(clock[0]))
+        self.assertEqual(result, "queue_timeout")
+        self.assertEqual(observed, [59.9, 60.0])
+        self.assertEqual(len(queue.waiting), 0)
+        queue.release()
+
+    def test_waiter_cannot_be_bypassed_by_maintenance_or_new_arrival(self):
+        queue = gateway.AdmissionQueue()
+        self.assertIsNone(queue.reserve())
+        first = queue.reserve()
+        queue.release()
+        self.assertFalse(queue.acquire(False))
+        second = queue.reserve()
+        self.assertIsNotNone(second)
+        self.assertIsNone(queue.wait(first, lambda: False, lambda: None))
+        queue.release()
+        self.assertIsNone(queue.wait(second, lambda: False, lambda: None))
+        queue.release()
+
+    def test_cancelled_and_expired_waiters_release_queue_capacity(self):
+        queue = gateway.AdmissionQueue()
+        queue.acquire(False)
+        first = queue.reserve()
+        self.assertEqual(queue.wait(first, lambda: True, lambda: None), "request_cancelled")
+        second = queue.reserve()
+        with patch.object(gateway, "QUEUE_WAIT_SECONDS", 0):
+            self.assertEqual(queue.wait(second, lambda: False, lambda: None), "queue_timeout")
+        self.assertEqual(len(queue.waiting), 0)
+        queue.release()
+        self.assertTrue(queue.acquire(False))
+        queue.release()
 
 class WarmModelTests(unittest.TestCase):
     def state(self, *, seconds=600, context=4096, name=None):
@@ -218,6 +468,11 @@ class WarmModelTests(unittest.TestCase):
             gateway.maintain_warm_model(stop)
             warm.assert_called_once_with()
             wait.assert_called_once_with(60)
+
+    def test_llama_backend_does_not_use_ollama_residency(self):
+        with patch.object(gateway, "BACKEND", "llama.cpp"), patch.object(gateway.urllib.request, "urlopen") as upstream:
+            gateway.keep_model_warm()
+            upstream.assert_not_called()
 
 
 if __name__ == "__main__":

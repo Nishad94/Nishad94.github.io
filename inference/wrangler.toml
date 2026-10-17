@@ -1,0 +1,10 @@
+name = "nishad-ai-priority-preview"
+main = "priority-worker.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://nishad.ai"
+
+# Set LAPTOP_UPSTREAM and MAC_UPSTREAM remotely, not in this public file.
+# Store matching LAPTOP_GATEWAY_TOKEN / MAC_GATEWAY_TOKEN as Worker secrets.
+# Deploy with --keep-vars. This preview name cannot overwrite production.

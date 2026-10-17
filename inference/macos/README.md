@@ -46,4 +46,18 @@ To roll back, reinstall the previous gateway and restart its launch agent.
 Once no request is running, `ollama stop gemma4:e2b` releases the pinned model;
 later requests through the old gateway again use Ollama's normal idle timeout.
 
-`bridge-supervisor.sh` starts a Cloudflare quick tunnel, extracts its ephemeral URL, and redeploys the stable `nishad-ai-proxy` Worker route after every tunnel restart. It deploys `~/.local/share/nishad-ai/worker.js`, so every Worker release must synchronize that installed file or a later tunnel restart will restore old code. Install the two plist files in `~/Library/LaunchAgents`, install `cloudflared` at `~/.local/bin/cloudflared`, and keep Wrangler OAuth authenticated. The Worker forwards only requests from `https://nishad.ai`.
+`bridge-supervisor.sh` starts a Cloudflare quick tunnel, extracts its ephemeral URL,
+and redeploys the stable `nishad-ai-proxy` Worker route after every tunnel restart.
+The updated supervisor requires the canonical `inference/priority-worker.js`,
+`inference/wrangler.toml`, and `worker/ai-proxy.js` tree under the private runtime
+directory. It deploys with `--keep-vars` and updates only `MAC_UPSTREAM` among
+upstream bindings, preserving the laptop route and secret bindings.
+
+**The previously installed supervisor deploys `~/.local/share/nishad-ai/worker.js`.**
+Stop/replace it and synchronize all Worker files before enabling priority routing,
+or a later tunnel restart will restore old code. The updated supervisor refuses
+to redeploy the old file when the canonical tree is missing. Install the two plist
+files in `~/Library/LaunchAgents`, install `cloudflared` at
+`~/.local/bin/cloudflared`, and keep Wrangler OAuth authenticated. The Worker
+forwards only requests from configured exact origins. See
+[priority routing and cutover](../README.md); no live Mac changes are implied.

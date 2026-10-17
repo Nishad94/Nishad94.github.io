@@ -8,6 +8,7 @@
   "scripts": {
     "build": "node scripts/build-site.mjs",
     "preview": "npm run build && python3 tests/serve.py 8000 _site",
+    "preview:inference": "npm run build && node scripts/preview-inference.mjs",
     "test": "node --test tests/*.test.mjs && playwright test",
     "test:syntax": "node tests/check-syntax.mjs",
     "test:blog": "node --test tests/blog.test.mjs && playwright test tests/blog.spec.js"

@@ -53,6 +53,8 @@ for (const [name, response, expected] of [
 
 for (const [code, status, expected] of [
   ['busy', 503, /busy with another request/],
+  ['queue_full', 429, /queue is full/],
+  ['queue_timeout', 502, /waited too long/],
   ['mac_unreachable', 502, /unreachable/],
   ['upstream_incomplete', 502, /before confirmed completion/],
   ['upstream_timeout', 504, /service deadline/],

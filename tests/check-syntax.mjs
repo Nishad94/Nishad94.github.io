@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 
 const files = [
   ...readdirSync('.').filter(file => /\.(js|html)$/.test(file)),
-  ...['blog', 'scripts', 'tests', 'dashboard/web'].flatMap(directory =>
+  ...['assets', 'metrics', 'inference', 'worker', 'blog', 'scripts', 'tests', 'dashboard/web'].flatMap(directory =>
     readdirSync(directory).filter(file => /\.(m?js)$/.test(file)).map(file => `${directory}/${file}`))
 ];
 for (const file of files) {

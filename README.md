@@ -20,6 +20,28 @@ Branching Hypothesis," an interactive shell, and an in-browser LLM you can talk 
 
 The public site stays static. Optional AI and private analytics services are separate.
 
+Terminal AI requests always include the complete dated employment and education
+timelines from `ontology.js`, ordered oldest to newest, with internships and
+undocumented gaps distinguished. Detailed technical highlights remain
+query-relevant; no separate résumé copy is maintained in the UI.
+
+The terminal command `trajectory [focus]` (also in the command palette) explores
+three evidence-based career possibilities using those documented facts. Each
+path cites supporting experience and a next step or evidence gap. These are
+scenarios, not predictions: no invented goals, promotions, employers, salaries,
+timelines or hiring probabilities, and no live external-data lookup.
+
+An opt-in **Windows ARM64 laptop inference experiment** adds a local llama.cpp
+backend and a separate preview Worker with laptop-first/Mac-second chat routing.
+It does not change production automatically; reports remain Mac-only by default.
+See [runtime setup, failover rules, and cutover prerequisites](inference/README.md).
+
+For a complete **local-only** site trial with laptop chat and live metrics, run
+`npm run preview:inference` after bootstrapping inference, then open
+`http://127.0.0.1:8000/` and `/metrics/`. The development proxy keeps gateway
+credentials server-side and contacts only loopback; no Mac or public tunnel is
+needed. See [new-machine bootstrap and recovery](MEMORY.md).
+
 ### Private website metrics
 
 Canonical owner sign-in URL: **https://private.nishad.ai/dashboard_metrics**.
