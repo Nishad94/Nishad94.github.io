@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ARCHITECTURE_RECEIPTS, CAREER, EDUCATION, buildChatSystemPrompt, buildSystemPrompt, TECHNICAL_BRIEF } from '../ontology.js';
+import { ARCHITECTURE_RECEIPTS, CAREER, EDUCATION, LOCATION_HISTORY, buildChatSystemPrompt, buildSystemPrompt, TECHNICAL_BRIEF } from '../ontology.js';
 
 test('technical brief is deterministic, factual and connected to technical receipts', () => {
   assert.match(TECHNICAL_BRIEF, /Carnegie Mellon/);
@@ -38,9 +38,9 @@ test('baseline prompt leaves supplemental source selection to the semantic plann
   assert.doesNotMatch(twitter, /Autodesk Fusion 360/);
   const site = buildChatSystemPrompt('How is nishad.ai built?');
   assert.match(site, /GitHub Pages/);
-  assert.doesNotMatch(site, /Cisco Webex/);
+  assert.doesNotMatch(site, /Dockerized, cloud-deployed Java Spring parser/);
   const generic = buildChatSystemPrompt('What revenue is documented?');
-  assert.ok(generic.length < 3500, `generic prompt is ${generic.length} characters`);
+  assert.ok(generic.length < 3800, `generic prompt is ${generic.length} characters`);
 });
 
 test('every chat query receives the complete dated career and education timelines', () => {
@@ -70,6 +70,14 @@ test('historical employer locations cannot be replaced by the current profile lo
   assert.match(prompt, /Microsoft — Software Engineer II; Bengaluru, India/);
   assert.match(prompt, /Carnegie Mellon University .* Pittsburgh, PA, USA/);
   assert.match(prompt, /Pune Institute of Computer Technology .* Pune, India/);
+});
+
+test('country duration uses the residence timeline rather than one employer interval', () => {
+  const prompt = buildChatSystemPrompt('How many years was Nishad in the US?');
+  assert.equal(LOCATION_HISTORY[1].dates, '2018 – Jan 2024');
+  assert.match(prompt, /approximately six calendar years/);
+  assert.match(prompt, /2018 – Jan 2024: United States/);
+  assert.match(prompt, /relocated from the United States to Bengaluru in January 2024/);
 });
 
 test('month-specific grounding uses exact employment boundaries rather than year matches', () => {

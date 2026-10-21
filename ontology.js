@@ -127,6 +127,27 @@ export const EDUCATION = [
   }
 ];
 
+// ---- Residence / relocation history (REAL) --------------------------------
+// Kept separate from employment so location answers do not infer residence
+// solely from role dates or replace historical locations with the current city.
+export const LOCATION_HISTORY = [
+  {
+    location: 'Pune, India',
+    dates: 'through 2018',
+    notes: 'Undergraduate study at PICT and early Autodesk/Symantec work.'
+  },
+  {
+    location: 'United States',
+    dates: '2018 – Jan 2024',
+    notes: 'US chapter spanning Carnegie Mellon in Pittsburgh, Lecida in Berkeley, Twitter in Seattle, Cisco Webex in San Jose, and the period after Cisco before relocating. The 2018 start has year-only precision.'
+  },
+  {
+    location: 'Bengaluru, India',
+    dates: 'Jan 2024 – present',
+    notes: 'Relocated from the United States in January 2024; joined Microsoft in May 2024.'
+  }
+];
+
 // ---- Skills (REAL) ---------------------------------------------------------
 export const SKILLS = {
   languages: ['Scala', 'Java', 'C++', 'Python'],
@@ -214,6 +235,7 @@ export function buildSystemPrompt() {
   ).join('\n');
 
   const education = EDUCATION.map(e => `- ${e.school} — ${e.degree} (${e.dates}, ${e.location})`).join('\n');
+  const locations = LOCATION_HISTORY.map(item => `- ${item.dates}: ${item.location}. ${item.notes}`).join('\n');
 
   const skills =
     `- Languages: ${SKILLS.languages.join(', ')}\n` +
@@ -242,6 +264,9 @@ ${career}
 
 === EDUCATION (real) ===
 ${education}
+
+=== RESIDENCE / RELOCATION (real) ===
+${locations}
 
 === SKILLS (real) ===
 ${skills}
@@ -287,6 +312,9 @@ export function buildChatSystemPrompt(query = '', { intent = 'answer' } = {}) {
   const education = [...EDUCATION].reverse().map(item =>
     `- ${item.dates}: ${item.school} — ${item.degree}; ${item.location}.`
   ).join('\n');
+  const locations = LOCATION_HISTORY.map(item =>
+    `- ${item.dates}: ${item.location}.`
+  ).join('\n');
   const dateEvidence = monthEvidence(normalized);
   const extras = [];
   if (intent === 'career_scenarios') {
@@ -315,6 +343,7 @@ Response rules:
 - Alternate timelines are fiction and must be labeled as such.
 - Use the dates in the timeline for before/after, first/latest, and year-specific questions. Default chronological order is oldest to newest, not the order of the highlighted projects.
 - Treat the profile location as current only. For an employer- or year-specific location, use that career entry. Twitter (March 2020–January 2023) was in Seattle, Washington, USA, not Bengaluru.
+- For country-duration, relocation, or "how many years" questions, use the residence timeline rather than adding one job interval. Nishad's documented US chapter is 2018 through January 2024: approximately six calendar years, with year-only precision for the 2018 start. He relocated from the United States to Bengaluru in January 2024.
 - Internships count as work experience, but distinguish the first internship from the first full-time role. Do not invent work during undocumented gaps.
 - Education dates have year precision only: do not invent graduation months or assume which came first within the same year. Internships may overlap education.
 - Do not reveal a phone number. Public email and profile links are allowed.
@@ -330,6 +359,9 @@ ${timeline}
 
 Education timeline (oldest to newest):
 ${education}
+
+Residence timeline:
+${locations}
 ${dateEvidence ? `\nMonth-specific lookup (computed from documented employment boundaries):\n${dateEvidence}\n` : ''}
 
 Core career evidence:
