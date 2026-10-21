@@ -42,7 +42,9 @@ The project needed a default model path with four properties:
 
 An Apple Silicon Mac is a useful personal-inference host because unified memory and Metal make quantized models practical without a discrete GPU. It is not a data center, and the design does not pretend otherwise. The machine can sleep. Home internet can fail. A quick tunnel can receive a new hostname. Thermal pressure and another local model can affect latency.
 
-Those constraints led to a narrow architecture: one model slot, one active generation, a bounded queue, short outputs, loopback listeners, and multiple explicit failure states.
+Those constraints led to a narrow architecture: two cache-specialized model
+slots, one active generation, a bounded queue, short outputs, loopback listeners,
+and multiple explicit failure states.
 
 The selected baseline is **Qwen3-4B Q4_K_M** in GGUF format. The quantized model is approximately 2.5 GB—small enough for a personal host, but capable enough for short grounded answers and semantic source routing.
 
@@ -53,7 +55,7 @@ The GGUF file contains learned weights. It does not provide an HTTP server, toke
 `llama.cpp` supplies those pieces. The Mac launch agent starts `llama-server` with:
 
 - a 4,096-token context;
-- one parallel sequence;
+- two 4,096-token server slots backed by an 8,192-token context pool;
 - six inference and batch threads;
 - Jinja chat-template support;
 - Metal layer offload on Apple Silicon;
@@ -73,6 +75,37 @@ llama-server \
 The exact model revision and SHA-256 are pinned in the repository runbook. We verify the complete download before the service is allowed to start. A partial or mismatched model is an installation failure, not an excuse to start a different model silently.
 
 The native server exposes an OpenAI-compatible chat endpoint. That is useful, but it is deliberately not the public API.
+
+### Separate KV-cache slots for routing and answers
+
+Each terminal question normally makes two Qwen calls: a constrained semantic
+routing request followed by the final grounded answer. Running both through one
+slot caused the routing prompt to replace the answer prompt's reusable KV state,
+and the answer then replaced the routing state.
+
+The server now starts with:
+
+```text
+-c 8192
+-np 2
+--cache-prompt
+```
+
+The gateway adds llama.cpp's `id_slot` extension:
+
+```python
+payload["id_slot"] = 0 if is_route else 1
+```
+
+Slot `0` retains the stable routing rules and source catalog. Slot `1` retains
+the stable response policy and ontology prefix used by chat and reports. The
+gateway still admits only one active generation, so the extra slot improves
+prompt-prefix reuse without enabling simultaneous model execution.
+
+On this 16 GB Mac, the one-slot server measured about 2.2 GiB physical footprint
+and 2.64 GiB RSS. The warmed two-slot server measured about 3.52 GiB RSS: roughly
+0.9 GiB additional memory. The model weights remain loaded once; the increase is
+primarily the doubled context/KV capacity.
 
 ## Why put Python in front of llama.cpp?
 

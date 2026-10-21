@@ -60,7 +60,7 @@ RUNTIME="$HOME/.local/share/nishad-ai"
 llama-server \
   -m "$RUNTIME/models/Qwen3-4B-Q4_K_M.gguf" \
   --host 127.0.0.1 --port 8082 \
-  -c 4096 -np 1 -t 6 -ngl 99 --jinja --log-disable
+  -c 8192 -np 2 -t 6 -ngl 99 --jinja --cache-prompt --log-disable
 ```
 
 Wait for `curl --fail http://127.0.0.1:8082/health` to report `{"status":"ok"}`.
@@ -237,6 +237,13 @@ in flight. No Worker, tunnel, Pages, or Ollama-server restart is needed. Verify
 `/api/ps` shows the configured model with context 4096 and a far-future expiry,
 then check again after the previous idle timeout. Keep runtime paths/configuration
 and diagnostic artifacts out of the Pages output.
+
+The production server allocates two 4,096-token KV-cache slots from an
+8,192-token context pool. Gateway routing requests explicitly use slot `0`;
+final chat and structured-report requests use slot `1`. Model weights remain
+shared while each workload retains its own prompt prefix. The Python gateway
+still admits only one active generation, so this improves cache specialization
+without enabling parallel model execution.
 
 Warmth is best-effort: sleep, restarts, memory pressure, or another model can
 still evict Gemma. In particular, `OLLAMA_MAX_LOADED_MODELS=1` allows another

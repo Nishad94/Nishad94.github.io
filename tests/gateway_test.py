@@ -143,6 +143,7 @@ class GatewayTests(unittest.TestCase):
                 self.assertEqual(events[0]["delta"], "synthetic café")
                 self.assertEqual(events[-1], {"done": True, "finish_reason": "stop"})
                 self.assertEqual(payload["chat_template_kwargs"], {"enable_thinking": False})
+                self.assertEqual(payload["id_slot"], gateway.ANSWER_SLOT)
                 self.assertEqual(payload["max_tokens"], 256 if mode == "chat" else 1200)
                 self.assertNotIn("keep_alive", payload)
                 if mode == "chat":
@@ -323,6 +324,8 @@ class AdmissionQueueTests(unittest.TestCase):
                 )
                 payload = json.loads(request.data)
                 self.assertIn('must select "career"', payload["messages"][0]["content"])
+                if backend == "llama.cpp":
+                    self.assertEqual(payload["id_slot"], gateway.ROUTING_SLOT)
                 schema = payload["response_format"]["json_schema"]["schema"] if backend == "llama.cpp" else payload["format"]
                 self.assertEqual(schema["properties"]["source_ids"]["maxItems"], 3)
                 self.assertEqual(schema["properties"]["source_ids"]["items"]["enum"], ["career", "blog-0"])
