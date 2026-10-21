@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { performance } from 'node:perf_hooks';
-import { createSiteKnowledge, parseWebIntent, webIntentMessages } from '../assets/site-knowledge.js';
+import { createSiteKnowledge, parseWebIntent, webIntentContext, webIntentMessages } from '../assets/site-knowledge.js';
 import { readChatStream } from '../assets/chat-stream.js';
 
 const gateway = new URL(process.argv[2] || 'http://127.0.0.1:8094/');
@@ -111,7 +111,7 @@ for (let index = 0; index < prompts.length; index++) {
   const intentResult = await gatewayStream({
     mode: 'chat',
     task: 'web_intent',
-    messages: webIntentMessages(prompt)
+    messages: webIntentMessages(prompt, webIntentContext())
   }, `web-benchmark-${index}-intent`);
   const webIntent = parseWebIntent(intentResult.content);
   const intentMs = performance.now() - intentStarted;

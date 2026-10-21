@@ -17,7 +17,19 @@ export function webIntentSchema() {
   };
 }
 
-export function webIntentMessages(query) {
+export function webIntentContext() {
+  const currentRole = CAREER.find(role => role.endMonth === null) || CAREER[0];
+  return `Authoritative public profile context:
+- Name: ${PROFILE.name}
+- Current profile location: ${PROFILE.location}
+- Current role: ${currentRole.title} at ${currentRole.company}, ${currentRole.location}, ${currentRole.dates}
+- Career: ${[...CAREER].reverse().map(role => `${role.company} — ${role.title}, ${role.location}, ${role.dates}`).join('; ')}
+- Education: ${EDUCATION.map(item => `${item.school} — ${item.degree}, ${item.location}, ${item.dates}`).join('; ')}
+- Documented technical focus: ${SKILLS.focus.join(', ')}
+- Languages: ${SKILLS.languages.join(', ')}`;
+}
+
+export function webIntentMessages(query, context = webIntentContext()) {
   return [
     {
       role: 'system',
@@ -25,6 +37,10 @@ export function webIntentMessages(query) {
 Use web_search=true for explicit requests to search public sources or obtain current, latest, recent, up-to-date, live, market, benchmark, news, external-source, or public-web information. Also use it when a requested estimate or hypothesis materially benefits from current public evidence unavailable in a static personal-site ontology.
 Use web_search=false for documented profile facts, questions about supplied local sources, timeless general knowledge, casual conversation, and fictional or creative requests that do not ask for current evidence.
 When web_search=true, web_query must be one self-contained natural-language search query of 3-300 characters that preserves the user's actual research intent. When false, web_query must be empty.
+Use the authoritative profile context below to resolve references such as "his current role", "his level", "where he works", or "his background". When the user asks for a market estimate or comparison based on a person's role, search for the relevant category using documented company, standardized title/level, location, and time period rather than searching the person's name or trying to discover private personal data. For unrelated external questions, ignore the profile context.
+
+${context}
+
 Return only the JSON object. Do not answer the question.`
     },
     { role: 'user', content: query }

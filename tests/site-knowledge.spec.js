@@ -83,6 +83,7 @@ test('web intent streams the local answer before a cited Exa enrichment', async 
     const body = route.request().postDataJSON();
     if (body.task === 'web_intent') {
       intents++;
+      expect(body.messages[0].content).toContain('Current role: Software Engineer II at Microsoft');
       return route.fulfill({ json: {
         content: JSON.stringify({
           web_search: true,

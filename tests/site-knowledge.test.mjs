@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createSiteKnowledge, parseRoutingPlan, validateKnowledgeIndex } from '../assets/site-knowledge.js';
+import {
+  createSiteKnowledge, parseRoutingPlan, validateKnowledgeIndex, webIntentContext, webIntentMessages
+} from '../assets/site-knowledge.js';
 import { parsePost, renderBlog } from '../scripts/build-site.mjs';
 import { source } from './blog-fixture.mjs';
 
@@ -83,6 +85,14 @@ test('routing can request one bounded general-purpose web search', async () => {
     JSON.stringify({ needs_site_data: false, source_ids: [], intent: 'answer', web_search: true, web_query: 'x' }),
     new Set()
   ));
+});
+
+test('web intent receives authoritative current-role context for query rewriting', () => {
+  const context = webIntentContext();
+  assert.match(context, /Current role: Software Engineer II at Microsoft, Bengaluru, India/);
+  const messages = webIntentMessages('estimate his current compensation', context);
+  assert.match(messages[0].content, /company, standardized title\/level, location, and time period/);
+  assert.match(messages[0].content, /Software Engineer II at Microsoft/);
 });
 
 test('buildless pages explicitly disclose an unavailable article index; malformed sources fail', async () => {
