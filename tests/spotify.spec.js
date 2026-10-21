@@ -473,9 +473,9 @@ test('existing deterministic commands, palette, local failure, BYOK streaming an
 
 test('builder mode shortcut, proof callouts and palette form a fast high-intent path', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Blog / 9 build notes' })).toBeVisible();
-  await expect(page.locator('.writing-card')).toHaveCount(9);
-  await expect(page.locator('.writing-card.featured')).toHaveAttribute('href', '/blog/inside-nishad-ai-ontology-kv-cache/');
+  await expect(page.getByRole('heading', { name: 'Blog / 10 build notes' })).toBeVisible();
+  await expect(page.locator('.writing-card')).toHaveCount(10);
+  await expect(page.locator('.writing-card.featured')).toHaveAttribute('href', '/blog/adding-live-web-search-to-nishad-ai/');
   await expect(page.getByRole('heading', { name: 'proof of work / live architecture' })).toBeVisible();
   await expect(page.locator('#architecture')).toContainText('Qwen via llama.cpp on Mac');
   await expect(page.locator('#architecture')).toContainText('Go + PostgreSQL');

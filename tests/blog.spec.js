@@ -49,10 +49,10 @@ for (const width of [1280, 1201, 1024, 800, 701, 375, 320]) {
       for (const link of await navigation.getByRole('link').all()) {
         await expect(link).toBeInViewport({ ratio: 1 });
       }
-      await expect(page.getByRole('heading', { name: 'Blog / 9 build notes' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Blog / 10 build notes' })).toBeVisible();
       await expect(page.getByRole('link', { name: 'all blog posts' })).toHaveAttribute('href', '/blog/');
       const posts = await page.locator('.writing-card').evaluateAll(links => links.map(link => link.getAttribute('href')));
-      expect(posts).toHaveLength(9);
+      expect(posts).toHaveLength(10);
       const response = page.waitForResponse(response => response.request().isNavigationRequest() && response.url().endsWith('/blog/'));
       await blog.click();
       expect((await response).status()).toBe(200);
@@ -90,7 +90,7 @@ test('hash tabs and legacy anchors remain separate from keyboard Blog navigation
     await expect(page.locator('body')).toHaveAttribute('data-view', 'story');
     await page.goto('/#writing');
     await expect(page.locator('body')).toHaveAttribute('data-view', 'home');
-    await expect(page.getByRole('heading', { name: 'Blog / 9 build notes' })).toBeInViewport();
+    await expect(page.getByRole('heading', { name: 'Blog / 10 build notes' })).toBeInViewport();
     await blog.focus();
     await expect(blog).toBeFocused();
     await page.keyboard.press('Enter');
@@ -244,6 +244,31 @@ test('ontology and KV-cache article publishes measured internals and responsive 
     await expect(page.locator('.prose')).toContainText('The 4,096-token context constraint');
     await expect(page.locator('.prose')).toContainText('Two cache-specialized slots');
     await expect(page.locator('.prose')).toContainText('98.1%');
+    for (const image of await page.locator('.prose img').all()) {
+      await image.scrollIntoViewIfNeeded();
+      await expect(image).toHaveJSProperty('complete', true);
+      expect(await image.evaluate(el => el.naturalWidth)).toBeGreaterThanOrEqual(1200);
+      expect(await image.getAttribute('alt')).toBeTruthy();
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+});
+
+test('Exa search article publishes progressive flow, security boundaries and measured latency', async ({ page, request }) => {
+  const articleSlug = 'adding-live-web-search-to-nishad-ai';
+  const path = `/blog/${articleSlug}/`;
+  const post = parsePost(await readFile(`posts/${articleSlug}.md`, 'utf8'), `${articleSlug}.md`);
+  expect((await (await request.get('/sitemap.xml')).text())).toContain(path);
+  expect((await (await request.get('/analytics-pages.json')).json())[path]).toBe(post.title);
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect((await page.goto(path)).status()).toBe(200);
+    await expect(page.locator('h1')).toHaveText(post.title);
+    await expect(page.locator('.prose img')).toHaveCount(3);
+    await expect(page.locator('.prose')).toContainText('A dedicated web-intent inference');
+    await expect(page.locator('.prose')).toContainText('Search is an addendum, not a loading screen');
+    await expect(page.locator('.prose')).toContainText('36.64 s');
+    await expect(page.locator('.prose')).toContainText('The internet was not the slow part');
     for (const image of await page.locator('.prose img').all()) {
       await image.scrollIntoViewIfNeeded();
       await expect(image).toHaveJSProperty('complete', true);
