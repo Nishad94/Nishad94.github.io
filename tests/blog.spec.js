@@ -147,6 +147,9 @@ test('homepage activity renders build-time commits without calling the GitHub AP
   await expect(page.locator('#activity-summary')).toContainText('3 commits across 1 active days');
   expect(await page.locator('#activity-grid .activity-day').count()).toBeGreaterThanOrEqual(365);
   await expect(page.locator('#activity-grid .activity-day[data-level="4"]')).toHaveCount(1);
+  await page.locator(`#activity-grid .activity-day[data-date="${today}"]`).hover();
+  await expect(page.locator('#activity-tooltip')).toHaveAttribute('data-visible', 'true');
+  await expect(page.locator('#activity-tooltip')).toHaveText(`${today}: 3 commits`);
   await expect(page.locator('#activity-commits a')).toHaveText('Add repository activity widget');
   await expect(page.locator('#activity-commits a')).toHaveAttribute(
     'href', `https://github.com/Nishad94/Nishad94.github.io/commit/${sha}`
