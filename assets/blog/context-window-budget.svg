@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="title desc">
+<title id="title">4096-token context budget</title><desc id="desc">A stacked context window shows stable ontology, selected evidence, conversation, current question, template overhead and generated answer sharing a 4096-token model slot.</desc>
+<defs><style>.bg{fill:#0d0f1b}.panel{fill:#121528;stroke:#343754;stroke-width:2}.ttl{fill:#f7f4ff;font:700 30px system-ui}.sub{fill:#aba8c8;font:18px system-ui}.h{fill:#f7f4ff;font:700 18px system-ui}.p{fill:#cfcbe5;font:15px system-ui}.mono{fill:#9fffd2;font:700 14px ui-monospace,monospace}.s1{fill:#55a9ff}.s2{fill:#b690ff}.s3{fill:#4ee38c}.s4{fill:#f1c75b}.s5{fill:#ff9bd6}.line{stroke:#7380a8;stroke-width:2}</style></defs>
+<rect class="bg" width="1400" height="760" rx="28"/><text class="ttl" x="55" y="62">One slot, one finite context budget</text><text class="sub" x="55" y="95">Every instruction, fact, passage, conversation turn and output token competes for 4,096 tokens.</text>
+<rect class="panel" x="55" y="145" width="1290" height="500" rx="24"/>
+<text class="mono" x="90" y="190">ILLUSTRATIVE ALLOCATION · CHARACTER BUDGETS ARE TOKEN HEURISTICS</text>
+<rect class="s1" x="90" y="240" width="365" height="100" rx="12"/><text class="h" x="115" y="280">Stable ontology + rules</text><text class="p" x="115" y="312">identity · timelines · authority</text>
+<rect class="s2" x="455" y="240" width="245" height="100"/><text class="h" x="478" y="280">Evidence</text><text class="p" x="478" y="312">≤2,600 chars</text>
+<rect class="s3" x="700" y="240" width="315" height="100"/><text class="h" x="725" y="280">Conversation</text><text class="p" x="725" y="312">≤4 exchanges / 6,000 chars</text>
+<rect class="s4" x="1015" y="240" width="135" height="100"/><text class="h" x="1032" y="280">Query</text><text class="p" x="1032" y="312">current</text>
+<rect class="s5" x="1150" y="240" width="150" height="100" rx="0 12 12 0"/><text class="h" x="1170" y="280">Output</text><text class="p" x="1170" y="312">≤256 tok</text>
+<path class="line" d="M90 365H1300"/><text class="mono" x="90" y="398">0 TOKENS</text><text class="mono" x="1190" y="398">4,096 TOKENS</text>
+<rect x="90" y="450" width="570" height="135" rx="16" fill="#171d30" stroke="#9fffd2" stroke-width="2"/><text class="h" x="120" y="490">Evidence budget does not cap the system prompt</text><text class="p" x="120" y="525">It caps only supplemental retrieved passages.</text><text class="p" x="120" y="555">Core chronology remains in the stable ontology prefix.</text>
+<rect x="700" y="450" width="600" height="135" rx="16" fill="#241f25" stroke="#f4cf57" stroke-width="2"/><text class="h" x="730" y="490">Why leave headroom?</text><text class="p" x="730" y="525">tokenization variance · chat-template markers · answer reserve</text><text class="p" x="730" y="555">latency · KV memory · browser fallback compatibility</text>
+</svg>

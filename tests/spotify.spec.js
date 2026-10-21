@@ -473,11 +473,11 @@ test('existing deterministic commands, palette, local failure, BYOK streaming an
 
 test('builder mode shortcut, proof callouts and palette form a fast high-intent path', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Blog / 8 build notes' })).toBeVisible();
-  await expect(page.locator('.writing-card')).toHaveCount(8);
-  await expect(page.locator('.writing-card.featured')).toHaveAttribute('href', '/blog/one-hour-five-fixes-one-missing-contract/');
+  await expect(page.getByRole('heading', { name: 'Blog / 9 build notes' })).toBeVisible();
+  await expect(page.locator('.writing-card')).toHaveCount(9);
+  await expect(page.locator('.writing-card.featured')).toHaveAttribute('href', '/blog/inside-nishad-ai-ontology-kv-cache/');
   await expect(page.getByRole('heading', { name: 'proof of work / live architecture' })).toBeVisible();
-  await expect(page.locator('#architecture')).toContainText('Gemma 4 via Ollama on Mac');
+  await expect(page.locator('#architecture')).toContainText('Qwen via llama.cpp on Mac');
   await expect(page.locator('#architecture')).toContainText('Go + PostgreSQL');
   await expect(page.locator('#architecture .blog-cta')).toContainText('Read the technical build log');
   await expect(page.locator('.proof-link')).toHaveCount(3);
