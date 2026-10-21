@@ -150,9 +150,11 @@ def routing_schema(ids,limit=3):
   'properties':{
    'needs_site_data':{'type':'boolean'},
    'source_ids':{'type':'array','maxItems':limit,'items':{'type':'string','enum':ids}},
-   'intent':{'type':'string','enum':['answer','career_scenarios']}
+   'intent':{'type':'string','enum':['answer','career_scenarios']},
+   'web_search':{'type':'boolean'},
+   'web_query':{'type':'string','maxLength':300}
   },
-  'required':['needs_site_data','source_ids','intent']
+  'required':['needs_site_data','source_ids','intent','web_search','web_query']
  }
 
 def generation_request(messages,is_report,is_route=False,route_ids=None,route_limit=3):

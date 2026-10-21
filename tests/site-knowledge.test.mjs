@@ -4,7 +4,13 @@ import { createSiteKnowledge, parseRoutingPlan, validateKnowledgeIndex } from '.
 import { parsePost, renderBlog } from '../scripts/build-site.mjs';
 import { source } from './blog-fixture.mjs';
 
-const plan = (ids = [], intent = 'answer') => JSON.stringify({ needs_site_data: ids.length > 0, source_ids: ids, intent });
+const plan = (ids = [], intent = 'answer', webQuery = '') => JSON.stringify({
+  needs_site_data: ids.length > 0,
+  source_ids: ids,
+  intent,
+  web_search: Boolean(webQuery),
+  web_query: webQuery
+});
 const index = {
   schema: 'nishad.public-knowledge.v1', documents: [{
     id: 'blog-0', title: 'An opaque synthetic title', description: 'Synthetic public reference.',
@@ -51,12 +57,26 @@ test('routing plans cannot introduce unknown IDs, URLs, oversized selections or 
 test('routing derives the redundant needs_site_data flag from validated source IDs', () => {
   assert.deepEqual(
     parseRoutingPlan('{"needs_site_data":false,"source_ids":["a"],"intent":"answer"}', new Set(['a'])),
-    { needs_site_data: true, source_ids: ['a'], intent: 'answer' }
+    { needs_site_data: true, source_ids: ['a'], intent: 'answer', web_search: false, web_query: '' }
   );
   assert.deepEqual(
     parseRoutingPlan('{"needs_site_data":true,"source_ids":[],"intent":"answer"}', new Set(['a'])),
-    { needs_site_data: false, source_ids: [], intent: 'answer' }
+    { needs_site_data: false, source_ids: [], intent: 'answer', web_search: false, web_query: '' }
   );
+});
+
+test('routing can request one bounded general-purpose web search', async () => {
+  const result = await createSiteKnowledge({ fetchImpl }).prepare(
+    'What changed recently in llama.cpp prompt caching?',
+    async () => plan(['site'], 'answer', 'recent llama.cpp prompt caching changes')
+  );
+  assert.equal(result.web_search, true);
+  assert.equal(result.web_query, 'recent llama.cpp prompt caching changes');
+  assert.match(result.systemPrompt, /separate public-web enrichment phase may follow/);
+  assert.throws(() => parseRoutingPlan(
+    JSON.stringify({ needs_site_data: false, source_ids: [], intent: 'answer', web_search: true, web_query: 'x' }),
+    new Set()
+  ));
 });
 
 test('buildless pages explicitly disclose an unavailable article index; malformed sources fail', async () => {

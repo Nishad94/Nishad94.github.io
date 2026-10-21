@@ -285,6 +285,15 @@ for follow-up questions within the current browser tab. This history is bounded
 before each request, is not written to localStorage or the server, disappears
 when the tab closes, and can be cleared immediately with `forget`.
 
+Optional public-web enrichment is implemented behind `WEB_SEARCH_ENABLED` and
+the Worker's private `EXA_API_KEY` secret. When enabled, the semantic router may
+produce one bounded public search query. The terminal streams its local answer
+first while the Worker calls Exa Lite, then sends sanitized excerpts back for a
+separate cited addendum. The derived search query leaves the browser through
+Cloudflare and is sent to Exa; browser cookies, gateway credentials, conversation
+history and the complete ontology are not sent to Exa. Search remains disabled
+when either configuration value is absent.
+
 The launchd-managed llama.cpp process keeps Qwen loaded between requests. This
 avoids per-request model startup; it does not eliminate prompt evaluation or
 generation time. Availability still depends on memory, power, connectivity and

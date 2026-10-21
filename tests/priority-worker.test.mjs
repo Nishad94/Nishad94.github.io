@@ -11,10 +11,70 @@ const request = (mode = 'chat', options = {}) => new Request('https://worker.exa
   method: 'POST', headers: { Origin: 'https://nishad.ai', 'Content-Type': 'application/json', Authorization: 'Bearer untrusted' },
   body: JSON.stringify({ messages, ...(mode ? { mode } : {}) }), ...options
 });
+const searchRequest = (body = { query: 'recent public inference research' }, origin = 'https://nishad.ai') =>
+  new Request('https://worker.example/search', {
+    method: 'POST',
+    headers: { Origin: origin, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
 const stream = 'data: {"delta":"OK"}\n\ndata: {"done":true,"finish_reason":"stop"}\n\n';
 const success = () => new Response(stream, { headers: { 'Content-Type': 'text/event-stream' } });
 const ready = () => Response.json({ status: 'ok' });
 beforeEach(resetMemory);
+
+test('Exa Lite search is bounded, sanitized, and keeps its API key server-side', async () => {
+  const response = await handle(searchRequest(), { ...env, EXA_API_KEY: 'synthetic-exa-key' }, async (url, init) => {
+    assert.equal(url, 'https://api.exa.ai/search');
+    assert.match(init.headers['x-api-key'], /^synthetic-/);
+    assert.deepEqual(JSON.parse(init.body), {
+      query: 'recent public inference research',
+      type: 'lite',
+      numResults: 5,
+      moderation: true,
+      contents: { highlights: true }
+    });
+    return Response.json({
+      private: 'must not leak',
+      results: [
+        {
+          title: '  Useful result  ',
+          url: 'https://example.com/research?x=1#fragment',
+          highlights: ['Relevant   public evidence.'],
+          publishedDate: '2026-10-20T00:00:00Z',
+          private: 'secret'
+        },
+        {
+          title: 'Unsafe result',
+          url: 'http://127.0.0.1/private',
+          highlights: ['must be removed']
+        }
+      ]
+    });
+  }, () => Date.parse('2026-10-21T00:00:00Z'));
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('Access-Control-Allow-Origin'), 'https://nishad.ai');
+  const result = await response.json();
+  assert.equal(result.schema, 'nishad.web-search.v1');
+  assert.equal(result.results.length, 1);
+  assert.equal(result.results[0].title, 'Useful result');
+  assert.equal(result.results[0].url, 'https://example.com/research?x=1');
+  assert.equal(result.results[0].snippet, 'Relevant public evidence.');
+  assert.doesNotMatch(JSON.stringify(result), /secret|must not leak|synthetic-exa/);
+});
+
+test('web search fails closed when unconfigured, invalid, denied, or over quota', async () => {
+  assert.equal((await handle(searchRequest(), env, async () => assert.fail('unexpected search'))).status, 503);
+  assert.equal((await handle(searchRequest({ query: 'x' }), { ...env, EXA_API_KEY: 'key' }, async () => assert.fail('unexpected search'))).status, 400);
+  assert.equal((await handle(searchRequest(undefined, 'https://evil.example'), { ...env, EXA_API_KEY: 'key' }, async () => assert.fail('unexpected search'))).status, 403);
+  const searchEnv = { ...env, EXA_API_KEY: 'key' };
+  const provider = async () => Response.json({ results: [] });
+  for (let index = 0; index < 20; index++) {
+    assert.equal((await handle(searchRequest(), searchEnv, provider, () => Date.parse('2026-10-21T00:00:00Z'))).status, 200);
+  }
+  const limited = await handle(searchRequest(), searchEnv, provider, () => Date.parse('2026-10-21T00:00:00Z'));
+  assert.equal(limited.status, 429);
+  assert.deepEqual(await limited.json(), { error: 'search_quota_exceeded' });
+});
 
 test('healthy laptop has priority, uses its secret, and preserves chat stream', async () => {
   const calls = [];

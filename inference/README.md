@@ -185,6 +185,7 @@ in `worker\ai-proxy.js`; that rollback artifact is not replaced.
 | `MAC_UPSTREAM` | Optional HTTPS origin for the existing Mac gateway tunnel. |
 | `LAPTOP_GATEWAY_TOKEN` | Worker secret matching the laptop's `GATEWAY_TOKEN`. |
 | `MAC_GATEWAY_TOKEN` | Optional equivalent secret after enabling authentication on the Mac. |
+| `EXA_API_KEY` | Optional Worker secret enabling the bounded `/search` endpoint when the public site flag is also enabled. |
 | `LAPTOP_REPORTS` | Only the exact value `true` enables laptop reports. Default: Mac-only reports. |
 | `ALLOWED_ORIGIN` | Exact allowed website origins, comma-separated. |
 
@@ -202,6 +203,24 @@ For `/metrics`, the Worker reads the first configured authenticated gateway,
 preferring the laptop and otherwise using the Mac. It reconstructs the public
 schema field by field and never forwards prompts, answers, identities, addresses,
 credentials or arbitrary upstream fields.
+
+`/search` accepts one 3–300 character query from an approved browser origin,
+applies best-effort per-visitor and global daily quotas, and calls Exa Lite for
+at most five moderated results with cached highlights. It returns a
+provider-neutral schema containing only validated HTTPS URLs, bounded titles,
+bounded snippets and optional publication dates. It never exposes the Exa key,
+fetches result URLs, forwards cookies, or permits arbitrary URL proxying.
+
+Configure the secret without printing it:
+
+```sh
+printf '%s' "$EXA_API_KEY" | npx --yes wrangler secret put EXA_API_KEY \
+  --config inference/wrangler.toml --name nishad-ai-proxy
+```
+
+Then set `WEB_SEARCH_ENABLED=true` in `deployment.js` and deploy Pages. Keep the
+flag false until the secret exists; local ontology answers and browser fallback
+continue to work normally while search is disabled.
 
 Readiness checks use `/healthz`, never sample prompts, and have a five-second
 deadline so a newly established quick tunnel can complete its first connection.

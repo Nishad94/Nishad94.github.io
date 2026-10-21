@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const noData = { needs_site_data: false, source_ids: [], intent: 'answer' };
+const noData = { needs_site_data: false, source_ids: [], intent: 'answer', web_search: false, web_query: '' };
 const index = {
   schema: 'nishad.public-knowledge.v1',
   documents: [{
@@ -64,6 +64,105 @@ test('semantic router can decide that general questions need no additional site 
   await page.locator('#term-input').press('Enter');
   await expect(page.locator('#term-output')).toContainText('GENERAL_KNOWLEDGE_ANSWER');
   expect(routing).toBe(1);
+});
+
+test('web intent streams the local answer before a cited Exa enrichment', async ({ page }) => {
+  await page.route('**/deployment.js', route => route.fulfill({
+    contentType: 'application/javascript',
+    body: `export const PRIVATE_DASHBOARD_ORIGIN = '';
+export const ANALYTICS_ENDPOINT = '';
+export const INFERENCE_CHAT_ENDPOINT = '';
+export const INFERENCE_METRICS_ENDPOINT = '';
+export const WEB_SEARCH_ENABLED = true;
+export const ADSENSE_CLIENT = '';
+export const ADSENSE_SLOT = '';`
+  }));
+  await setup(page);
+  let routing = 0, answering = 0, searches = 0;
+  await page.route('http://127.0.0.1:9/semantic', route => {
+    const body = route.request().postDataJSON();
+    if (body.task === 'knowledge_route') {
+      routing++;
+      return route.fulfill({ json: {
+        content: JSON.stringify({
+          needs_site_data: false,
+          source_ids: [],
+          intent: 'answer',
+          web_search: true,
+          web_query: 'current synthetic public benchmark'
+        }),
+        finish_reason: 'stop'
+      } });
+    }
+    answering++;
+    if (answering === 1) {
+      expect(body.messages[0].content).toContain('separate public-web enrichment phase may follow');
+      return route.fulfill({ json: { content: 'LOCAL_DOCUMENTED_ANSWER', finish_reason: 'stop' } });
+    }
+    expect(body.messages[0].content).toContain('PUBLIC WEB ENRICHMENT');
+    expect(body.messages[0].content).toContain('SYNTHETIC_WEB_EVIDENCE');
+    return route.fulfill({
+      contentType: 'text/event-stream',
+      body: 'data: {"delta":"WEB_ENRICHED_ANSWER"}\n\ndata: {"done":true,"finish_reason":"stop"}\n\n'
+    });
+  });
+  await page.route('http://127.0.0.1:9/search', async route => {
+    searches++;
+    expect(route.request().postDataJSON()).toEqual({ query: 'current synthetic public benchmark' });
+    await new Promise(resolve => setTimeout(resolve, 800));
+    return route.fulfill({ json: {
+      schema: 'nishad.web-search.v1',
+      query: 'current synthetic public benchmark',
+      retrieved_at: '2026-10-21T00:00:00Z',
+      results: [{
+        title: 'Synthetic public source',
+        url: 'https://example.com/evidence',
+        snippet: 'SYNTHETIC_WEB_EVIDENCE',
+        published_at: '2026-10-20T00:00:00Z'
+      }]
+    } });
+  });
+  await page.goto('/#shell');
+  await page.locator('#term-input').fill('Give me a current public estimate.');
+  await page.locator('#term-input').press('Enter');
+  await expect(page.locator('#term-output')).toContainText('LOCAL_DOCUMENTED_ANSWER');
+  await expect(page.locator('#term-output')).toContainText('Loading estimates/data from web');
+  await expect(page.locator('#term-output')).toContainText('WEB_ENRICHED_ANSWER');
+  await expect(page.locator('#term-output a', { hasText: 'Synthetic public source' }))
+    .toHaveAttribute('href', 'https://example.com/evidence');
+  const text = await page.locator('#term-output').innerText();
+  expect(text.indexOf('LOCAL_DOCUMENTED_ANSWER')).toBeLessThan(text.indexOf('WEB_ENRICHED_ANSWER'));
+  expect(routing).toBe(1);
+  expect(answering).toBe(2);
+  expect(searches).toBe(1);
+});
+
+test('web intent remains local-only while the public deployment flag is disabled', async ({ page }) => {
+  await setup(page);
+  await page.route('http://127.0.0.1:9/search', () => {
+    throw new Error('search must stay disabled');
+  });
+  await page.route('http://127.0.0.1:9/semantic', route => {
+    const body = route.request().postDataJSON();
+    if (body.task === 'knowledge_route') {
+      return route.fulfill({ json: {
+        content: JSON.stringify({
+          needs_site_data: false,
+          source_ids: [],
+          intent: 'answer',
+          web_search: true,
+          web_query: 'current external information'
+        }),
+        finish_reason: 'stop'
+      } });
+    }
+    return route.fulfill({ json: { content: 'LOCAL_ONLY_WHILE_DISABLED', finish_reason: 'stop' } });
+  });
+  await page.goto('/#shell');
+  await page.locator('#term-input').fill('Give me current external information.');
+  await page.locator('#term-input').press('Enter');
+  await expect(page.locator('#term-output')).toContainText('LOCAL_ONLY_WHILE_DISABLED');
+  await expect(page.locator('#term-output')).not.toContainText('Loading estimates/data from web');
 });
 
 test('invalid model-selected IDs fail explicitly before an answer request', async ({ page }) => {

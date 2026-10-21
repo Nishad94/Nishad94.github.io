@@ -207,6 +207,10 @@ restart only `com.nishad.ai.bridge`; the supervisor creates a new tunnel and
 updates `MAC_UPSTREAM`. Use a named Cloudflare Tunnel for durable production
 availability.
 
+Public-web enrichment is independent of the Mac tunnel. Its `EXA_API_KEY` lives
+only as a Worker secret and is preserved by the bridge's `--keep-vars` deploy.
+Do not add the key to the gateway plist or private Mac runtime files.
+
 To update code later, recopy the changed private runtime files. Restart only the
 affected launch agent after confirming no generation is active. Worker-only
 changes can be deployed by restarting the bridge or running its Wrangler command
