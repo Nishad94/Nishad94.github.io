@@ -27,7 +27,7 @@ The new design adds **Exa Lite search through the Cloudflare Worker**, but prese
 
 This post explains the architecture, the security boundary, the routing changes, the browser fallback, and the measured latency from a ten-prompt benchmark.
 
-![A progressive sequence diagram showing an LLM web-intent call, ontology source routing, parallel local Qwen generation and Exa search, followed by a cited web-enrichment synthesis.](/assets/blog/exa-progressive-search-flow.svg)
+![A progressive sequence diagram showing ontology source routing, distilled-context web intent, parallel local Qwen generation and Exa search, followed by a cited web-enrichment synthesis.](/assets/blog/exa-progressive-search-flow.svg)
 
 *Search is an addendum, not a loading screen.*
 
@@ -60,7 +60,10 @@ The first implementation added `web_search` and `web_query` fields to the existi
 
 The result was unreliable. A question could explicitly say “search current public sources,” but the small Qwen router would notice a locally relevant article and set `web_search:false`.
 
-The solution was not a keyword algorithm. Web intent now has its own small schema-constrained Qwen call:
+The solution was not a keyword algorithm. The application first performs normal
+ontology source and passage routing. It then gives a compact excerpt of that
+selected authoritative evidence to a separate schema-constrained Qwen
+web-intent call:
 
 ```json
 {
@@ -83,11 +86,27 @@ Ontology source selection remains a separate call:
 }
 ```
 
-This creates three possible inference phases:
+For a compensation question, the selected career passage might identify:
 
 ```text
-1. Web-intent classification
-2. Local source and passage routing
+Software Engineer II at Microsoft
+Bengaluru, India
+May 2024–present
+```
+
+The intent model uses those facts to produce a category query such as:
+
+```text
+Microsoft Software Engineer II Bengaluru India compensation
+```
+
+rather than searching Nishad's name and retrieving unrelated namesakes.
+
+This creates three initial inference phases:
+
+```text
+1. Local source and passage routing
+2. Web-intent classification using the distilled local evidence
 3. Final answer generation
 ```
 
@@ -249,8 +268,8 @@ This makes external data flow visible rather than silently changing the privacy 
 Search is independent of the Mac tunnel. If the Mac is unavailable but WebGPU works:
 
 ```text
-SmolLM web-intent call
-→ SmolLM source routing
+SmolLM source routing
+→ SmolLM web-intent call using selected evidence
 → browser-local answer
 → Exa search through Cloudflare
 → SmolLM web addendum
@@ -312,8 +331,8 @@ It tests ten prompts ranging from 72 to 508 characters.
 
 Each scenario measures:
 
-1. web-intent Qwen latency;
-2. local ontology source routing;
+1. local ontology source routing;
+2. web-intent Qwen latency using distilled evidence;
 3. local Qwen answer latency;
 4. live Exa Lite search latency;
 5. second Qwen web-synthesis latency;

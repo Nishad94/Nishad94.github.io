@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const noData = { needs_site_data: false, source_ids: [], intent: 'answer', web_search: false, web_query: '' };
+const noData = { needs_site_data: false, source_ids: [], intent: 'answer' };
 const index = {
   schema: 'nishad.public-knowledge.v1',
   documents: [{
@@ -83,7 +83,7 @@ test('web intent streams the local answer before a cited Exa enrichment', async 
     const body = route.request().postDataJSON();
     if (body.task === 'web_intent') {
       intents++;
-      expect(body.messages[0].content).toContain('Current role: Software Engineer II at Microsoft');
+      expect(body.messages[0].content).toContain('PUBLIC_EVIDENCE_2');
       return route.fulfill({ json: {
         content: JSON.stringify({
           web_search: true,
@@ -94,8 +94,9 @@ test('web intent streams the local answer before a cited Exa enrichment', async 
     }
     if (body.task === 'knowledge_route') {
       routing++;
+      const id = routing === 1 ? 'blog-0' : 'blog-0/p2';
       return route.fulfill({ json: {
-        content: JSON.stringify(noData),
+        content: JSON.stringify({ needs_site_data: true, source_ids: [id], intent: 'answer' }),
         finish_reason: 'stop'
       } });
     }
@@ -139,7 +140,7 @@ test('web intent streams the local answer before a cited Exa enrichment', async 
   const text = await page.locator('#term-output').innerText();
   expect(text.indexOf('LOCAL_DOCUMENTED_ANSWER')).toBeLessThan(text.indexOf('WEB_ENRICHED_ANSWER'));
   expect(intents).toBe(1);
-  expect(routing).toBe(1);
+  expect(routing).toBe(2);
   expect(answering).toBe(2);
   expect(searches).toBe(1);
 });

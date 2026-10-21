@@ -5,7 +5,7 @@
 <rect class="panel" x="45" y="135" width="1310" height="630" rx="24"/>
 <rect class="s" x="80" y="210" width="220" height="180" rx="18"/><text class="mono" x="110" y="248">BROWSER</text><text class="h" x="110" y="290">User question</text><text class="p" x="110" y="330">current context</text><text class="p" x="110" y="360">tab conversation</text>
 <path class="wire" d="M300 300H385"/>
-<rect class="q" x="385" y="180" width="245" height="220" rx="18"/><text class="mono" x="415" y="218">QWEN · SLOT 0</text><text class="h" x="415" y="260">Intent + source routing</text><text class="p" x="415" y="302">web search query</text><text class="p" x="415" y="332">ontology source</text><text class="p" x="415" y="362">passage selection</text>
+<rect class="q" x="385" y="180" width="245" height="220" rx="18"/><text class="mono" x="415" y="218">QWEN · SLOT 0</text><text class="h" x="415" y="260">Ontology → web intent</text><text class="p" x="415" y="302">source + passage routing</text><text class="p" x="415" y="332">distilled evidence context</text><text class="p" x="415" y="362">web search query</text>
 <path class="wire" d="M630 285H720"/><path class="dash" d="M505 400V500H720"/>
 <rect class="q" x="720" y="175" width="260" height="210" rx="18"/><text class="mono" x="750" y="213">QWEN · SLOT 1</text><text class="h" x="750" y="255">Local answer</text><text class="p" x="750" y="300">ontology + site evidence</text><text class="p" x="750" y="335">stream immediately</text>
 <rect class="w" x="720" y="470" width="260" height="180" rx="18"/><text class="mono" x="750" y="508">CLOUDFLARE WORKER</text><text class="h" x="750" y="550">Exa Lite search</text><text class="p" x="750" y="590">≤5 sanitized results</text><text class="p" x="750" y="620">runs in parallel</text>

@@ -1,17 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  createSiteKnowledge, parseRoutingPlan, validateKnowledgeIndex, webIntentContext, webIntentMessages
+  applyWebIntent, createSiteKnowledge, parseRoutingPlan, parseWebIntent, validateKnowledgeIndex, webIntentMessages
 } from '../assets/site-knowledge.js';
 import { parsePost, renderBlog } from '../scripts/build-site.mjs';
 import { source } from './blog-fixture.mjs';
 
-const plan = (ids = [], intent = 'answer', webQuery = '') => JSON.stringify({
+const plan = (ids = [], intent = 'answer') => JSON.stringify({
   needs_site_data: ids.length > 0,
   source_ids: ids,
-  intent,
-  web_search: Boolean(webQuery),
-  web_query: webQuery
+  intent
 });
 const index = {
   schema: 'nishad.public-knowledge.v1', documents: [{
@@ -59,41 +57,31 @@ test('routing plans cannot introduce unknown IDs, URLs, oversized selections or 
 test('routing derives the redundant needs_site_data flag from validated source IDs', () => {
   assert.deepEqual(
     parseRoutingPlan('{"needs_site_data":false,"source_ids":["a"],"intent":"answer"}', new Set(['a'])),
-    { needs_site_data: true, source_ids: ['a'], intent: 'answer', web_search: false, web_query: '' }
+    { needs_site_data: true, source_ids: ['a'], intent: 'answer' }
   );
   assert.deepEqual(
     parseRoutingPlan('{"needs_site_data":true,"source_ids":[],"intent":"answer"}', new Set(['a'])),
-    { needs_site_data: false, source_ids: [], intent: 'answer', web_search: false, web_query: '' }
+    { needs_site_data: false, source_ids: [], intent: 'answer' }
   );
 });
 
-test('routing can request one bounded general-purpose web search', async () => {
-  let routingPrompt = '';
-  const result = await createSiteKnowledge({ fetchImpl }).prepare(
-    'What changed recently in llama.cpp prompt caching?',
-    async messages => {
-      routingPrompt = messages[0].content;
-      return plan(['site'], 'answer', 'recent llama.cpp prompt caching changes');
-    }
+test('web intent uses ontology-selected evidence and then augments the local prompt', async () => {
+  const grounding = await createSiteKnowledge({ fetchImpl }).prepare(
+    'Estimate the market value of the unusual orange mechanism.',
+    async messages => plan(messages[0].content.includes('these public passages') ? ['blog-0/p2'] : ['blog-0'])
   );
-  assert.match(routingPrompt, /Mandatory freshness rule/);
-  assert.equal(result.web_search, true);
-  assert.equal(result.web_query, 'recent llama.cpp prompt caching changes');
-  assert.match(result.systemPrompt, /LOCAL KNOWLEDGE ONLY/);
-  assert.match(result.systemPrompt, /do not state a requested latest, current, recent/);
-  assert.match(result.systemPrompt, /do not produce any numeric estimate in this local phase/);
-  assert.throws(() => parseRoutingPlan(
-    JSON.stringify({ needs_site_data: false, source_ids: [], intent: 'answer', web_search: true, web_query: 'x' }),
-    new Set()
-  ));
-});
-
-test('web intent receives authoritative current-role context for query rewriting', () => {
-  const context = webIntentContext();
-  assert.match(context, /Current role: Software Engineer II at Microsoft, Bengaluru, India/);
-  const messages = webIntentMessages('estimate his current compensation', context);
-  assert.match(messages[0].content, /company, standardized title\/level, location, and time period/);
-  assert.match(messages[0].content, /Software Engineer II at Microsoft/);
+  assert.match(grounding.search_context, /EVIDENCE_2/);
+  assert.doesNotMatch(grounding.search_context, /EVIDENCE_[013]/);
+  const messages = webIntentMessages('Estimate its current market value.', grounding.search_context);
+  assert.match(messages[0].content, /Distilled local context/);
+  assert.match(messages[0].content, /EVIDENCE_2/);
+  assert.match(messages[0].content, /do not include a personal name in web_query/);
+  const intent = parseWebIntent('{"web_search":true,"web_query":"current market value unusual orange mechanism"}');
+  const enriched = applyWebIntent(grounding, intent);
+  assert.equal(enriched.web_search, true);
+  assert.equal(enriched.web_query, 'current market value unusual orange mechanism');
+  assert.match(enriched.systemPrompt, /LOCAL KNOWLEDGE ONLY/);
+  assert.match(enriched.systemPrompt, /do not produce any numeric estimate in this local phase/);
 });
 
 test('buildless pages explicitly disclose an unavailable article index; malformed sources fail', async () => {

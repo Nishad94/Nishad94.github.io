@@ -369,7 +369,7 @@ import { createSpotifyTerminal } from './spotify-ui.js';
 import { readChatStream } from './assets/chat-stream.js';
 import { INFERENCE_CHAT_ENDPOINT, WEB_SEARCH_ENABLED } from './deployment.js';
 import {
-  createSiteKnowledge, KnowledgeRoutingError, parseWebIntent, webIntentContext, webIntentMessages, webIntentSchema
+  applyWebIntent, createSiteKnowledge, KnowledgeRoutingError, parseWebIntent, webIntentMessages, webIntentSchema
 } from './assets/site-knowledge.js';
 import { REPORT_ENDPOINT, requestReport } from './report-client.js';
 (async () => {
@@ -1021,7 +1021,7 @@ ${evidence || 'No useful public web evidence was returned.'}`
     return result.content;
   }
 
-  async function proxyWebIntentDecision(query) {
+  async function proxyWebIntentDecision(messages) {
     const response = await fetch(AI_PROXY_URL, {
       method: 'POST',
       signal: AbortSignal.timeout(120000),
@@ -1033,7 +1033,7 @@ ${evidence || 'No useful public web evidence was returned.'}`
       body: JSON.stringify({
         mode: 'chat',
         task: 'web_intent',
-        messages: webIntentMessages(query, webIntentContext())
+        messages
       })
     });
     if (!response.ok) throw new Error('Self-hosted web-intent routing unavailable (HTTP ' + response.status + ').');
@@ -1053,13 +1053,17 @@ ${evidence || 'No useful public web evidence was returned.'}`
     let grounding;
     try {
       const routeQuery = routingQuery(query);
-      let webIntent = null;
+      grounding = await siteKnowledge.prepare(query, hostedRoutingDecision, stage => { answerLine.textContent = 'nishad.ai✨> ' + stage; }, { routingQuery: routeQuery });
       if (WEB_SEARCH_ENABLED) {
         try {
-          webIntent = parseWebIntent(await hostedRoutingDecision(webIntentMessages(routeQuery, webIntentContext()), webIntentSchema()));
+          grounding = applyWebIntent(
+            grounding,
+            parseWebIntent(await hostedRoutingDecision(
+              webIntentMessages(routeQuery, grounding.search_context), webIntentSchema()
+            ))
+          );
         } catch (_) {}
       }
-      grounding = await siteKnowledge.prepare(query, hostedRoutingDecision, stage => { answerLine.textContent = 'nishad.ai✨> ' + stage; }, { routingQuery: routeQuery, webIntent });
     } catch (error) {
       if (!(error instanceof KnowledgeRoutingError)) throw error;
       answerLine.textContent = 'ai: ' + error.message;
@@ -1146,11 +1150,15 @@ ${evidence || 'No useful public web evidence was returned.'}`
     let grounding;
     try {
       const routeQuery = routingQuery(query);
-      let webIntent = null;
+      grounding = await siteKnowledge.prepare(query, proxyRoutingDecision, stage => { answerLine.textContent = 'nishad.ai◆> ' + stage; }, { routingQuery: routeQuery });
       if (WEB_SEARCH_ENABLED) {
-        try { webIntent = await proxyWebIntentDecision(routeQuery); } catch (_) {}
+        try {
+          grounding = applyWebIntent(
+            grounding,
+            await proxyWebIntentDecision(webIntentMessages(routeQuery, grounding.search_context))
+          );
+        } catch (_) {}
       }
-      grounding = await siteKnowledge.prepare(query, proxyRoutingDecision, stage => { answerLine.textContent = 'nishad.ai◆> ' + stage; }, { routingQuery: routeQuery, webIntent });
     } catch (error) {
       if (!(error instanceof KnowledgeRoutingError)) throw error;
       answerLine.textContent = 'ai: ' + error.message;
@@ -1274,27 +1282,29 @@ ${evidence || 'No useful public web evidence was returned.'}`
       const answerLine = addLine('nishad.ai> ', 'yellow');
       let accumulated = '';
       const routeQuery = routingQuery(query);
-      let webIntent = null;
-      if (WEB_SEARCH_ENABLED) {
-        try {
-          const decision = await e.chat.completions.create({
-            messages: webIntentMessages(routeQuery, webIntentContext()),
-            temperature: 0,
-            max_tokens: 96,
-            stream: false,
-            response_format: { type: 'json_object', schema: JSON.stringify(webIntentSchema()) }
-          });
-          webIntent = parseWebIntent(decision.choices?.[0]?.message?.content || '');
-        } catch (_) {}
-      }
 
-      const grounding = await browserKnowledge.prepare(query, async (messages, schema) => {
+      let grounding = await browserKnowledge.prepare(query, async (messages, schema) => {
         const result = await e.chat.completions.create({ messages, temperature: 0, max_tokens: 192, stream: false, response_format: { type: 'json_object', schema: JSON.stringify(schema) } });
         if (result.choices?.[0]?.finish_reason !== 'stop' || typeof result.choices?.[0]?.message?.content !== 'string') {
           throw new KnowledgeRoutingError('Browser-model routing did not complete. Retry manually.');
         }
         return result.choices[0].message.content;
-      }, stage => { answerLine.textContent = 'nishad.ai> ' + stage; }, { routingQuery: routeQuery, webIntent });
+      }, stage => { answerLine.textContent = 'nishad.ai> ' + stage; }, { routingQuery: routeQuery });
+      if (WEB_SEARCH_ENABLED) {
+        try {
+          const decision = await e.chat.completions.create({
+            messages: webIntentMessages(routeQuery, grounding.search_context),
+            temperature: 0,
+            max_tokens: 96,
+            stream: false,
+            response_format: { type: 'json_object', schema: JSON.stringify(webIntentSchema()) }
+          });
+          grounding = applyWebIntent(
+            grounding,
+            parseWebIntent(decision.choices?.[0]?.message?.content || '')
+          );
+        } catch (_) {}
+      }
       browserSearchController = new AbortController();
       const searchTask = grounding.web_search && WEB_SEARCH_ENABLED
         ? searchPublicWeb(grounding.web_query, browserSearchController.signal)

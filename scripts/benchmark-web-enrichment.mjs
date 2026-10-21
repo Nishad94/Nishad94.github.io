@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { performance } from 'node:perf_hooks';
-import { createSiteKnowledge, parseWebIntent, webIntentContext, webIntentMessages } from '../assets/site-knowledge.js';
+import { applyWebIntent, createSiteKnowledge, parseWebIntent, webIntentMessages } from '../assets/site-knowledge.js';
 import { readChatStream } from '../assets/chat-stream.js';
 
 const gateway = new URL(process.argv[2] || 'http://127.0.0.1:8094/');
@@ -107,14 +107,6 @@ const results = [];
 for (let index = 0; index < prompts.length; index++) {
   const prompt = prompts[index];
   const started = performance.now();
-  const intentStarted = performance.now();
-  const intentResult = await gatewayStream({
-    mode: 'chat',
-    task: 'web_intent',
-    messages: webIntentMessages(prompt, webIntentContext())
-  }, `web-benchmark-${index}-intent`);
-  const webIntent = parseWebIntent(intentResult.content);
-  const intentMs = performance.now() - intentStarted;
   let routingMs = 0;
   let routePasses = 0;
   const knowledge = createSiteKnowledge({
@@ -122,7 +114,7 @@ for (let index = 0; index < prompts.length; index++) {
       headers: { 'Content-Type': 'application/json' }
     })
   });
-  const grounding = await knowledge.prepare(prompt, async (messages, schema) => {
+  let grounding = await knowledge.prepare(prompt, async (messages, schema) => {
     const routeStarted = performance.now();
     routePasses++;
     const route = await gatewayStream({
@@ -134,7 +126,15 @@ for (let index = 0; index < prompts.length; index++) {
     }, `web-benchmark-${index}-route`);
     routingMs += performance.now() - routeStarted;
     return route.content;
-  }, () => {}, { webIntent });
+  });
+  const intentStarted = performance.now();
+  const intentResult = await gatewayStream({
+    mode: 'chat',
+    task: 'web_intent',
+    messages: webIntentMessages(prompt, grounding.search_context)
+  }, `web-benchmark-${index}-intent`);
+  const intentMs = performance.now() - intentStarted;
+  grounding = applyWebIntent(grounding, parseWebIntent(intentResult.content));
   if (!grounding.web_search || !grounding.web_query) {
     throw new Error(`Scenario ${index + 1} did not request web search: ${prompt}`);
   }
