@@ -137,6 +137,20 @@ npm run test:syntax
 npm test
 ```
 
+On the Mac two-slot runtime, benchmark cache specialization from the repository
+root with the private gateway token in the process environment:
+
+```sh
+GATEWAY_TOKEN='...' npm run benchmark:kv-slots
+```
+
+The harness is loopback-only. For each of ten routing/answer scenarios it first
+replaces both slot caches with unrelated prompts, then runs the exact routing
+and grounded-answer prompts three times. It reports the first run versus the
+median of runs two and three for time to first token and total response latency.
+Routing scenarios that require passage selection include both routing passes.
+The token is never printed or written to the result.
+
 The benchmark sends synthetic/public-ontology prompts to loopback only,
 including employer order, job/education dates and undocumented employment gaps,
 requires explicit `stop` completion and factual answer checks, and prints timings
