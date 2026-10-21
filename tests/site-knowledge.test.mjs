@@ -79,6 +79,7 @@ test('web intent uses ontology-selected evidence and then augments the local pro
   assert.match(messages[1].content, /the subject/);
   assert.match(messages[0].content, /do not include a personal name in web_query/);
   assert.match(messages[0].content, /search for companies, roles, teams, or opportunities matching/);
+  assert.match(messages[0].content, /intersection between documented transferable capabilities and the target domain/);
   const intent = parseWebIntent('{"web_search":true,"web_query":"current market value unusual orange mechanism"}');
   const enriched = applyWebIntent(grounding, intent);
   assert.equal(enriched.web_search, true);
@@ -135,6 +136,9 @@ test('broad future-company scenarios can combine career, skills and projects', a
   assert.equal(result.intent, 'career_scenarios');
   assert.match(result.search_context, /Twitter|Microsoft/);
   assert.match(result.search_context, /Languages|Backend|Kafka|nishad/);
+  assert.match(result.search_context, /Published technical writing/);
+  assert.match(result.search_context, /LLM|Qwen|inference|AI/);
+  assert.match(result.systemPrompt, /Scenario portfolio context/);
 });
 
 test('conversation context influences routing without contaminating query-specific prompt evidence', async () => {

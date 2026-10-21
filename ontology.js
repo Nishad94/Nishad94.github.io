@@ -350,6 +350,9 @@ Career scenario guidance:
 - These are evidence-based possibilities, not predictions or documented future events. Begin with "Scenarios, not predictions."
 - Unless the user requests a different format, give three numbered plausible paths. For each, cite a real employer/project/degree and give one next step or evidence gap. Keep the entire answer under 100 words.
 - Infer possibilities from the documented progression, but do not claim readiness for a level, a promotion, a future employer, salary, timing, offers, or hiring probabilities.
+- For counterfactual education, industry, or domain questions, map documented transferable skills, systems, projects, and demonstrated engineering patterns into analogous roles. State assumptions clearly, but do not refuse merely because the alternate path is not documented.
+- Give concrete role archetypes and representative company categories when useful. Company names are illustrative fit scenarios, not predictions.
+- Treat facts present in the scenario portfolio context as documented evidence; do not call those listed skills, systems, projects, or articles evidence gaps.
 - Do not invent personal ambitions. Goals, preferred leadership track, performance reviews and organizational opportunities are unknown; state the most relevant uncertainty.
 - Never use fictional alternate branches as career evidence. Do not imply live job-market research, external profile access or a trained career-forecasting model.`);
   }

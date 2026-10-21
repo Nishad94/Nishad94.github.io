@@ -114,3 +114,13 @@ test('career trajectory questions get grounded scenario reasoning, not fabricate
   }
   assert.doesNotMatch(buildChatSystemPrompt('What was his next job after Twitter?'), /Career scenario guidance/);
 });
+
+test('counterfactual domain scenarios map transferable evidence instead of refusing', () => {
+  const prompt = buildChatSystemPrompt(
+    'If Nishad had studied economics and finance, what roles might fit?',
+    { intent: 'career_scenarios' }
+  );
+  assert.match(prompt, /counterfactual education, industry, or domain questions/);
+  assert.match(prompt, /do not refuse merely because the alternate path is not documented/);
+  assert.match(prompt, /concrete role archetypes and representative company categories/);
+});
