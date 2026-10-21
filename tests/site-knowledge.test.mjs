@@ -43,9 +43,20 @@ test('routing plans cannot introduce unknown IDs, URLs, oversized selections or 
   for (const invalid of [
     'not JSON', plan(['https://private.example/']), plan(['a', 'a']),
     plan(['a', 'b', 'c', 'd']),
-    '{"needs_site_data":false,"source_ids":["a"],"intent":"answer"}',
-    '{"needs_site_data":false,"source_ids":[],"intent":"career_scenarios"}'
+    '{"needs_site_data":false,"source_ids":[],"intent":"career_scenarios"}',
+    '{"needs_site_data":true,"source_ids":[],"intent":"career_scenarios"}'
   ]) assert.throws(() => parseRoutingPlan(invalid, new Set(['a', 'b', 'c', 'd'])));
+});
+
+test('routing derives the redundant needs_site_data flag from validated source IDs', () => {
+  assert.deepEqual(
+    parseRoutingPlan('{"needs_site_data":false,"source_ids":["a"],"intent":"answer"}', new Set(['a'])),
+    { needs_site_data: true, source_ids: ['a'], intent: 'answer' }
+  );
+  assert.deepEqual(
+    parseRoutingPlan('{"needs_site_data":true,"source_ids":[],"intent":"answer"}', new Set(['a'])),
+    { needs_site_data: false, source_ids: [], intent: 'answer' }
+  );
 });
 
 test('buildless pages explicitly disclose an unavailable article index; malformed sources fail', async () => {
