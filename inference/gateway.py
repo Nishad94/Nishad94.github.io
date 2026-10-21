@@ -17,6 +17,7 @@ if BACKEND not in {'ollama','llama.cpp'}:raise ValueError('Unsupported INFERENCE
 CONTEXT=4096
 ROUTING_SLOT=0
 ANSWER_SLOT=1
+WEB_INTENT_SLOT=2
 KEEP_ALIVE=-1
 WARM_CHECK_SECONDS=60
 ORIGINS={x for x in os.getenv('ALLOWED_ORIGINS','https://nishad.ai').split(',') if x}
@@ -175,7 +176,7 @@ def generation_request(messages,is_report,is_route=False,route_ids=None,route_li
   )
  if BACKEND=='llama.cpp':
   payload={
-   'id_slot':ROUTING_SLOT if is_route else ANSWER_SLOT,
+   'id_slot':WEB_INTENT_SLOT if is_web_intent else ROUTING_SLOT if is_route else ANSWER_SLOT,
    'messages':messages,'stream':True,
    'stream_options':{'include_usage':True},
    'temperature':0 if is_route else 0.2 if is_report else 0.7,

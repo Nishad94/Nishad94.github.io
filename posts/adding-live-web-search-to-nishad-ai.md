@@ -102,6 +102,13 @@ Microsoft Software Engineer II Bengaluru India compensation
 
 rather than searching Nishad's name and retrieving unrelated namesakes.
 
+The source router can select up to three complementary sources. Broad
+career-fit questions expand the selected portfolio with career, skills,
+projects, site architecture, and generated descriptions of published technical
+writing. This lets the planner incorporate AI/ML infrastructure, LLM inference,
+WebGPU, KV caching, search augmentation, and other work that may not appear in a
+single employment entry.
+
 This creates three initial inference phases:
 
 ```text
@@ -410,17 +417,20 @@ However, the benchmark shows that web enrichment should remain selective. Runnin
 
 If a question is purely about current external data, the application may not need long local article passage selection. It can still include the compact ontology but skip unnecessary local retrieval.
 
-### Cache the web-synthesis prefix
+### Three cache-specialized prompt families
 
-The web addendum uses slot `1`, which also serves normal answers. A future third slot could isolate:
+Production now uses:
 
 ```text
-slot 0 → intent and routing
-slot 1 → local terminal answers
-slot 2 → web synthesis and reports
+slot 0 → ontology source and passage routing
+slot 1 → local answers, web synthesis and reports
+slot 2 → web-intent and search-query generation
 ```
 
-This needs more KV memory.
+The web-intent system message is stable. Distilled ontology context and the
+current question are placed in its final user message, improving prefix reuse.
+The three-slot server uses a 12,288-token total context pool and measured about
+4.32 GiB RSS in the production process after all slots were exercised.
 
 ### Shorter enrichment output
 

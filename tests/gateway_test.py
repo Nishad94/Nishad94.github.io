@@ -340,7 +340,7 @@ class AdmissionQueueTests(unittest.TestCase):
                 )
                 payload = json.loads(request.data)
                 if backend == "llama.cpp":
-                    self.assertEqual(payload["id_slot"], gateway.ROUTING_SLOT)
+                    self.assertEqual(payload["id_slot"], gateway.WEB_INTENT_SLOT)
                     schema = payload["response_format"]["json_schema"]["schema"]
                 else:
                     schema = payload["format"]

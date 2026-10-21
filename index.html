@@ -1059,7 +1059,7 @@ ${evidence || 'No useful public web evidence was returned.'}`
           grounding = applyWebIntent(
             grounding,
             parseWebIntent(await hostedRoutingDecision(
-              webIntentMessages(routeQuery, grounding.search_context), webIntentSchema()
+              webIntentMessages(routeQuery, grounding.search_context, grounding.intent), webIntentSchema()
             ))
           );
         } catch (_) {}
@@ -1155,7 +1155,7 @@ ${evidence || 'No useful public web evidence was returned.'}`
         try {
           grounding = applyWebIntent(
             grounding,
-            await proxyWebIntentDecision(webIntentMessages(routeQuery, grounding.search_context))
+            await proxyWebIntentDecision(webIntentMessages(routeQuery, grounding.search_context, grounding.intent))
           );
         } catch (_) {}
       }
@@ -1293,7 +1293,7 @@ ${evidence || 'No useful public web evidence was returned.'}`
       if (WEB_SEARCH_ENABLED) {
         try {
           const decision = await e.chat.completions.create({
-            messages: webIntentMessages(routeQuery, grounding.search_context),
+            messages: webIntentMessages(routeQuery, grounding.search_context, grounding.intent),
             temperature: 0,
             max_tokens: 96,
             stream: false,

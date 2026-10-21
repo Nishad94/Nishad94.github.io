@@ -70,12 +70,15 @@ test('web intent uses ontology-selected evidence and then augments the local pro
     'Estimate the market value of the unusual orange mechanism.',
     async messages => plan(messages[0].content.includes('these public passages') ? ['blog-0/p2'] : ['blog-0'])
   );
-  assert.match(grounding.search_context, /EVIDENCE_2/);
-  assert.doesNotMatch(grounding.search_context, /EVIDENCE_[013]/);
-  const messages = webIntentMessages('Estimate its current market value.', grounding.search_context);
-  assert.match(messages[0].content, /Distilled local context/);
-  assert.match(messages[0].content, /EVIDENCE_2/);
+  assert.match(grounding.search_context, /Synthetic reference 2/);
+  const messages = webIntentMessages('Estimate Nishad current market value.', grounding.search_context, grounding.intent);
+  assert.doesNotMatch(messages[0].content, /Synthetic reference 2/);
+  assert.match(messages[1].content, /Distilled local context/);
+  assert.match(messages[1].content, /Synthetic reference 2/);
+  assert.doesNotMatch(messages[1].content, /\bNishad\b/);
+  assert.match(messages[1].content, /the subject/);
   assert.match(messages[0].content, /do not include a personal name in web_query/);
+  assert.match(messages[0].content, /search for companies, roles, teams, or opportunities matching/);
   const intent = parseWebIntent('{"web_search":true,"web_query":"current market value unusual orange mechanism"}');
   const enriched = applyWebIntent(grounding, intent);
   assert.equal(enriched.web_search, true);
@@ -113,6 +116,25 @@ test('semantic intent enables scenario guidance without a keyword trigger', asyn
     plan(messages[0].content.includes('these public passages') ? ['career/p0'] : ['career'], 'career_scenarios'));
   assert.equal(result.intent, 'career_scenarios');
   assert.match(result.systemPrompt, /Scenarios, not predictions/);
+});
+
+test('broad future-company scenarios can combine career, skills and projects', async () => {
+  let sourceSchema;
+  const result = await createSiteKnowledge({ fetchImpl }).prepare(
+    'What companies might fit Nishad next?',
+    async (messages, schema) => {
+      sourceSchema ||= schema;
+      const ids = schema.properties.source_ids.items.enum;
+      if (ids.includes('career')) return plan(['career', 'skills', 'projects'], 'career_scenarios');
+      return plan(['career/', 'skills/', 'projects/']
+        .map(prefix => ids.find(id => id.startsWith(prefix)))
+        .filter(Boolean), 'career_scenarios');
+    }
+  );
+  assert.equal(sourceSchema.properties.source_ids.maxItems, 3);
+  assert.equal(result.intent, 'career_scenarios');
+  assert.match(result.search_context, /Twitter|Microsoft/);
+  assert.match(result.search_context, /Languages|Backend|Kafka|nishad/);
 });
 
 test('conversation context influences routing without contaminating query-specific prompt evidence', async () => {

@@ -242,12 +242,15 @@ in flight. No Worker, tunnel, Pages, or Ollama-server restart is needed. Verify
 then check again after the previous idle timeout. Keep runtime paths/configuration
 and diagnostic artifacts out of the Pages output.
 
-The production server allocates two 4,096-token KV-cache slots from an
-8,192-token context pool. Gateway routing requests explicitly use slot `0`;
-final chat and structured-report requests use slot `1`. Model weights remain
-shared while each workload retains its own prompt prefix. The Python gateway
-still admits only one active generation, so this improves cache specialization
-without enabling parallel model execution.
+The production server allocates three 4,096-token KV-cache slots from a
+12,288-token context pool. Ontology source and passage routing use slot `0`;
+final chat, structured reports and web synthesis use slot `1`; distilled-context
+web-intent/query planning uses slot `2`. Model weights remain shared while each
+prompt family retains its own prefix. Dynamic ontology evidence and the current
+question are placed in the final user message of the web-intent prompt so its
+system prefix stays stable. The Python gateway still admits only one active
+generation, so this improves cache specialization without enabling parallel
+model execution.
 
 Warmth is best-effort: sleep, restarts, memory pressure, or another model can
 still evict Gemma. In particular, `OLLAMA_MAX_LOADED_MODELS=1` allows another

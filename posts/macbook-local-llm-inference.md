@@ -42,7 +42,7 @@ The project needed a default model path with four properties:
 
 An Apple Silicon Mac is a useful personal-inference host because unified memory and Metal make quantized models practical without a discrete GPU. It is not a data center, and the design does not pretend otherwise. The machine can sleep. Home internet can fail. A quick tunnel can receive a new hostname. Thermal pressure and another local model can affect latency.
 
-Those constraints led to a narrow architecture: two cache-specialized model
+Those constraints led to a narrow architecture: three cache-specialized model
 slots, one active generation, a bounded queue, short outputs, loopback listeners,
 and multiple explicit failure states.
 
@@ -55,7 +55,7 @@ The GGUF file contains learned weights. It does not provide an HTTP server, toke
 `llama.cpp` supplies those pieces. The Mac launch agent starts `llama-server` with:
 
 - a 4,096-token context;
-- two 4,096-token server slots backed by an 8,192-token context pool;
+- three 4,096-token server slots backed by a 12,288-token context pool;
 - six inference and batch threads;
 - Jinja chat-template support;
 - Metal layer offload on Apple Silicon;
@@ -97,15 +97,20 @@ The gateway adds llama.cpp's `id_slot` extension:
 payload["id_slot"] = 0 if is_route else 1
 ```
 
-Slot `0` retains the stable routing rules and source catalog. Slot `1` retains
-the stable response policy and ontology prefix used by chat and reports. The
-gateway still admits only one active generation, so the extra slot improves
-prompt-prefix reuse without enabling simultaneous model execution.
+Slot `0` retains ontology source-routing rules and the catalog. Slot `1` retains
+the stable response policy and ontology prefix used by chat, reports and web
+synthesis. Slot `2` retains web-intent and query-writing rules. Selected ontology
+context and the current question are appended in slot `2`'s final user message,
+leaving its system prefix stable. The gateway still admits only one active
+generation, so the extra slots improve prompt-prefix reuse without enabling
+simultaneous model execution.
 
 On this 16 GB Mac, the one-slot server measured about 2.2 GiB physical footprint
-and 2.64 GiB RSS. The warmed two-slot server measured about 3.52 GiB RSS: roughly
-0.9 GiB additional memory. The model weights remain loaded once; the increase is
-primarily the doubled context/KV capacity.
+and 2.64 GiB RSS. The warmed two-slot server measured about 3.52 GiB RSS, and the
+warmed production three-slot server measured about 4.32 GiB RSS. The third slot
+added about 0.80 GiB over two slots and about 1.68 GiB over the original one-slot process.
+The model weights remain loaded once; the increase is primarily expanded
+context/KV capacity.
 
 ## Why put Python in front of llama.cpp?
 

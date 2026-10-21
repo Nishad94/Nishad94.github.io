@@ -131,7 +131,7 @@ for (let index = 0; index < prompts.length; index++) {
   const intentResult = await gatewayStream({
     mode: 'chat',
     task: 'web_intent',
-    messages: webIntentMessages(prompt, grounding.search_context)
+    messages: webIntentMessages(prompt, grounding.search_context, grounding.intent)
   }, `web-benchmark-${index}-intent`);
   const intentMs = performance.now() - intentStarted;
   grounding = applyWebIntent(grounding, parseWebIntent(intentResult.content));

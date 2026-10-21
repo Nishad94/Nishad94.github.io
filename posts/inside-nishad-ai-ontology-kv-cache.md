@@ -16,9 +16,9 @@ The nishad.ai terminal looks like a command line, but an AI question triggers a 
 - a second model call generates the answer;
 - a Python gateway enforces authentication, queueing, completion, and privacy rules;
 - llama.cpp runs Qwen locally on a MacBook;
-- two separate KV-cache slots preserve the routing and answering prompt prefixes.
+- three separate KV-cache slots preserve source-routing, answering, and web-intent prompt prefixes.
 
-This post opens that machinery from the inside. It explains how repository data becomes model context, where the 4,096-token limit constrains the design, why a 2.33 GiB model uses more memory while serving, and how two cache-specialized llama.cpp slots materially improved time to first token.
+This post opens that machinery from the inside. It explains how repository data becomes model context, where the 4,096-token limit constrains the design, why a 2.33 GiB model uses more memory while serving, and how cache-specialized llama.cpp slots materially improved time to first token. The first benchmark used two slots; production later added a third slot for ontology-grounded web-intent planning.
 
 For the networking and process bootstrap around this stack, see [Running nishad.ai on a MacBook](/blog/macbook-local-llm-inference/). Here, the focus is the reasoning path after the browser decides that a terminal command needs AI.
 
@@ -267,7 +267,8 @@ Measured on the current 16 GB Apple Silicon Mac:
 |---|---:|
 | One 4,096-token slot | ~2.2 GiB physical footprint / 2.64 GiB RSS |
 | Two 4,096-token slots | ~3.52 GiB RSS |
-| Increase | ~0.9 GiB, about 33–40% |
+| Three 4,096-token slots | ~4.32 GiB RSS |
+| Three-slot increase over one slot | ~1.68 GiB |
 
 The model weights are loaded once. The increase comes primarily from doubling context/KV capacity from 4,096 to 8,192 total tokens.
 
@@ -353,6 +354,33 @@ answer rules
 ```
 
 The gateway still permits one active generation. The second slot improves cache specialization; it does not double concurrent inference.
+
+### Production evolution: a third web-intent slot
+
+Live web enrichment introduced a third prompt family. Reusing slot `0` for both
+source routing and web-intent planning caused the two stable prefixes to replace
+each other. Production now uses:
+
+```text
+slot 0 → ontology source and passage routing
+slot 1 → local answers, reports and web synthesis
+slot 2 → web intent and search-query generation
+```
+
+The web planner runs only after local source selection. It receives a distilled
+portfolio assembled from the selected career, skills, projects, site, and article
+evidence. Its system message contains only stable query-writing rules; dynamic
+ontology context and the current question appear in the final user message.
+
+The server now starts with:
+
+```text
+-c 12288
+-np 3
+--cache-prompt
+```
+
+Each slot still receives a 4,096-token context while model weights remain shared.
 
 ![A neon diagram comparing the old single slot, where routing and answer prompts evict each other, with the new dedicated slot 0 routing cache and slot 1 answer cache.](/assets/blog/two-slot-kv-cache.svg)
 
@@ -495,6 +523,10 @@ structured ontology
 → explicit streaming completion
 ```
 
-The two-slot optimization worked because it followed the application’s logical boundary. Routing and answering are different workloads with different stable prefixes. Giving each one a dedicated KV cache reduced repeated prompt evaluation without weakening source validation, increasing concurrency, or changing the public API.
+The cache optimization worked because it followed the application’s logical
+boundaries. Source routing, answering, and web-intent planning are different
+workloads with different stable prefixes. Giving each prompt family a dedicated
+KV cache reduced repeated prompt evaluation without weakening source validation,
+increasing concurrency, or changing the public API.
 
 That is the pattern worth carrying forward: understand where the computation repeats, preserve the right state, and measure the improvement end to end.
