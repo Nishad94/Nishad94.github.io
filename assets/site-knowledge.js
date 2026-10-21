@@ -164,10 +164,10 @@ export function createSiteKnowledge({ fetchImpl = fetch, maxContextCharacters = 
     catch (error) { documents = null; throw error; }
   }
   return {
-    async prepare(query, decide, onStage = () => {}) {
+    async prepare(query, decide, onStage = () => {}, { routingQuery = query } = {}) {
       const { sources, notice } = await load();
       onStage('Choosing whether public site evidence is needed…');
-      const plan = await select(query, sources, decide, false, catalogCharacters);
+      const plan = await select(routingQuery, sources, decide, false, catalogCharacters);
       const selected = sources.filter(source => plan.source_ids.includes(source.id));
       const passages = selected.flatMap(source => source.sections.map(section => ({
         ...section, id: `${source.id}/${section.id}`, title: `${section.title}: ${source.title}`, source
@@ -175,7 +175,7 @@ export function createSiteKnowledge({ fetchImpl = fetch, maxContextCharacters = 
       let evidence = passages;
       if (passages.reduce((total, item) => total + item.text.length, 0) > maxContextCharacters) {
         onStage('Selecting relevant public passages…');
-        const passagePlan = await select(query, passages, decide, true, catalogCharacters);
+        const passagePlan = await select(routingQuery, passages, decide, true, catalogCharacters);
         evidence = passages.filter(item => passagePlan.source_ids.includes(item.id));
       }
       let budget = maxContextCharacters;

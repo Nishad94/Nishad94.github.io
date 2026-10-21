@@ -89,3 +89,20 @@ test('semantic intent enables scenario guidance without a keyword trigger', asyn
   assert.equal(result.intent, 'career_scenarios');
   assert.match(result.systemPrompt, /Scenarios, not predictions/);
 });
+
+test('conversation context influences routing without contaminating query-specific prompt evidence', async () => {
+  let routedQuery = '';
+  const result = await createSiteKnowledge({ fetchImpl }).prepare(
+    'Which documented employers came after Twitter?',
+    async (messages, schema) => {
+      routedQuery = messages[1].content;
+      const ids = schema.properties.source_ids.items.enum;
+      return plan(ids.includes('career') ? ['career'] : [ids[0]]);
+    },
+    () => {},
+    { routingQuery: 'Earlier: Which employer came immediately after Twitter? Current: Which documented employers came after Twitter?' }
+  );
+  assert.match(routedQuery, /immediately after Twitter/);
+  assert.match(result.systemPrompt, /All documented employers after Twitter: Cisco .*; Microsoft /);
+  assert.doesNotMatch(result.systemPrompt, /Immediately after Twitter: Cisco/);
+});

@@ -824,7 +824,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     let accumulated = '';
     let grounding;
     try {
-      grounding = await siteKnowledge.prepare(routingQuery(query), hostedRoutingDecision, stage => { answerLine.textContent = 'nishad.ai✨> ' + stage; });
+      grounding = await siteKnowledge.prepare(query, hostedRoutingDecision, stage => { answerLine.textContent = 'nishad.ai✨> ' + stage; }, { routingQuery: routingQuery(query) });
     } catch (error) {
       if (!(error instanceof KnowledgeRoutingError)) throw error;
       answerLine.textContent = 'ai: ' + error.message;
@@ -910,7 +910,7 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
     answerLine.textContent = 'nishad.ai◆> Self-hosted AI is thinking…';
     let grounding;
     try {
-      grounding = await siteKnowledge.prepare(routingQuery(query), proxyRoutingDecision, stage => { answerLine.textContent = 'nishad.ai◆> ' + stage; });
+      grounding = await siteKnowledge.prepare(query, proxyRoutingDecision, stage => { answerLine.textContent = 'nishad.ai◆> ' + stage; }, { routingQuery: routingQuery(query) });
     } catch (error) {
       if (!(error instanceof KnowledgeRoutingError)) throw error;
       answerLine.textContent = 'ai: ' + error.message;
@@ -1022,13 +1022,13 @@ Reality check: this is deliberately playful lore built from Nishad's own career 
       const answerLine = addLine('nishad.ai> ', 'yellow');
       let accumulated = '';
 
-      const grounding = await browserKnowledge.prepare(routingQuery(query), async (messages, schema) => {
+      const grounding = await browserKnowledge.prepare(query, async (messages, schema) => {
         const result = await e.chat.completions.create({ messages, temperature: 0, max_tokens: 192, stream: false, response_format: { type: 'json_object', schema: JSON.stringify(schema) } });
         if (result.choices?.[0]?.finish_reason !== 'stop' || typeof result.choices?.[0]?.message?.content !== 'string') {
           throw new KnowledgeRoutingError('Browser-model routing did not complete. Retry manually.');
         }
         return result.choices[0].message.content;
-      }, stage => { answerLine.textContent = 'nishad.ai> ' + stage; });
+      }, stage => { answerLine.textContent = 'nishad.ai> ' + stage; }, { routingQuery: routingQuery(query) });
       const systemPrompt = grounding.systemPrompt;
       const messages = chatMessages(systemPrompt, query, extra, 1800);
 

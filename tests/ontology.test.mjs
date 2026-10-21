@@ -40,7 +40,7 @@ test('baseline prompt leaves supplemental source selection to the semantic plann
   assert.match(site, /GitHub Pages/);
   assert.doesNotMatch(site, /Dockerized, cloud-deployed Java Spring parser/);
   const generic = buildChatSystemPrompt('What revenue is documented?');
-  assert.ok(generic.length < 3800, `generic prompt is ${generic.length} characters`);
+  assert.ok(generic.length < 4000, `generic prompt is ${generic.length} characters`);
 });
 
 test('every chat query receives the complete dated career and education timelines', () => {
@@ -78,6 +78,14 @@ test('country duration uses the residence timeline rather than one employer inte
   assert.match(prompt, /approximately six calendar years/);
   assert.match(prompt, /2018 – Jan 2024: United States/);
   assert.match(prompt, /relocated from the United States to Bengaluru in January 2024/);
+});
+
+test('employer chronology distinguishes immediate from complete plural results', () => {
+  const immediate = buildChatSystemPrompt('Which employer came immediately after Twitter?');
+  assert.match(immediate, /Immediately after Twitter: Cisco/);
+  assert.doesNotMatch(immediate, /Immediately after Twitter:.*Microsoft/);
+  const plural = buildChatSystemPrompt('Which documented employers came after Twitter?');
+  assert.match(plural, /All documented employers after Twitter: Cisco .*; Microsoft /);
 });
 
 test('month-specific grounding uses exact employment boundaries rather than year matches', () => {

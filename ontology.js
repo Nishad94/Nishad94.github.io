@@ -303,6 +303,26 @@ function monthEvidence(query) {
   }).join('\n');
 }
 
+function careerOrderEvidence(query) {
+  const chronological = [...CAREER].reverse();
+  const companyIndex = chronological.findIndex(role => query.includes(role.company.toLowerCase()));
+  if (companyIndex < 0) return '';
+  const after = /\bafter\b/.test(query);
+  const before = /\bbefore\b/.test(query);
+  if (!after && !before) return '';
+  const immediate = /\b(?:immediately|directly|right|next)\b/.test(query);
+  let roles = after
+    ? chronological.slice(companyIndex + 1)
+    : chronological.slice(0, companyIndex).reverse();
+  if (immediate) roles = roles.slice(0, 1);
+  const direction = immediate ? `Immediately ${after ? 'after' : 'before'}` : `All documented employers ${after ? 'after' : 'before'}`;
+  return `- ${direction} ${chronological[companyIndex].company}: ${
+    roles.length
+      ? roles.map(role => `${role.company} (${role.dates}, ${role.location})`).join('; ')
+      : 'none in the documented timeline'
+  }.`;
+}
+
 // Structured music reports use their own prompt/schema, not this résumé summary.
 export function buildChatSystemPrompt(query = '', { intent = 'answer' } = {}) {
   const normalized = query.toLowerCase();
@@ -316,6 +336,7 @@ export function buildChatSystemPrompt(query = '', { intent = 'answer' } = {}) {
     `- ${item.dates}: ${item.location}.`
   ).join('\n');
   const dateEvidence = monthEvidence(normalized);
+  const orderEvidence = careerOrderEvidence(normalized);
   const extras = [];
   if (intent === 'career_scenarios') {
     const twitter = CAREER.find(role => role.company === 'Twitter');
@@ -338,6 +359,7 @@ Career scenario guidance:
 Response rules:
 - Answer directly with no preamble. Default to 40-70 words and stop once the question is answered.
 - If the user requests N bullets or ordered items, return exactly N in the requested order, one concise point per item, with no extra evidence section.
+- Plural or "all" chronology questions require the complete matching set, including entities already mentioned in prior turns. Only return one item when the current question explicitly asks for the immediate, direct, right, next, first, or latest item.
 - Use only the documented facts below. If a metric, achievement, or personal detail is absent, say it is not documented.
 - Never invent startup traction, revenue, funding, user counts, traffic, or performance numbers.
 - Alternate timelines are fiction and must be labeled as such.
@@ -363,6 +385,7 @@ ${education}
 Residence timeline:
 ${locations}
 ${dateEvidence ? `\nMonth-specific lookup (computed from documented employment boundaries):\n${dateEvidence}\n` : ''}
+${orderEvidence ? `\nEmployer-order lookup (computed from the complete timeline):\n${orderEvidence}\n` : ''}
 
 Core career evidence:
 - Microsoft Software Engineer II, Azure Edge + Platform: distributed hierarchical configuration resolution and application deployment at the edge.
