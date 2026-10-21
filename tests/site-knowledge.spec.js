@@ -13,7 +13,17 @@ const index = {
   }]
 };
 
-async function setup(page) {
+async function setup(page, { webEnabled = false } = {}) {
+  await page.route('**/deployment.js', route => route.fulfill({
+    contentType: 'application/javascript',
+    body: `export const PRIVATE_DASHBOARD_ORIGIN = '';
+export const ANALYTICS_ENDPOINT = '';
+export const INFERENCE_CHAT_ENDPOINT = '';
+export const INFERENCE_METRICS_ENDPOINT = '';
+export const WEB_SEARCH_ENABLED = ${webEnabled};
+export const ADSENSE_CLIENT = '';
+export const ADSENSE_SLOT = '';`
+  }));
   await page.addInitScript(() => localStorage.setItem('nishad_ai_proxy', 'http://127.0.0.1:9/semantic'));
   await page.route('**/site-knowledge.json', route => route.fulfill({ json: index }));
 }
@@ -67,30 +77,24 @@ test('semantic router can decide that general questions need no additional site 
 });
 
 test('web intent streams the local answer before a cited Exa enrichment', async ({ page }) => {
-  await page.route('**/deployment.js', route => route.fulfill({
-    contentType: 'application/javascript',
-    body: `export const PRIVATE_DASHBOARD_ORIGIN = '';
-export const ANALYTICS_ENDPOINT = '';
-export const INFERENCE_CHAT_ENDPOINT = '';
-export const INFERENCE_METRICS_ENDPOINT = '';
-export const WEB_SEARCH_ENABLED = true;
-export const ADSENSE_CLIENT = '';
-export const ADSENSE_SLOT = '';`
-  }));
-  await setup(page);
-  let routing = 0, answering = 0, searches = 0;
+  await setup(page, { webEnabled: true });
+  let intents = 0, routing = 0, answering = 0, searches = 0;
   await page.route('http://127.0.0.1:9/semantic', route => {
     const body = route.request().postDataJSON();
-    if (body.task === 'knowledge_route') {
-      routing++;
+    if (body.task === 'web_intent') {
+      intents++;
       return route.fulfill({ json: {
         content: JSON.stringify({
-          needs_site_data: false,
-          source_ids: [],
-          intent: 'answer',
           web_search: true,
           web_query: 'current synthetic public benchmark'
         }),
+        finish_reason: 'stop'
+      } });
+    }
+    if (body.task === 'knowledge_route') {
+      routing++;
+      return route.fulfill({ json: {
+        content: JSON.stringify(noData),
         finish_reason: 'stop'
       } });
     }
@@ -132,22 +136,13 @@ export const ADSENSE_SLOT = '';`
     .toHaveAttribute('href', 'https://example.com/evidence');
   const text = await page.locator('#term-output').innerText();
   expect(text.indexOf('LOCAL_DOCUMENTED_ANSWER')).toBeLessThan(text.indexOf('WEB_ENRICHED_ANSWER'));
+  expect(intents).toBe(1);
   expect(routing).toBe(1);
   expect(answering).toBe(2);
   expect(searches).toBe(1);
 });
 
 test('web intent remains local-only while the public deployment flag is disabled', async ({ page }) => {
-  await page.route('**/deployment.js', route => route.fulfill({
-    contentType: 'application/javascript',
-    body: `export const PRIVATE_DASHBOARD_ORIGIN = '';
-export const ANALYTICS_ENDPOINT = '';
-export const INFERENCE_CHAT_ENDPOINT = '';
-export const INFERENCE_METRICS_ENDPOINT = '';
-export const WEB_SEARCH_ENABLED = false;
-export const ADSENSE_CLIENT = '';
-export const ADSENSE_SLOT = '';`
-  }));
   await setup(page);
   await page.route('http://127.0.0.1:9/search', () => {
     throw new Error('search must stay disabled');

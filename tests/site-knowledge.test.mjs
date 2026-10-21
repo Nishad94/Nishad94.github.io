@@ -66,10 +66,15 @@ test('routing derives the redundant needs_site_data flag from validated source I
 });
 
 test('routing can request one bounded general-purpose web search', async () => {
+  let routingPrompt = '';
   const result = await createSiteKnowledge({ fetchImpl }).prepare(
     'What changed recently in llama.cpp prompt caching?',
-    async () => plan(['site'], 'answer', 'recent llama.cpp prompt caching changes')
+    async messages => {
+      routingPrompt = messages[0].content;
+      return plan(['site'], 'answer', 'recent llama.cpp prompt caching changes');
+    }
   );
+  assert.match(routingPrompt, /Mandatory freshness rule/);
   assert.equal(result.web_search, true);
   assert.equal(result.web_query, 'recent llama.cpp prompt caching changes');
   assert.match(result.systemPrompt, /separate public-web enrichment phase may follow/);

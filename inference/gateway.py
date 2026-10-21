@@ -157,8 +157,18 @@ def routing_schema(ids,limit=3):
   'required':['needs_site_data','source_ids','intent','web_search','web_query']
  }
 
-def generation_request(messages,is_report,is_route=False,route_ids=None,route_limit=3):
- if is_route and 'career' in route_ids:
+def web_intent_schema():
+ return {
+  'type':'object','additionalProperties':False,
+  'properties':{
+   'web_search':{'type':'boolean'},
+   'web_query':{'type':'string','maxLength':300}
+  },
+  'required':['web_search','web_query']
+ }
+
+def generation_request(messages,is_report,is_route=False,route_ids=None,route_limit=3,is_web_intent=False):
+ if is_route and route_ids and 'career' in route_ids:
   messages=[dict(message) for message in messages]
   messages[0]['content']+=(
    '\nEmployer-specific questions about responsibilities, projects, or what Nishad built at a company '
@@ -175,7 +185,8 @@ def generation_request(messages,is_report,is_route=False,route_ids=None,route_li
    'chat_template_kwargs':{'enable_thinking':False}
   }
   if is_route:
-   payload['response_format']={'type':'json_schema','json_schema':{'name':'site_routing','strict':True,'schema':routing_schema(route_ids,route_limit)}}
+   schema=web_intent_schema() if is_web_intent else routing_schema(route_ids,route_limit)
+   payload['response_format']={'type':'json_schema','json_schema':{'name':'web_intent' if is_web_intent else 'site_routing','strict':True,'schema':schema}}
   elif is_report:payload['response_format']={'type':'json_object'}
   url=LLAMA+'/v1/chat/completions'
  else:
@@ -183,7 +194,7 @@ def generation_request(messages,is_report,is_route=False,route_ids=None,route_li
    'model':MODEL,'messages':messages,'stream':True,'think':False,'keep_alive':KEEP_ALIVE,
    'options':{'temperature':0 if is_route else 0.2 if is_report else 0.7,'num_predict':192 if is_route else 1200 if is_report else 256,'num_ctx':CONTEXT}
   }
-  if is_route:payload['format']=routing_schema(route_ids,route_limit)
+  if is_route:payload['format']=web_intent_schema() if is_web_intent else routing_schema(route_ids,route_limit)
   elif is_report:payload['format']='json'
   url=OLLAMA+'/api/chat'
  return urllib.request.Request(url,data=json.dumps(payload).encode(),headers={'Content-Type':'application/json'},method='POST')
@@ -297,7 +308,7 @@ class H(BaseHTTPRequestHandler):
   except:return self.sendj(400,{'error':'invalid_json'},o)
   msgs=d.get('messages') if isinstance(d,dict) else None
   if not allowed_messages(msgs):return self.sendj(400,{'error':'invalid_messages'},o)
-  if d.get('task') is not None and not (d.get('task')=='knowledge_route' and d.get('mode')=='chat'):
+  if d.get('task') is not None and not (d.get('task') in {'knowledge_route','web_intent'} and d.get('mode')=='chat'):
    return self.sendj(400,{'error':'invalid_task'},o)
   if d.get('task')=='knowledge_route':
    ids=d.get('route_ids')
@@ -342,7 +353,8 @@ class H(BaseHTTPRequestHandler):
   # Reports get Ollama JSON mode plus enough output room for the complete schema;
   # chat preserves the lower-latency free-text configuration.
   is_report=isinstance(d,dict) and d.get('mode')!='chat'
-  req=generation_request(msgs,is_report,d.get('task')=='knowledge_route',d.get('route_ids'),d.get('route_limit',3))
+  is_route=d.get('task') in {'knowledge_route','web_intent'}
+  req=generation_request(msgs,is_report,is_route,d.get('route_ids'),d.get('route_limit',3),d.get('task')=='web_intent')
   started=time.monotonic()
   queue_ms=round((started-requested_at)*1000,1)
   try:

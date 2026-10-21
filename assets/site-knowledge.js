@@ -5,6 +5,44 @@ import {
 
 export class KnowledgeRoutingError extends Error {}
 
+export function webIntentSchema() {
+  return {
+    type: 'object',
+    additionalProperties: false,
+    properties: {
+      web_search: { type: 'boolean' },
+      web_query: { type: 'string', maxLength: 300 }
+    },
+    required: ['web_search', 'web_query']
+  };
+}
+
+export function webIntentMessages(query) {
+  return [
+    {
+      role: 'system',
+      content: `Classify whether the current user question requires fresh or external public web evidence.
+Use web_search=true for explicit requests to search public sources or obtain current, latest, recent, up-to-date, live, market, benchmark, news, external-source, or public-web information. Also use it when a requested estimate or hypothesis materially benefits from current public evidence unavailable in a static personal-site ontology.
+Use web_search=false for documented profile facts, questions about supplied local sources, timeless general knowledge, casual conversation, and fictional or creative requests that do not ask for current evidence.
+When web_search=true, web_query must be one self-contained natural-language search query of 3-300 characters that preserves the user's actual research intent. When false, web_query must be empty.
+Return only the JSON object. Do not answer the question.`
+    },
+    { role: 'user', content: query }
+  ];
+}
+
+export function parseWebIntent(content) {
+  let result;
+  try { result = JSON.parse(content); }
+  catch { throw new KnowledgeRoutingError('The model returned invalid web-intent JSON. Retry manually.'); }
+  const query = typeof result?.web_query === 'string' ? result.web_query.trim() : '';
+  if (!result || typeof result.web_search !== 'boolean' || typeof result.web_query !== 'string' ||
+      (result.web_search && (query.length < 3 || query.length > 300))) {
+    throw new KnowledgeRoutingError('The model selected an invalid web-intent plan. Retry manually.');
+  }
+  return { web_search: result.web_search, web_query: result.web_search ? query : '' };
+}
+
 function document(id, title, description, url, rows) {
   const sections = [];
   for (const [heading, text] of rows) {
@@ -126,6 +164,7 @@ Return ONLY a JSON object with exactly:
 {"needs_site_data":true,"source_ids":["an allowed id"],"intent":"answer","web_search":false,"web_query":""}
 needs_site_data must be true when source_ids is non-empty and false when source_ids is empty.
 Set web_search true only when the current question materially benefits from fresh or external public information unavailable in the catalog, such as current events, market data, recent research, public estimates, or explicit web research. When true, web_query must be one self-contained natural-language search query of 3-300 characters. When false, web_query must be empty. Do not use web search for documented profile facts or stable general knowledge.
+Mandatory freshness rule: if the current question explicitly asks to search the web or requests current, latest, recent, up-to-date, live, market, benchmark, news, external-source, or public-web information, web_search must be true and web_query must express that request. Examples: "latest stable Python release" and "recent llama.cpp changes" require web search; "what did Nishad build at Twitter?" does not.
 Choose the smallest sufficient set, usually one ID, never fill unused slots. Use at most 3 allowed IDs. If no evidence is needed use {"needs_site_data":false,"source_ids":[],"intent":"answer"}.
 Use intent "career_scenarios" only for future career possibilities, not historical chronology. Do not answer the question. Never select a URL or an ID absent from this catalog.
 Catalog:\n${JSON.stringify(catalog)}`
@@ -150,7 +189,7 @@ async function select(query, candidates, decide, passages = false, catalogBudget
     const messages = routingMessages(query, items, passages);
     messages[0].content += passages
       ? '\nSelect up to 3 genuinely relevant passages. This is passage selection: web_search must be false and web_query must be empty.'
-      : '\nSelect only the SINGLE best source, or none. source_ids must have at most one item.';
+      : '\nSelect only the SINGLE best source, or none. source_ids must have at most one item.\nFINAL REMINDER: an explicit request to search public sources or obtain current, latest, recent, live, market, benchmark, news, or up-to-date information requires web_search=true and one self-contained web_query, even when a local article is also relevant.';
     plans.push(parseRoutingPlan(await decide(messages, routingSchema(items.map(item => item.id), maxItems)), new Set(items.map(item => item.id))));
   }
   const ids = [...new Set(plans.flatMap(plan => plan.source_ids))];
@@ -186,10 +225,14 @@ export function createSiteKnowledge({ fetchImpl = fetch, maxContextCharacters = 
     catch (error) { documents = null; throw error; }
   }
   return {
-    async prepare(query, decide, onStage = () => {}, { routingQuery = query } = {}) {
+    async prepare(query, decide, onStage = () => {}, { routingQuery = query, webIntent = null } = {}) {
       const { sources, notice } = await load();
       onStage('Choosing whether public site evidence is needed…');
       const plan = await select(routingQuery, sources, decide, false, catalogCharacters);
+      if (webIntent) {
+        plan.web_search = webIntent.web_search;
+        plan.web_query = webIntent.web_query;
+      }
       const selected = sources.filter(source => plan.source_ids.includes(source.id));
       const passages = selected.flatMap(source => source.sections.map(section => ({
         ...section, id: `${source.id}/${section.id}`, title: `${section.title}: ${source.title}`, source

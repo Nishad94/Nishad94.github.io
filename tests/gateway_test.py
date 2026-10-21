@@ -330,6 +330,23 @@ class AdmissionQueueTests(unittest.TestCase):
                 self.assertEqual(schema["properties"]["source_ids"]["maxItems"], 3)
                 self.assertEqual(schema["properties"]["source_ids"]["items"]["enum"], ["career", "blog-0"])
                 self.assertEqual(payload.get("max_tokens", payload.get("options", {}).get("num_predict")), 192)
+
+    def test_web_intent_uses_the_routing_slot_and_a_small_strict_schema(self):
+        for backend in ["llama.cpp", "ollama"]:
+            with patch.object(gateway, "BACKEND", backend):
+                request = gateway.generation_request(
+                    [{"role": "user", "content": "latest public information"}],
+                    False, True, None, 3, True
+                )
+                payload = json.loads(request.data)
+                if backend == "llama.cpp":
+                    self.assertEqual(payload["id_slot"], gateway.ROUTING_SLOT)
+                    schema = payload["response_format"]["json_schema"]["schema"]
+                else:
+                    schema = payload["format"]
+                self.assertEqual(schema["required"], ["web_search", "web_query"])
+                self.assertEqual(schema["properties"]["web_query"]["maxLength"], 300)
+
     def test_default_queue_wait_expires_at_sixty_seconds_not_fifteen(self):
         self.assertEqual(gateway.QUEUE_WAIT_SECONDS, 60)
 
