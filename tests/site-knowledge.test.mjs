@@ -77,7 +77,8 @@ test('routing can request one bounded general-purpose web search', async () => {
   assert.match(routingPrompt, /Mandatory freshness rule/);
   assert.equal(result.web_search, true);
   assert.equal(result.web_query, 'recent llama.cpp prompt caching changes');
-  assert.match(result.systemPrompt, /separate public-web enrichment phase may follow/);
+  assert.match(result.systemPrompt, /LOCAL KNOWLEDGE ONLY/);
+  assert.match(result.systemPrompt, /do not state a requested latest, current, recent/);
   assert.throws(() => parseRoutingPlan(
     JSON.stringify({ needs_site_data: false, source_ids: [], intent: 'answer', web_search: true, web_query: 'x' }),
     new Set()

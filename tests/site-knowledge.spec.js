@@ -100,7 +100,7 @@ test('web intent streams the local answer before a cited Exa enrichment', async 
     }
     answering++;
     if (answering === 1) {
-      expect(body.messages[0].content).toContain('separate public-web enrichment phase may follow');
+      expect(body.messages[0].content).toContain('LOCAL KNOWLEDGE ONLY');
       return route.fulfill({ json: { content: 'LOCAL_DOCUMENTED_ANSWER', finish_reason: 'stop' } });
     }
     expect(body.messages[0].content).toContain('PUBLIC WEB ENRICHMENT');
