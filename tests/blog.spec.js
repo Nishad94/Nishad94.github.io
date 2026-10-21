@@ -45,7 +45,7 @@ for (const width of [1280, 1201, 1024, 800, 701, 375, 320]) {
       await expect(blog).toHaveAttribute('href', '/blog/');
       await expect(blog.locator('span')).toBeVisible();
       await expect(blog).not.toHaveAttribute('data-view', /./);
-      await expect(navigation.getByRole('link')).toHaveCount(8);
+      await expect(navigation.getByRole('link')).toHaveCount(9);
       for (const link of await navigation.getByRole('link').all()) {
         await expect(link).toBeInViewport({ ratio: 1 });
       }
@@ -106,6 +106,52 @@ test('bare homepage navigation resets scroll and never autofocuses the hidden te
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
   await expect(page.locator('#term-input')).not.toHaveAttribute('autofocus');
   expect(await page.evaluate(() => document.activeElement?.id)).not.toBe('term-input');
+});
+
+test('homepage activity renders build-time commits without calling the GitHub API', async ({ page }) => {
+  const today = new Date().toISOString().slice(0, 10);
+  const sha = 'a'.repeat(40);
+  await page.route('https://api.github.com/**', () => {
+    throw new Error('homepage must not call GitHub API');
+  });
+  await page.route('**/activity.json', route => route.fulfill({ json: {
+    schema: 'nishad.repository-activity.v1',
+    generated_at: new Date().toISOString(),
+    repository: 'Nishad94/Nishad94.github.io',
+    total_commits: 3,
+    active_days: 1,
+    days: { [today]: 3 },
+    commits: [{
+      sha,
+      short: 'aaaaaaa',
+      date: `${today}T10:00:00Z`,
+      subject: 'Add repository activity widget',
+      url: `https://github.com/Nishad94/Nishad94.github.io/commit/${sha}`
+    }]
+  } }));
+  await page.route('https://nishad-ai-proxy.nishad-dawkhar94.workers.dev/activity', route => route.fulfill({ json: {
+    schema: 'nishad.visitor-activity.v1',
+    generated_at: new Date().toISOString(),
+    retention_days: 90,
+    today: { day: today, views: 7, visitors: 5 },
+    views_30d: 42,
+    visitor_days_30d: 31,
+    daily: [{ day: today, views: 7, visitors: 5 }]
+  } }));
+  await page.goto('/#activity');
+  await expect(page.locator('[data-view="activity"].view')).toBeVisible();
+  await expect(page.locator('.tab[data-view="activity"]')).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('#visitor-today-views')).toHaveText('7');
+  await expect(page.locator('#visitor-month-views')).toHaveText('42');
+  await expect(page.locator('#visitor-days .visitor-day')).toHaveCount(30);
+  await expect(page.locator('#activity-summary')).toContainText('3 commits across 1 active days');
+  expect(await page.locator('#activity-grid .activity-day').count()).toBeGreaterThanOrEqual(365);
+  await expect(page.locator('#activity-grid .activity-day[data-level="4"]')).toHaveCount(1);
+  await expect(page.locator('#activity-commits a')).toHaveText('Add repository activity widget');
+  await expect(page.locator('#activity-commits a')).toHaveAttribute(
+    'href', `https://github.com/Nishad94/Nishad94.github.io/commit/${sha}`
+  );
+  await expect(page.locator('#activity-status')).toContainText('No GitHub API request');
 });
 
 test.describe('static primary navigation', () => {

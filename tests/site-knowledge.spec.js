@@ -18,6 +18,7 @@ async function setup(page, { webEnabled = false } = {}) {
     contentType: 'application/javascript',
     body: `export const PRIVATE_DASHBOARD_ORIGIN = '';
 export const ANALYTICS_ENDPOINT = '';
+export const PUBLIC_ACTIVITY_ENDPOINT = '';
 export const INFERENCE_CHAT_ENDPOINT = '';
 export const INFERENCE_METRICS_ENDPOINT = '';
 export const WEB_SEARCH_ENABLED = ${webEnabled};

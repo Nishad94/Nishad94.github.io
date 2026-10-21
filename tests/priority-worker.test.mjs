@@ -17,10 +17,70 @@ const searchRequest = (body = { query: 'recent public inference research' }, ori
     headers: { Origin: origin, 'Content-Type': 'application/json' },
     body: JSON.stringify(body)
   });
+const activityRequest = (path = '/activity/view', body = {
+  page: '/',
+  visitor: 'a'.repeat(64)
+}, origin = 'https://nishad.ai') => new Request(`https://worker.example${path}`, {
+  method: path.endsWith('/view') ? 'POST' : 'GET',
+  headers: { Origin: origin, 'Content-Type': 'application/json' },
+  ...(path.endsWith('/view') ? { body: JSON.stringify(body) } : {})
+});
 const stream = 'data: {"delta":"OK"}\n\ndata: {"done":true,"finish_reason":"stop"}\n\n';
 const success = () => new Response(stream, { headers: { 'Content-Type': 'text/event-stream' } });
 const ready = () => Response.json({ status: 'ok' });
 beforeEach(resetMemory);
+
+test('consented public activity writes one bounded Analytics Engine data point', async () => {
+  const points = [];
+  const response = await handle(activityRequest(), {
+    ...env,
+    SITE_ACTIVITY: { writeDataPoint: point => points.push(point) }
+  }, async () => assert.fail('unexpected fetch'));
+  assert.equal(response.status, 204);
+  assert.deepEqual(points, [{
+    blobs: ['/'],
+    doubles: [1],
+    indexes: ['a'.repeat(64)]
+  }]);
+  assert.equal((await handle(activityRequest('/activity/view', { page: '/private', visitor: 'a'.repeat(64) }), {
+    ...env, SITE_ACTIVITY: { writeDataPoint: () => assert.fail('invalid event written') }
+  })).status, 400);
+  assert.equal((await handle(activityRequest('/activity/view', undefined, 'https://evil.example'), {
+    ...env, SITE_ACTIVITY: { writeDataPoint: () => assert.fail('denied event written') }
+  })).status, 403);
+});
+
+test('public activity returns cached aggregate rows without exposing Analytics API credentials', async () => {
+  let calls = 0;
+  const activityEnv = {
+    ...env,
+    CLOUDFLARE_ACCOUNT_ID: 'b'.repeat(32),
+    ANALYTICS_API_TOKEN: 'synthetic-analytics-token'
+  };
+  const fetcher = async (url, init) => {
+    calls++;
+    assert.equal(url, `https://api.cloudflare.com/client/v4/accounts/${'b'.repeat(32)}/analytics_engine/sql`);
+    assert.equal(init.headers.Authorization, 'Bearer synthetic-analytics-token');
+    assert.match(init.body, /FROM nishad_site_activity/);
+    return Response.json({ data: [
+      { day: '2026-10-20', views: 4, visitors: 3 },
+      { day: '2026-10-21', views: 7, visitors: 5 }
+    ] });
+  };
+  const clock = () => Date.parse('2026-10-21T12:00:00Z');
+  for (let index = 0; index < 2; index++) {
+    const response = await handle(activityRequest('/activity'), activityEnv, fetcher, clock);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('Cache-Control'), 'public, max-age=300, stale-while-revalidate=60');
+    const result = await response.json();
+    assert.equal(result.schema, 'nishad.visitor-activity.v1');
+    assert.deepEqual(result.today, { day: '2026-10-21', views: 7, visitors: 5 });
+    assert.equal(result.views_30d, 11);
+    assert.equal(result.visitor_days_30d, 8);
+    assert.doesNotMatch(JSON.stringify(result), /synthetic-analytics-token/);
+  }
+  assert.equal(calls, 1);
+});
 
 test('Exa Lite search is bounded, sanitized, and keeps its API key server-side', async () => {
   const response = await handle(searchRequest(), { ...env, EXA_API_KEY: 'synthetic-exa-key' }, async (url, init) => {

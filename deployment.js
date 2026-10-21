@@ -1,6 +1,7 @@
 // Public URLs and public integration IDs only. Empty values disable that integration.
 export const PRIVATE_DASHBOARD_ORIGIN = 'https://private.nishad.ai';
 export const ANALYTICS_ENDPOINT = 'https://metrics.nishad.ai/collect';
+export const PUBLIC_ACTIVITY_ENDPOINT = 'https://nishad-ai-proxy.nishad-dawkhar94.workers.dev/activity';
 // Empty until the separate laptop Worker is deployed and verified.
 export const INFERENCE_CHAT_ENDPOINT = '';
 export const INFERENCE_METRICS_ENDPOINT = 'https://nishad-ai-proxy.nishad-dawkhar94.workers.dev/metrics';

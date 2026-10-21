@@ -18,8 +18,8 @@ test('exact metrics entry is a constant launcher, never a public report', async 
   expect(await page.locator('script').count()).toBe(0);
 });
 
-async function publicFixture(page, { privacy = false, enabled = true } = {}) {
-  const events = [];
+async function publicFixture(page, { privacy = false, enabled = true, publicActivity = false } = {}) {
+  const events = [], activityEvents = [];
   await page.addInitScript(({ privacy }) => {
     if (privacy) Object.defineProperty(navigator, 'globalPrivacyControl', { value: true });
     localStorage.setItem('unrelated_synthetic_key', 'synthetic-never-send');
@@ -30,10 +30,13 @@ async function publicFixture(page, { privacy = false, enabled = true } = {}) {
       return route.fulfill({ contentType: 'text/html', body: '<!doctype html><html><head><script type="module" src="/analytics.js"></script></head><body><h1>Synthetic public page</h1></body></html>' });
     }
     if (url.pathname === '/deployment.js') {
-      return route.fulfill({ contentType: 'text/javascript', body: `export const ANALYTICS_ENDPOINT = '${enabled ? 'https://metrics.example/collect' : ''}'; export const PRIVATE_DASHBOARD_ORIGIN = '';` });
+      return route.fulfill({ contentType: 'text/javascript', body: `export const ANALYTICS_ENDPOINT = '${enabled ? 'https://metrics.example/collect' : ''}'; export const PRIVATE_DASHBOARD_ORIGIN = ''; export const PUBLIC_ACTIVITY_ENDPOINT = '${publicActivity ? 'https://activity.example/activity' : ''}';` });
     }
     if (url.pathname === '/analytics.js') {
       return route.fulfill({ contentType: 'text/javascript', body: await readFile(new URL('../analytics.js', import.meta.url), 'utf8') });
+    }
+    if (['/assets/ai-proxy-compat.js', '/assets/ads.js', '/assets/control-room.js'].includes(url.pathname)) {
+      return route.fulfill({ contentType: 'text/javascript', body: '' });
     }
     if (url.pathname === '/analytics-pages.json') return route.fulfill({ json: { '/': 'Home' } });
     return route.abort();
@@ -43,12 +46,20 @@ async function publicFixture(page, { privacy = false, enabled = true } = {}) {
     if (request.method() === 'POST') events.push({ body: request.postDataJSON(), headers: request.headers() });
     return route.fulfill({ status: 204, headers: { 'Access-Control-Allow-Origin': 'https://nishad.ai', 'Access-Control-Allow-Methods': 'POST', 'Access-Control-Allow-Headers': 'Content-Type' } });
   });
+  await page.route('https://activity.example/activity/view', async route => {
+    if (route.request().method() === 'POST') activityEvents.push(route.request().postDataJSON());
+    return route.fulfill({ status: 204, headers: {
+      'Access-Control-Allow-Origin': 'https://nishad.ai',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type'
+    } });
+  });
   await page.goto('https://nishad.ai/?token=synthetic-secret#private-fragment', { referer: 'https://external.example/private?secret=synthetic' });
-  return events;
+  return { events, activityEvents };
 }
 
 test('tracker is opt-in, strips URLs and HTTP referrer, and supports withdrawal', async ({ page }) => {
-  const events = await publicFixture(page);
+  const { events } = await publicFixture(page);
   await expect(page.getByRole('button', { name: 'Allow minimal analytics' })).toBeVisible();
   expect(events).toHaveLength(0);
   await page.getByRole('button', { name: 'Allow minimal analytics' }).click();
@@ -69,17 +80,25 @@ test('tracker is opt-in, strips URLs and HTTP referrer, and supports withdrawal'
 });
 
 test('browser privacy preference disables collection', async ({ page }) => {
-  const events = await publicFixture(page, { privacy: true });
+  const { events } = await publicFixture(page, { privacy: true });
   await expect(page.getByRole('button', { name: 'Allow minimal analytics' })).toBeDisabled();
   expect(events).toHaveLength(0);
 });
 
 test('default integration sends no analytics and offers no dead private link', async ({ page }) => {
-  const events = await publicFixture(page, { enabled: false });
+  const { events } = await publicFixture(page, { enabled: false });
   await expect(page.getByRole('link', { name: 'Analytics privacy' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Allow minimal analytics' })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Private dashboard' })).toHaveCount(0);
   expect(events).toHaveLength(0);
+});
+
+test('public visitor activity reuses explicit consent and sends only page plus daily identifier', async ({ page }) => {
+  const { events, activityEvents } = await publicFixture(page, { publicActivity: true });
+  await page.getByRole('button', { name: 'Allow minimal analytics' }).click();
+  await expect.poll(() => activityEvents.length).toBe(1);
+  expect(events).toHaveLength(1);
+  expect(activityEvents[0]).toEqual({ page: '/', visitor: events[0].body.visitor });
 });
 
 async function metricsFixture(page, { empty = false, mapFails = false, performanceFails = false } = {}) {

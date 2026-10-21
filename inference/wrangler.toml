@@ -5,6 +5,12 @@ compatibility_date = "2026-10-01"
 [vars]
 ALLOWED_ORIGIN = "https://nishad.ai"
 
+[[analytics_engine_datasets]]
+binding = "SITE_ACTIVITY"
+dataset = "nishad_site_activity"
+
 # Set LAPTOP_UPSTREAM and MAC_UPSTREAM remotely, not in this public file.
 # Store matching LAPTOP_GATEWAY_TOKEN / MAC_GATEWAY_TOKEN as Worker secrets.
+# Store ANALYTICS_API_TOKEN as an Account Analytics Read secret and set
+# CLOUDFLARE_ACCOUNT_ID remotely; never commit either value.
 # Deploy with --keep-vars. This preview name cannot overwrite production.

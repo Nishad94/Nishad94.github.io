@@ -14,11 +14,14 @@ built so that AI agents and human contributors can work on it safely and quickly
 
 ## Layout
 
-`index.html` is tabbed: Home, Story, Lore, Music, Work, Terminal (`.view[data-view]`, `.tab[data-view]`).
+`index.html` is tabbed: Home, Story, Lore, Music, Work, Activity, Terminal (`.view[data-view]`, `.tab[data-view]`).
 A hash router shows one view at a time; old anchors (`#music`, `#shell`, `#timeline`, ...) still resolve.
 The primary navigation also has a Blog link to `/blog/`, visible on desktop/mobile
 and in Builder Mode. Keep it free of `data-view` so it uses normal page navigation.
 `assets/control-room.js` adds the Control view/tab at runtime; preserve it when sizing the navigation.
+Activity combines build-generated `activity.json` repository history with public,
+consent-only Cloudflare Analytics Engine aggregates. Never expose raw events or
+daily visitor identifiers.
 Use `window.history` (a local `history` variable shadows the global). Tests must reveal the right view first.
 
 ## File map

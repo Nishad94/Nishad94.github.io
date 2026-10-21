@@ -186,6 +186,9 @@ in `worker\ai-proxy.js`; that rollback artifact is not replaced.
 | `LAPTOP_GATEWAY_TOKEN` | Worker secret matching the laptop's `GATEWAY_TOKEN`. |
 | `MAC_GATEWAY_TOKEN` | Optional equivalent secret after enabling authentication on the Mac. |
 | `EXA_API_KEY` | Optional Worker secret enabling the bounded `/search` endpoint when the public site flag is also enabled. |
+| `SITE_ACTIVITY` | Analytics Engine binding for consented public page-view events. |
+| `CLOUDFLARE_ACCOUNT_ID` | Remote Worker variable used only to query the activity dataset; keep the real account ID out of Git. |
+| `ANALYTICS_API_TOKEN` | Worker secret with Account Analytics Read permission. |
 | `LAPTOP_REPORTS` | Only the exact value `true` enables laptop reports. Default: Mac-only reports. |
 | `ALLOWED_ORIGIN` | Exact allowed website origins, comma-separated. |
 
@@ -210,6 +213,22 @@ at most five moderated results with cached highlights. It returns a
 provider-neutral schema containing only validated HTTPS URLs, bounded titles,
 bounded snippets and optional publication dates. It never exposes the Exa key,
 fetches result URLs, forwards cookies, or permits arbitrary URL proxying.
+
+`POST /activity/view` accepts only an approved public page identifier and the
+site's random daily browser identifier after explicit analytics consent. It
+writes one data point to Analytics Engine and stores no IP address, user agent,
+referrer, query or fragment. `GET /activity` queries only daily aggregate views
+and daily browser counts, caches the result for five minutes, and never returns
+raw events or identifiers. Analytics Engine retains data for up to three months.
+
+Configure the read-only query credential and account variable outside Git:
+
+```sh
+printf '%s' "$ANALYTICS_API_TOKEN" | npx --yes wrangler secret put ANALYTICS_API_TOKEN \
+  --config inference/wrangler.toml --name nishad-ai-proxy
+npx --yes wrangler deploy --config inference/wrangler.toml \
+  --name nishad-ai-proxy --keep-vars --var "CLOUDFLARE_ACCOUNT_ID:$CLOUDFLARE_ACCOUNT_ID"
+```
 
 Configure the secret without printing it:
 

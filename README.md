@@ -507,7 +507,9 @@ BYOK/browser-local mode; a temporary HTTP(S) URL can select a mock gateway.
 ## Layout
 
 The primary navigation links to Blog (`/blog/`) alongside Home, Story, Lore,
-Music, Work, Terminal and the runtime-added Control room. Blog uses normal page
+Music, Work, Activity, Terminal and the runtime-added Control room. Activity is
+a hash-routed view combining build-time public Git history with five-minute-cached,
+consent-only visitor aggregates from Cloudflare Analytics Engine. Blog uses normal page
 navigation, not the hash router, and keeps its text label visible at every
 breakpoint. The mobile bottom bar includes all destinations. Existing `#section`
 links, Builder Mode, the daily branch and visit streak still work.

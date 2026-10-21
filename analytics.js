@@ -1,7 +1,7 @@
 import './assets/ai-proxy-compat.js?v=2';
 import './assets/ads.js';
 import './assets/control-room.js';
-import { ANALYTICS_ENDPOINT, PRIVATE_DASHBOARD_ORIGIN } from './deployment.js';
+import { ANALYTICS_ENDPOINT, PRIVATE_DASHBOARD_ORIGIN, PUBLIC_ACTIVITY_ENDPOINT } from './deployment.js';
 
 const CONSENT = 'nishad_metrics_consent';
 const VISITOR = 'nishad_metrics_daily';
@@ -56,7 +56,8 @@ export async function initializeAnalytics() {
     footer.append(metrics);
   }
   document.body.append(footer);
-  if (!ANALYTICS_ENDPOINT || !['nishad.ai', 'www.nishad.ai'].includes(location.hostname)) return;
+  if ((!ANALYTICS_ENDPOINT && !PUBLIC_ACTIVITY_ENDPOINT) ||
+      !['nishad.ai', 'www.nishad.ai'].includes(location.hostname)) return;
   const status = document.createElement('span');
   status.setAttribute('role', 'status');
   const enable = document.createElement('button'), disable = document.createElement('button');
@@ -87,12 +88,19 @@ export async function initializeAnalytics() {
       const payload = pageEvent(location.pathname, catalog, document.referrer, id);
       if (!payload) return;
       sent = true;
-      const response = await fetch(ANALYTICS_ENDPOINT, {
+      const collector = ANALYTICS_ENDPOINT ? fetch(ANALYTICS_ENDPOINT, {
         method: 'POST', credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store',
         headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
         signal: controller.signal
-      });
-      if (!response.ok) throw new Error('collector');
+      }) : Promise.resolve(null);
+      const publicActivity = PUBLIC_ACTIVITY_ENDPOINT && id ? fetch(`${PUBLIC_ACTIVITY_ENDPOINT}/view`, {
+        method: 'POST', credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ page: payload.page, visitor: id }),
+        signal: controller.signal
+      }).catch(() => null) : Promise.resolve(null);
+      const [response] = await Promise.all([collector, publicActivity]);
+      if (response && !response.ok) throw new Error('collector');
       if (!id) status.textContent = 'Pageview counted without a browser ID; unique coverage is reduced.';
     } catch (error) {
       if (error.name !== 'AbortError') status.textContent = 'Analytics unavailable or blocked. The site still works.';

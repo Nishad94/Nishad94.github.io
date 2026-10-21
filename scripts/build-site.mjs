@@ -1,6 +1,8 @@
 import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
+import { execFile } from 'node:child_process';
 import MarkdownIt from 'markdown-it';
 import highlight from 'highlight.js/lib/core';
 import bash from 'highlight.js/lib/languages/bash';
@@ -8,12 +10,13 @@ import javascript from 'highlight.js/lib/languages/javascript';
 import typescript from 'highlight.js/lib/languages/typescript';
 import json from 'highlight.js/lib/languages/json';
 import python from 'highlight.js/lib/languages/python';
-import { PRIVATE_DASHBOARD_ORIGIN, ANALYTICS_ENDPOINT } from '../deployment.js';
+import { PRIVATE_DASHBOARD_ORIGIN, ANALYTICS_ENDPOINT, PUBLIC_ACTIVITY_ENDPOINT } from '../deployment.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const origin = 'https://nishad.ai';
 const markdown = new MarkdownIt({ html: false, linkify: false });
 const escape = markdown.utils.escapeHtml;
+const execFileAsync = promisify(execFile);
 for (const [name, grammar] of Object.entries({ bash, javascript, typescript, json, python })) {
   highlight.registerLanguage(name, grammar);
 }
@@ -90,9 +93,51 @@ export async function loadPosts(directory) {
     if (!entry.isFile() || !entry.name.endsWith('.md')) {
       throw new Error(`${entry.name}: posts directory accepts only .md files; put images in assets/blog/`);
     }
+
     posts.push(parsePost(await readFile(join(directory, entry.name), 'utf8'), entry.name));
   }
   return posts;
+}
+
+export function parseGitActivity(raw, generatedAt = new Date().toISOString()) {
+  const commits = [];
+  const days = {};
+  for (const record of raw.split('\x1e')) {
+    if (!record.trim()) continue;
+    const [sha, short, timestamp, ...subjectParts] = record.trim().split('\x1f');
+    const subject = subjectParts.join('\x1f').replace(/[\u0000-\u001f\u007f]/g, ' ').trim().slice(0, 200);
+    if (!/^[0-9a-f]{40}$/.test(sha) || !/^[0-9a-f]{7,12}$/.test(short) ||
+        !Number.isFinite(Date.parse(timestamp)) || !subject) {
+      throw new Error('Invalid git activity record');
+    }
+    const date = new Date(timestamp).toISOString();
+    const day = date.slice(0, 10);
+    days[day] = (days[day] || 0) + 1;
+    commits.push({
+      sha,
+      short,
+      date,
+      subject,
+      url: `https://github.com/Nishad94/Nishad94.github.io/commit/${sha}`
+    });
+  }
+  return {
+    schema: 'nishad.repository-activity.v1',
+    generated_at: new Date(generatedAt).toISOString(),
+    repository: 'Nishad94/Nishad94.github.io',
+    total_commits: commits.length,
+    active_days: Object.keys(days).length,
+    days,
+    commits: commits.slice(0, 20)
+  };
+}
+
+export async function loadGitActivity(directory) {
+  const { stdout } = await execFileAsync('git', [
+    '-C', directory, 'log', '--since=1 year ago', '--no-merges',
+    '--pretty=format:%H%x1f%h%x1f%aI%x1f%s%x1e', '--', '.'
+  ], { encoding: 'utf8', maxBuffer: 2 * 1024 * 1024 });
+  return parseGitActivity(stdout);
 }
 
 function layout({ title, description, path, body, article = false, notFound = false }) {
@@ -229,8 +274,14 @@ export async function buildSite() {
     if (endpoint.protocol !== 'https:' || endpoint.pathname !== '/collect' || endpoint.search ||
         endpoint.hash || endpoint.username || endpoint.password) throw new Error('Invalid public analytics endpoint');
   }
+  if (PUBLIC_ACTIVITY_ENDPOINT) {
+    const endpoint = new URL(PUBLIC_ACTIVITY_ENDPOINT);
+    if (endpoint.protocol !== 'https:' || endpoint.pathname !== '/activity' || endpoint.search ||
+        endpoint.hash || endpoint.username || endpoint.password) throw new Error('Invalid public activity endpoint');
+  }
   const posts = await loadPosts(join(root, 'posts'));
   const pages = renderBlog(posts);
+  pages.set('activity.json', JSON.stringify(await loadGitActivity(root)) + '\n');
   const knowledge = JSON.parse(pages.get('site-knowledge.json'));
   for (const [index, [filename, title, description]] of [
     ['index.html', 'Homepage: story, lore and public features', 'Public career story, fictional lore, navigation, terminal commands and website features.'],

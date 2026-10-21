@@ -78,6 +78,8 @@ main{padding:28px 0 90px}.section{margin-top:34px}.section-head{margin-bottom:14
 #spotify-result-output{overflow-wrap:anywhere}#spotify-result-output .vibe-report{margin-top:0;border-top:0}#spotify-result-output p{line-height:1.7}#spotify-result-output .btn{margin:8px 0}#spotify-result-output a{color:var(--mint)}
 .vc-toggle{border-color:rgba(159,255,210,.45);color:var(--mint)}.vc-toggle[aria-pressed=true]{background:var(--mint);color:var(--bg)}
 .writing-section{scroll-margin-top:90px}.writing-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.writing-card{display:block;padding:18px;text-decoration:none}.writing-card:hover{border-color:var(--mint);transform:translateY(-2px)}.writing-card.featured{grid-column:1/-1;padding:22px;background:linear-gradient(135deg,rgba(159,255,210,.09),rgba(185,164,255,.08))}.writing-card .writing-meta{color:var(--mint);font-size:10px;text-transform:uppercase;letter-spacing:.11em}.writing-card h3{margin:9px 0 7px;color:var(--ink);font-size:16px;line-height:1.4}.writing-card.featured h3{font-size:21px}.writing-card p{margin:0;color:var(--muted);font-size:12.5px;line-height:1.65}.writing-card .writing-tags{margin-top:12px;color:var(--yellow);font-size:10px}.writing-all{font-size:12px;color:var(--mint);text-decoration:none}
+.activity-panel{padding:20px}.activity-head{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:16px}.activity-summary{color:var(--muted);font-size:11px;line-height:1.6}.activity-summary b{color:var(--mint)}.activity-scroll{overflow-x:auto;padding:4px 0 10px}.activity-grid{display:grid;grid-template-rows:repeat(7,12px);grid-auto-flow:column;grid-auto-columns:12px;gap:4px;width:max-content;min-width:100%}.activity-day{width:12px;height:12px;border-radius:3px;background:#20233b;border:1px solid #2d3150}.activity-day[data-level="1"]{background:#265c4b;border-color:#32745d}.activity-day[data-level="2"]{background:#388d68;border-color:#45a97d}.activity-day[data-level="3"]{background:#63c992;border-color:#75dfa5}.activity-day[data-level="4"]{background:var(--mint);border-color:#d4ffe7;box-shadow:0 0 8px rgba(159,255,210,.35)}.activity-legend{display:flex;align-items:center;justify-content:flex-end;gap:5px;color:var(--muted);font-size:9px}.activity-legend i{display:block;width:10px;height:10px;border-radius:2px;border:1px solid #2d3150}.activity-commits{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:8px}.activity-commits li{display:grid;grid-template-columns:90px 1fr auto;align-items:center;gap:12px;padding:10px 12px;border:1px solid #303350;background:#15172b;border-radius:10px;font-size:10px}.activity-commits time{color:var(--muted)}.activity-commits a{color:var(--mint);font-weight:750;text-decoration:none}.activity-commits a:hover{text-decoration:underline}.activity-sha{color:var(--purple);font:9px ui-monospace,SFMono-Regular,Menlo,monospace}
+.visitor-panel{margin-bottom:16px;padding:20px}.visitor-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.visitor-stat{padding:15px;border:1px solid #303451;border-radius:12px;background:#111327}.visitor-stat b{display:block;color:var(--mint);font-size:24px;letter-spacing:-.04em}.visitor-stat span{display:block;margin-top:4px;color:var(--muted);font-size:10px}.visitor-days{display:flex;align-items:end;gap:4px;height:70px;margin-top:16px;padding:10px;border:1px solid #292d49;border-radius:12px;background:#101225}.visitor-day{min-width:5px;flex:1;height:4px;border-radius:3px 3px 1px 1px;background:linear-gradient(180deg,var(--purple),var(--mint));opacity:.85}.visitor-status a{color:var(--mint)}
 .proof-section{scroll-margin-top:90px}.proof-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.proof-card{padding:17px}.proof-card .tiny{color:var(--mint)}.proof-card h3{margin:8px 0;font-size:15px}.proof-card p{margin:0;color:var(--muted);font-size:12.5px;line-height:1.6}
 .architecture-flow{display:flex;align-items:stretch;gap:8px;margin-top:12px;padding:16px;overflow:auto}.architecture-node{min-width:150px;flex:1;padding:13px;border:1px solid #353958;border-radius:12px;background:#101225}.architecture-node b{display:block;color:var(--yellow);font-size:12px}.architecture-node span{display:block;margin-top:5px;color:var(--muted);font-size:11px;line-height:1.5}.architecture-arrow{align-self:center;color:var(--mint);font-weight:900}
 .blog-cta{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:12px;padding:20px;text-decoration:none;border-color:rgba(185,164,255,.55);background:linear-gradient(135deg,rgba(185,164,255,.12),rgba(159,255,210,.06))}.blog-cta:hover{border-color:var(--mint);transform:translateY(-2px)}.blog-cta strong{display:block;color:var(--ink);font-size:18px}.blog-cta span{display:block;margin-top:5px;color:var(--muted);font-size:12.5px;line-height:1.55}.blog-cta .blog-arrow{color:var(--mint);font-size:28px;font-weight:900;white-space:nowrap}
@@ -93,7 +95,7 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 @media(max-width:700px){
  /* A filtered header would contain and clip the fixed bottom navigation. */
  header{backdrop-filter:none}
- .launcher,.lens-grid,.proof-grid,.proof-links,.writing-grid{grid-template-columns:1fr}.writing-card.featured{grid-column:auto}.daily{flex-direction:column;align-items:flex-start}
+ .launcher,.lens-grid,.proof-grid,.proof-links,.writing-grid{grid-template-columns:1fr}.writing-card.featured{grid-column:auto}.daily{flex-direction:column;align-items:flex-start}.activity-head{align-items:flex-start;flex-direction:column}.activity-commits li{grid-template-columns:1fr auto}.activity-commits time{grid-column:1/-1}.visitor-stats{grid-template-columns:1fr 1fr}
  .blog-cta{align-items:flex-start}.blog-cta .blog-arrow{font-size:22px}
  .nav-tools{display:none}.signalbar{display:none}.cat{display:none}
  .tabs{position:fixed;left:10px;right:10px;bottom:10px;z-index:60;justify-content:space-between;gap:0;padding:6px;border-radius:18px;background:rgba(18,20,42,.96);backdrop-filter:blur(14px);box-shadow:0 10px 40px rgba(0,0,0,.5)}
@@ -102,6 +104,7 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
  .report-grid{grid-template-columns:1fr}.report-card-wide{grid-column:auto}.report-timeline-row{grid-template-columns:1fr;gap:5px}.report-mood{justify-self:start}.report-type-line{align-items:flex-start;flex-direction:column;gap:8px}
  main{padding-bottom:110px}
 }
+@media(max-width:360px){.tabs .tab span{display:none}.tabs .tab-blog span{display:block;font-size:8px}.tabs .tab{min-width:0}}
 </style>
 </head>
 <body>
@@ -115,6 +118,7 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 <a class="tab" data-view="lore" href="#lore" aria-label="Lore"><i aria-hidden="true">👽</i><span>Lore</span></a>
 <a class="tab" data-view="music" href="#music" aria-label="Music"><i aria-hidden="true">🎧</i><span>Music</span></a>
 <a class="tab" data-view="work" href="#recruiter" aria-label="Work"><i aria-hidden="true">👔</i><span>Work</span></a>
+<a class="tab" data-view="activity" href="#activity" aria-label="Activity"><i aria-hidden="true">📈</i><span>Activity</span></a>
 <a class="tab" data-view="shell" href="#shell" aria-label="Terminal"><i aria-hidden="true">⌨️</i><span>Terminal</span></a>
 </nav>
 <div class="nav-tools"><button class="btn vc-toggle" id="nav-vc-view" type="button" aria-pressed="false">⚡ Builder Mode</button><button class="btn" id="nav-palette" type="button" aria-label="Open command palette">⌘K</button><a class="btn" href="https://www.linkedin.com/in/nishaddawkhar" target="_blank" rel="noreferrer">LinkedIn ↗</a></div>
@@ -207,6 +211,31 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 <div class="card stat"><b>2026</b><span data-default="main still compiling" data-impact="self-hosted AI + private analytics">main still compiling</span></div>
 </div></section>
 
+</div>
+
+<div class="view" data-view="activity" id="activity">
+<section class="section" aria-labelledby="activity-title">
+<div class="section-head"><div><h2 id="activity-title">activity</h2><p>consented visits and public repository work, without turning the site into a surveillance product</p></div><span class="chip">privacy-safe aggregates</span></div>
+<div class="card visitor-panel">
+  <div class="activity-head"><div><div class="tiny">visitor activity</div><h3>consented traffic</h3></div><span class="chip">Cloudflare Analytics Engine</span></div>
+  <div class="visitor-stats">
+    <div class="visitor-stat"><b id="visitor-today-views">—</b><span>views today</span></div>
+    <div class="visitor-stat"><b id="visitor-today-browsers">—</b><span>daily browsers today</span></div>
+    <div class="visitor-stat"><b id="visitor-month-views">—</b><span>views in 30 days</span></div>
+    <div class="visitor-stat"><b id="visitor-month-days">—</b><span>browser-days in 30 days</span></div>
+  </div>
+  <div class="visitor-days" id="visitor-days" role="img" aria-label="Loading visitor activity for the last 30 days"></div>
+  <p class="smallcopy visitor-status" id="visitor-status">Loading consented aggregate activity…</p>
+</div>
+<div class="section-head"><div><h2>repository activity</h2><p>builds, fixes, experiments and the occasional production branch collision</p></div><a class="writing-all" href="https://github.com/Nishad94/Nishad94.github.io/commits/master" target="_blank" rel="noreferrer">view on GitHub ↗</a></div>
+<div class="card activity-panel">
+  <div class="activity-head"><div class="activity-summary" id="activity-summary">Loading repository history…</div><span class="chip">build-time git history</span></div>
+  <div class="activity-scroll" role="region" aria-label="Repository commit activity by day" tabindex="0"><div class="activity-grid" id="activity-grid" role="img" aria-label="Loading repository activity"></div></div>
+  <div class="activity-legend" aria-label="Commit activity intensity"><span>Less</span><i></i><i style="background:#265c4b"></i><i style="background:#388d68"></i><i style="background:#63c992"></i><i style="background:var(--mint)"></i><span>More</span></div>
+  <ol class="activity-commits" id="activity-commits" aria-label="Recent repository commits"></ol>
+  <p class="smallcopy" id="activity-status">Generated from this repository during the latest Pages build. No GitHub token or browser API request is used.</p>
+</div>
+</section>
 </div>
 
 <div class="view" data-view="story" id="story">
@@ -367,7 +396,7 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
 import { ARCHITECTURE_RECEIPTS, buildChatSystemPrompt, PROFILE, PROJECTS, TECHNICAL_BRIEF } from './ontology.js';
 import { createSpotifyTerminal } from './spotify-ui.js';
 import { readChatStream } from './assets/chat-stream.js';
-import { INFERENCE_CHAT_ENDPOINT, WEB_SEARCH_ENABLED } from './deployment.js';
+import { INFERENCE_CHAT_ENDPOINT, PUBLIC_ACTIVITY_ENDPOINT, WEB_SEARCH_ENABLED } from './deployment.js';
 import {
   applyWebIntent, createSiteKnowledge, KnowledgeRoutingError, parseWebIntent, webIntentMessages, webIntentSchema
 } from './assets/site-knowledge.js';
@@ -1752,6 +1781,167 @@ ${evidence || 'No useful public web evidence was returned.'}`
   }
   vcButtons.forEach(button => button.addEventListener('click', activateVCView));
   routeFromHash();
+
+  // ---- consented visitor activity + build-time repository activity ----
+  async function loadVisitorActivity() {
+    const fields = {
+      todayViews: document.getElementById('visitor-today-views'),
+      todayBrowsers: document.getElementById('visitor-today-browsers'),
+      monthViews: document.getElementById('visitor-month-views'),
+      monthDays: document.getElementById('visitor-month-days')
+    };
+    const chart = document.getElementById('visitor-days');
+    const status = document.getElementById('visitor-status');
+    if (!chart || !status || Object.values(fields).some(field => !field)) return;
+    try {
+      if (!PUBLIC_ACTIVITY_ENDPOINT) throw new Error('Activity unavailable');
+      const response = await fetch(PUBLIC_ACTIVITY_ENDPOINT, {
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+        redirect: 'error',
+        signal: AbortSignal.timeout(10000)
+      });
+      if (!response.ok) throw new Error('Activity unavailable');
+      const data = await response.json();
+      if (data?.schema !== 'nishad.visitor-activity.v1' ||
+          !Number.isSafeInteger(data.today?.views) || data.today.views < 0 ||
+          !Number.isSafeInteger(data.today?.visitors) || data.today.visitors < 0 ||
+          !Number.isSafeInteger(data.views_30d) || data.views_30d < 0 ||
+          !Number.isSafeInteger(data.visitor_days_30d) || data.visitor_days_30d < 0 ||
+          !Array.isArray(data.daily) || data.daily.length > 91 ||
+          !Number.isFinite(Date.parse(data.generated_at))) {
+        throw new Error('Invalid activity data');
+      }
+      const daily = data.daily.map(row => ({
+        day: typeof row.day === 'string' ? row.day : '',
+        views: row.views,
+        visitors: row.visitors
+      }));
+      if (daily.some(row => !/^\d{4}-\d{2}-\d{2}$/.test(row.day) ||
+          !Number.isSafeInteger(row.views) || row.views < 0 ||
+          !Number.isSafeInteger(row.visitors) || row.visitors < 0 || row.visitors > row.views)) {
+        throw new Error('Invalid activity rows');
+      }
+      fields.todayViews.textContent = data.today.views.toLocaleString();
+      fields.todayBrowsers.textContent = data.today.visitors.toLocaleString();
+      fields.monthViews.textContent = data.views_30d.toLocaleString();
+      fields.monthDays.textContent = data.visitor_days_30d.toLocaleString();
+      const byDay = new Map(daily.map(row => [row.day, row]));
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+      const rows = [];
+      for (let offset = 29; offset >= 0; offset--) {
+        const date = new Date(today);
+        date.setUTCDate(date.getUTCDate() - offset);
+        const day = date.toISOString().slice(0, 10);
+        rows.push(byDay.get(day) || { day, views: 0, visitors: 0 });
+      }
+      const max = Math.max(1, ...rows.map(row => row.views));
+      chart.replaceChildren(...rows.map(row => {
+        const bar = document.createElement('span');
+        bar.className = 'visitor-day';
+        bar.style.height = `${Math.max(4, Math.round(50 * row.views / max))}px`;
+        bar.title = `${row.day}: ${row.views} view${row.views === 1 ? '' : 's'}, ${row.visitors} daily browser${row.visitors === 1 ? '' : 's'}`;
+        bar.setAttribute('aria-label', bar.title);
+        return bar;
+      }));
+      chart.setAttribute('aria-label', `Consented visitor activity over 30 days: ${data.views_30d} views and ${data.visitor_days_30d} browser-days`);
+      status.replaceChildren(
+        document.createTextNode(`Updated ${new Date(data.generated_at).toLocaleString()}. Counts include only visitors who explicitly allowed minimal analytics. `),
+        Object.assign(document.createElement('a'), { href: '/analytics-privacy.html', textContent: 'Privacy details.' })
+      );
+    } catch {
+      Object.values(fields).forEach(field => { field.textContent = '—'; });
+      chart.replaceChildren();
+      chart.setAttribute('aria-label', 'Visitor activity unavailable');
+      status.textContent = 'Visitor aggregates are temporarily unavailable. No estimated or invented counts are shown.';
+    }
+  }
+
+  async function loadRepositoryActivity() {
+    const summary = document.getElementById('activity-summary');
+    const grid = document.getElementById('activity-grid');
+    const commits = document.getElementById('activity-commits');
+    const status = document.getElementById('activity-status');
+    if (!summary || !grid || !commits || !status) return;
+    try {
+      const response = await fetch('/activity.json', {
+        credentials: 'omit',
+        cache: 'no-store',
+        referrerPolicy: 'no-referrer',
+        redirect: 'error',
+        signal: AbortSignal.timeout(10000)
+      });
+      if (!response.ok) throw new Error('Activity unavailable');
+      const data = await response.json();
+      if (data?.schema !== 'nishad.repository-activity.v1' ||
+          typeof data.total_commits !== 'number' || typeof data.active_days !== 'number' ||
+          !data.days || typeof data.days !== 'object' || Array.isArray(data.days) ||
+          !Array.isArray(data.commits) || data.commits.length > 20 ||
+          !Number.isFinite(Date.parse(data.generated_at))) {
+        throw new Error('Invalid activity data');
+      }
+      const counts = Object.values(data.days);
+      if (counts.some(value => !Number.isInteger(value) || value < 1)) throw new Error('Invalid activity counts');
+      const max = Math.max(1, ...counts);
+      const today = new Date();
+      today.setUTCHours(0, 0, 0, 0);
+      const start = new Date(today);
+      start.setUTCDate(start.getUTCDate() - (52 * 7 + start.getUTCDay()));
+      const cells = [];
+      for (const day = new Date(start); day <= today; day.setUTCDate(day.getUTCDate() + 1)) {
+        const date = day.toISOString().slice(0, 10);
+        const count = data.days[date] || 0;
+        const level = count === 0 ? 0 : count === 1 ? 1 : Math.min(4, Math.ceil(4 * count / max));
+        const cell = document.createElement('span');
+        cell.className = 'activity-day';
+        cell.dataset.level = String(level);
+        cell.title = `${date}: ${count} commit${count === 1 ? '' : 's'}`;
+        cell.setAttribute('aria-label', cell.title);
+        cells.push(cell);
+      }
+      grid.replaceChildren(...cells);
+      grid.setAttribute('aria-label', `${data.total_commits} commits across ${data.active_days} active days in the last year`);
+      summary.replaceChildren();
+      const count = document.createElement('b');
+      count.textContent = String(data.total_commits);
+      summary.append(count, document.createTextNode(` commits across ${data.active_days} active days in the last year`));
+      const recent = data.commits.slice(0, 6).map(commit => {
+        if (!/^[0-9a-f]{40}$/.test(commit.sha) || !/^[0-9a-f]{7,12}$/.test(commit.short) ||
+            typeof commit.subject !== 'string' || commit.subject.length > 200 ||
+            !Number.isFinite(Date.parse(commit.date)) ||
+            commit.url !== `https://github.com/Nishad94/Nishad94.github.io/commit/${commit.sha}`) {
+          throw new Error('Invalid commit activity');
+        }
+        const item = document.createElement('li');
+        const time = document.createElement('time');
+        time.dateTime = commit.date;
+        time.textContent = new Intl.DateTimeFormat('en', {
+          month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'
+        }).format(new Date(commit.date));
+        const link = document.createElement('a');
+        link.href = commit.url;
+        link.target = '_blank';
+        link.rel = 'noreferrer';
+        link.textContent = commit.subject;
+        const sha = document.createElement('span');
+        sha.className = 'activity-sha';
+        sha.textContent = commit.short;
+        item.append(time, link, sha);
+        return item;
+      });
+      commits.replaceChildren(...recent);
+      status.textContent = `Generated ${new Date(data.generated_at).toLocaleString()} from public repository history. No GitHub API request is made by this page.`;
+    } catch {
+      summary.textContent = 'Repository activity is temporarily unavailable.';
+      grid.replaceChildren();
+      grid.setAttribute('aria-label', 'Repository activity unavailable');
+      commits.replaceChildren();
+      status.textContent = 'The page did not substitute stale or invented commit activity.';
+    }
+  }
+  loadVisitorActivity();
+  loadRepositoryActivity();
 
   // ---- daily branch + visit streak ----
   const dailyLines = [

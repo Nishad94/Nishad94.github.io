@@ -10,7 +10,12 @@ const SEARCH_TIMEOUT_MS = 10000;
 const SEARCH_MAX_BODY_BYTES = 4096;
 const SEARCH_VISITOR_DAILY_LIMIT = 20;
 const SEARCH_GLOBAL_DAILY_LIMIT = 500;
+const ACTIVITY_MAX_BODY_BYTES = 1024;
+const ACTIVITY_VISITOR_DAILY_LIMIT = 100;
+const ACTIVITY_CACHE_MS = 5 * 60 * 1000;
+const ACTIVITY_DATASET = 'nishad_site_activity';
 const searchCounts = new Map();
+let activityCache = null;
 
 function upstream(value) {
   if (!value) return null;
@@ -25,6 +30,7 @@ function upstream(value) {
 export function resetMemory() {
   cooldowns.clear();
   searchCounts.clear();
+  activityCache = null;
 }
 
 function allowedOrigins(env) {
@@ -38,6 +44,126 @@ function searchQuota(key, limit, now) {
   if (count >= limit) return false;
   searchCounts.set(countKey, count + 1);
   return true;
+}
+
+function corsHeaders(request, env, methods, cacheControl = 'no-store') {
+  const origin = request.headers.get('Origin') || '';
+  const allowed = allowedOrigins(env).includes(origin);
+  return {
+    allowed,
+    headers: {
+      ...(allowed ? { 'Access-Control-Allow-Origin': origin } : {}),
+      'Access-Control-Allow-Methods': methods,
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400',
+      'Cache-Control': cacheControl,
+      'Vary': 'Origin',
+      'X-Content-Type-Options': 'nosniff'
+    }
+  };
+}
+
+function publicPage(value) {
+  return typeof value === 'string' && value.length <= 160 &&
+    /^\/(?:blog\/(?:[a-z0-9]+(?:-[a-z0-9]+)*\/)?|)$/.test(value);
+}
+
+async function handleActivityWrite(request, env, now) {
+  const { allowed, headers } = corsHeaders(request, env, 'POST, OPTIONS');
+  const fail = (error, status) => Response.json({ error }, { status, headers });
+  if (!allowed) return fail('origin_not_allowed', 403);
+  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers });
+  if (request.method !== 'POST') return fail('method_not_allowed', 405);
+  if (!env.SITE_ACTIVITY?.writeDataPoint) return fail('activity_not_configured', 503);
+  let raw, body;
+  try {
+    raw = await request.arrayBuffer();
+    if (raw.byteLength < 1 || raw.byteLength > ACTIVITY_MAX_BODY_BYTES) return fail('payload_too_large', 413);
+    body = JSON.parse(new TextDecoder().decode(raw));
+  } catch {
+    return fail('invalid_json', 400);
+  }
+  if (!body || Array.isArray(body) || Object.keys(body).some(key => !['page', 'visitor'].includes(key)) ||
+      !publicPage(body.page) || !/^[a-f0-9]{64}$/.test(body.visitor || '')) {
+    return fail('invalid_activity_event', 400);
+  }
+  const source = (request.headers.get('CF-Connecting-IP') || 'unknown').slice(0, 64);
+  if (!searchQuota(`activity:${source}`, ACTIVITY_VISITOR_DAILY_LIMIT, now)) {
+    return fail('activity_quota_exceeded', 429);
+  }
+  env.SITE_ACTIVITY.writeDataPoint({
+    blobs: [body.page],
+    doubles: [1],
+    indexes: [body.visitor]
+  });
+  return new Response(null, { status: 204, headers });
+}
+
+async function handleActivityRead(request, env, fetchImpl, now) {
+  const origin = request.headers.get('Origin');
+  const { allowed, headers } = corsHeaders(request, env, 'GET', 'public, max-age=300, stale-while-revalidate=60');
+  const fail = (error, status) => Response.json({ error }, { status, headers });
+  if (origin && !allowed) return fail('origin_not_allowed', 403);
+  if (request.method !== 'GET') return fail('method_not_allowed', 405);
+  if (activityCache && activityCache.expires > now()) {
+    return Response.json(activityCache.value, { headers });
+  }
+  if (!/^[a-f0-9]{32}$/.test(env.CLOUDFLARE_ACCOUNT_ID || '') || !env.ANALYTICS_API_TOKEN) {
+    return fail('activity_not_configured', 503);
+  }
+  const query = `SELECT toDate(timestamp) AS day, SUM(_sample_interval) AS views, COUNT(DISTINCT index1) AS visitors
+FROM ${ACTIVITY_DATASET}
+WHERE timestamp >= NOW() - INTERVAL '90' DAY
+GROUP BY day
+ORDER BY day
+FORMAT JSON`;
+  let response;
+  try {
+    response = await fetchImpl(
+      `https://api.cloudflare.com/client/v4/accounts/${env.CLOUDFLARE_ACCOUNT_ID}/analytics_engine/sql`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${env.ANALYTICS_API_TOKEN}`, 'Content-Type': 'text/plain' },
+        body: query,
+        redirect: 'manual'
+      }
+    );
+  } catch {
+    return fail('activity_unavailable', 503);
+  }
+  if (!response.ok) {
+    await response.body?.cancel();
+    return fail('activity_unavailable', 503);
+  }
+  let result;
+  try { result = await response.json(); }
+  catch { return fail('activity_unavailable', 503); }
+  if (!Array.isArray(result?.data) || result.data.length > 91) return fail('activity_unavailable', 503);
+  const daily = result.data.map(row => ({
+    day: typeof row.day === 'string' ? row.day.slice(0, 10) : '',
+    views: Number(row.views),
+    visitors: Number(row.visitors)
+  }));
+  if (daily.some(row => !/^\d{4}-\d{2}-\d{2}$/.test(row.day) ||
+      !Number.isSafeInteger(row.views) || row.views < 0 ||
+      !Number.isSafeInteger(row.visitors) || row.visitors < 0 || row.visitors > row.views)) {
+    return fail('activity_unavailable', 503);
+  }
+  const today = new Date(now()).toISOString().slice(0, 10);
+  const current = daily.find(row => row.day === today) || { day: today, views: 0, visitors: 0 };
+  const value = {
+    schema: 'nishad.visitor-activity.v1',
+    generated_at: new Date(now()).toISOString(),
+    retention_days: 90,
+    today: current,
+    views_30d: daily.filter(row => row.day >= new Date(now() - 29 * 86400000).toISOString().slice(0, 10))
+      .reduce((total, row) => total + row.views, 0),
+    visitor_days_30d: daily.filter(row => row.day >= new Date(now() - 29 * 86400000).toISOString().slice(0, 10))
+      .reduce((total, row) => total + row.visitors, 0),
+    daily
+  };
+  activityCache = { value, expires: now() + ACTIVITY_CACHE_MS };
+  return Response.json(value, { headers });
 }
 
 function publicSearchUrl(value) {
@@ -140,6 +266,8 @@ async function handleSearch(request, env, fetchImpl, now) {
 
 export async function handle(request, env, fetchImpl = fetch, now = Date.now) {
   const path = new URL(request.url).pathname;
+  if (path === '/activity/view') return handleActivityWrite(request, env, now);
+  if (path === '/activity') return handleActivityRead(request, env, fetchImpl, now);
   if (path === '/search') return handleSearch(request, env, fetchImpl, now);
   if (path === '/metrics') {
     const origin = request.headers.get('Origin');

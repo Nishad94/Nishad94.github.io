@@ -53,5 +53,6 @@ test('public catalog excludes drafts and 404s never track', async () => {
   assert.ok(output.get('blog/public/index.html').includes('analytics.js'));
   const config = await readFile(new URL('../deployment.js', import.meta.url), 'utf8');
   assert.match(config, /ANALYTICS_ENDPOINT = '(?:https:\/\/metrics\.nishad\.ai\/collect)?'/);
+  assert.match(config, /PUBLIC_ACTIVITY_ENDPOINT = '(?:https:\/\/nishad-ai-proxy\.nishad-dawkhar94\.workers\.dev\/activity)?'/);
   assert.match(config, /PRIVATE_DASHBOARD_ORIGIN = '(?:https:\/\/private\.nishad\.ai)?'/);
 });

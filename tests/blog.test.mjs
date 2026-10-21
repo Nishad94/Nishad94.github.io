@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { loadPosts, parsePost, renderBlog } from '../scripts/build-site.mjs';
+import { loadPosts, parseGitActivity, parsePost, renderBlog } from '../scripts/build-site.mjs';
 import { fixture, source } from './blog-fixture.mjs';
 
 test('metadata is explicit, calendar-valid, filename-safe, and escaped', () => {
@@ -42,6 +42,22 @@ test('published posts sort newest first with deterministic tie-breaking', () => 
   const html = renderBlog(posts).get('blog/index.html');
   assert.ok(html.indexOf('/blog/equal/') < html.indexOf('/blog/newer/'));
   assert.ok(html.indexOf('/blog/newer/') < html.indexOf('/blog/older/'));
+});
+
+test('git activity is grouped by UTC day and exposes only safe public commit metadata', () => {
+  const first = 'a'.repeat(40);
+  const second = 'b'.repeat(40);
+  const activity = parseGitActivity(
+    `${first}\x1faaaaaaa\x1f2026-10-21T10:00:00Z\x1fAdd activity widget\x1e` +
+    `${second}\x1fbbbbbbb\x1f2026-10-21T12:00:00Z\x1fFix <unsafe> title\x1e`,
+    '2026-10-21T13:00:00Z'
+  );
+  assert.equal(activity.total_commits, 2);
+  assert.equal(activity.active_days, 1);
+  assert.equal(activity.days['2026-10-21'], 2);
+  assert.equal(activity.commits[0].url, `https://github.com/Nishad94/Nishad94.github.io/commit/${first}`);
+  assert.equal(activity.commits[1].subject, 'Fix <unsafe> title');
+  assert.throws(() => parseGitActivity('not-a-valid-record'));
 });
 
 test('Markdown supports technical content without executing HTML or unsafe protocols', () => {
