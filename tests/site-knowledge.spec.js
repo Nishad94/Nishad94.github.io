@@ -106,6 +106,7 @@ test('web intent streams the local answer before a cited Exa enrichment', async 
     }
     expect(body.messages[0].content).toContain('PUBLIC WEB ENRICHMENT');
     expect(body.messages[0].content).toContain('SYNTHETIC_WEB_EVIDENCE');
+    expect(body.messages[0].content).toContain('Do not calculate currency conversions');
     return route.fulfill({
       contentType: 'text/event-stream',
       body: 'data: {"delta":"WEB_ENRICHED_ANSWER"}\n\ndata: {"done":true,"finish_reason":"stop"}\n\n'
