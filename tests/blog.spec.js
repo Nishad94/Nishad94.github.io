@@ -98,6 +98,16 @@ test('hash tabs and legacy anchors remain separate from keyboard Blog navigation
   }
 });
 
+test('bare homepage navigation resets scroll and never autofocuses the hidden terminal', async ({ page }) => {
+  await page.goto('/#shell');
+  await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+  expect(await page.evaluate(() => scrollY)).toBeGreaterThan(0);
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+  await expect(page.locator('#term-input')).not.toHaveAttribute('autofocus');
+  expect(await page.evaluate(() => document.activeElement?.id)).not.toBe('term-input');
+});
+
 test.describe('static primary navigation', () => {
   test.use({ javaScriptEnabled: false });
   test('Blog is visible and reachable without JavaScript', async ({ page }) => {

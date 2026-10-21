@@ -345,7 +345,7 @@ body.impact-mode .commit[data-impact-milestone] .commit-box{border-color:var(--m
   <div class="term-output" id="term-output" aria-live="polite"></div>
   <form class="term-input-row" id="term-form" autocomplete="off">
     <span class="term-prompt">guest@nishad.ai:~$</span>
-    <input class="term-input" id="term-input" name="command" inputmode="text" autocapitalize="none" autocomplete="off" spellcheck="false" aria-label="Terminal command" autofocus>
+    <input class="term-input" id="term-input" name="command" inputmode="text" autocapitalize="none" autocomplete="off" spellcheck="false" aria-label="Terminal command">
   </form>
 </div>
 <div class="termhint">try <code>spotify</code>, <code>vibe</code>, or <code>conspiracy</code> · first AI query downloads a local model · ↑/↓ history · Ctrl+L clears</div></section>
@@ -1682,6 +1682,7 @@ ${evidence || 'No useful public web evidence was returned.'}`
   // ---- view router: one focused view at a time, hash-addressable ----
   const viewEls = [...document.querySelectorAll('.view[data-view]')];
   const tabEls = [...document.querySelectorAll('.tab[data-view]')];
+  if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual';
   function showView(name) {
     viewEls.forEach(v => { v.hidden = v.dataset.view !== name; });
     tabEls.forEach(t => {
@@ -1705,7 +1706,7 @@ ${evidence || 'No useful public web evidence was returned.'}`
     const el = hash && document.getElementById(hash);
     if (el) reveal(el, { focus: false });
     else if (/^(music|shell)-/.test(hash)) showView(hash.startsWith('music') ? 'music' : 'shell');
-    else showView('home');
+    else reveal('#home', { focus: false });
   }
   window.addEventListener('hashchange', routeFromHash);
   document.addEventListener('click', event => {
