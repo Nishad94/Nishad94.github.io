@@ -138,6 +138,16 @@ export const ADSENSE_SLOT = '';`
 });
 
 test('web intent remains local-only while the public deployment flag is disabled', async ({ page }) => {
+  await page.route('**/deployment.js', route => route.fulfill({
+    contentType: 'application/javascript',
+    body: `export const PRIVATE_DASHBOARD_ORIGIN = '';
+export const ANALYTICS_ENDPOINT = '';
+export const INFERENCE_CHAT_ENDPOINT = '';
+export const INFERENCE_METRICS_ENDPOINT = '';
+export const WEB_SEARCH_ENABLED = false;
+export const ADSENSE_CLIENT = '';
+export const ADSENSE_SLOT = '';`
+  }));
   await setup(page);
   await page.route('http://127.0.0.1:9/search', () => {
     throw new Error('search must stay disabled');
